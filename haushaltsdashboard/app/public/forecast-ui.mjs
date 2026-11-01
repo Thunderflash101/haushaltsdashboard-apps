@@ -17,11 +17,11 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
     $('forecast-manual').disabled=$('forecast-asof').disabled=f.balanceSource!=='manual';}
     for(const [id,value] of [['forecast-current',report.current],['forecast-free',report.available],['forecast-end',report.endBalance],['forecast-low',report.minimum]]){text(id,eur(value));$(id).classList.toggle('negative',value!==null&&value<0);}
     text('forecast-free-label',report.available!==null&&report.available<0?'Geplanter Fehlbetrag':report.warnings.length?'Vorläufig frei':'Rechnerisch frei');text('forecast-free-until','bis '+date(report.freeUntil));
-    text('forecast-preview-value',eur(report.available));text('forecast-preview-note',report.current===null?'Kontostand und Zahlungspläne ergänzen':`bis ${date(report.freeUntil)} · nach geschütztem Guthaben und Puffer`);
+    text('forecast-preview-value',eur(report.monthly.available));$('forecast-preview-value').classList.toggle('negative',report.monthly.available!==null&&report.monthly.available<0);text('forecast-preview-note',report.monthly.incomeKnown?`${report.monthly.key} · ${eur(report.monthly.income)} Einnahmen − ${eur(report.monthly.costs)} geschätzte Monatskosten`:'Monatseinkommen noch nicht erkannt oder eingeplant');
     text('forecast-balance-note',report.balance?`${f.balanceSource==='manual'?'Manueller Kontostand':'Gebuchter Bankkontostand'}: ${eur(report.balance.amount)} einschließlich ${date(report.balance.date)}. Spätere importierte Buchungen bis heute sind fortgeschrieben. Geplant im Zeitraum: +${eur(report.plannedIncome)} / −${eur(report.plannedExpense)}. Geschützt: ${eur(report.protected)}.`:'Kein geeigneter gebuchter Bankkontostand vorhanden. Unter „Kontostand und Planung einstellen“ einen manuellen Kontostand hinterlegen oder die Bankdaten aktualisieren.');
     $('forecast-settings').open=!report.balance||$('forecast-settings').open;
     renderNotices();
-    drawChart();renderDay();renderPlans();renderEvents();renderMonthlyIncome();renderLearning();
+    drawChart();renderDay();renderPlans();renderEvents();renderMonthlyIncome();renderLearning();renderMonthRoom();
     for(const [value,key] of [['joern','first'],['bettina','second']])$('forecast-income-source').querySelector(`option[value="${value}"]`).textContent='Monatsnetto '+(state.people?.[key]||(key==='first'?'Person 1':'Person 2'));
     const categories=[...new Set(['Sonstiges',...(state.categories||[])])],select=$('forecast-once-category'),prior=select.value;select.replaceChildren(...categories.map(name=>el('option',{value:name,text:name})));if(categories.includes(prior))select.value=prior;
     if(!$('forecast-income-start').value)$('forecast-income-start').value=today.slice(0,7);if(!$('forecast-once-date').value)$('forecast-once-date').value=today;
@@ -54,6 +54,16 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
     box.append(el('div',{class:'forecast-notice-box'},[el('strong',{text:'Prognose noch vervollständigen'}),el('p',{text:'Die Berechnung ist vorläufig. Ergänze die offenen Angaben, damit Ausgaben und Einnahmen vollständig eingeplant sind.'}),actions,details]));
   }
 
+  function renderMonthRoom(){
+    const m=report.monthly;for(const [id,value] of [['month-room-free',m.available],['month-room-income',m.income],['month-room-fixed',m.fixed],['month-room-flex',m.flexible],['month-room-other',m.other]]){text(id,eur(value));$(id).classList.toggle('negative',value!==null&&value<0);}
+    text('month-room-period',new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(m.key+'-01T12:00:00Z'))+' · gesamter Kalendermonat, einschließlich bereits gebuchter Zahlungen');
+    text('month-room-income-detail',`${eur(m.received)} gebucht + ${eur(m.expected)} noch erwartet`);
+    text('month-room-equation',`${eur(m.income)} Einnahmen − ${eur(m.costs)} Monatskosten = ${eur(m.available)} noch frei`);
+    text('month-room-note',`${eur(m.booked)} Kosten bereits gebucht · ${eur(m.open)} noch eingeplant.${!m.incomeKnown?' Es fehlen erkannte oder geplante Monatseinnahmen.':''}${report.warnings.length?' Die Schätzung enthält noch offene Planungshinweise.':''}`);
+    const rows=$('month-room-rows');rows.replaceChildren();for(const row of m.categories)rows.append(el('tr',{},[el('td',{text:row.name}),el('td',{class:'right',text:eur(row.booked)}),el('td',{class:'right',text:eur(row.planned)}),el('td',{class:'right',text:eur(row.total)})]));
+    const chart=$('month-room-chart');chart.replaceChildren();const items=[['Fixkosten',m.fixed,'#142943'],['Flexibel',m.flexible,'#58b5c2'],['Anlagen / Überträge',m.other,'#b8a0d9'],['Noch frei',m.available||0,'#1aa889']],total=items.reduce((sum,[,value])=>sum+Math.max(0,value),0),bar=el('div',{class:'month-room-bar',role:'img','aria-label':'Aufteilung des Monatseinkommens nach geschätzten Kosten und freiem Betrag'}),legend=el('div',{class:'month-room-legend'});
+    for(const [label,value,color] of items){if(value>0&&total)bar.append(el('span',{style:`width:${value/total*100}%;background:${color}`}));legend.append(el('span',{text:`${label}: ${eur(value)}`}));}chart.append(bar,legend);
+  }
   function renderLearning(){
     const l=report.learning,box=$('forecast-learning'),f=defaults(getState().forecast);box.replaceChildren();$('forecast-learning-reset').hidden=!f.ignoredPatterns.length;
     text('forecast-learning-summary',!f.automatic?'Automatische Erkennung ausgeschaltet':`${l.fixed.length} Fixkostenmuster · ${l.incomes.length} regelmäßige Einnahmen · ${l.flexible.length} flexible Monatswerte`);
