@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.4.1
+
+- Hinweise zur Prognose kompakt zusammengefasst, Details standardmäßig eingeklappt.
+- Direkte Aktionen für Kontostand, Fixkostentermine, Budgets und Einkommenspläne.
+- Fehlende Fixkostentermine direkt aus einem Hinweis bearbeiten.
+- Verfügbarer Betrag bei offenen Hinweisen als „Vorläufig frei“ gekennzeichnet.
+- Keine automatische Änderung vorhandener Finanzdaten oder Planwerte.
+
 ## 0.4.0
 
 - Neuer Bereich „Planung“: Kontostandsprognose für 30, 60 oder 90 Tage mit anklickbaren Tagesständen.

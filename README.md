@@ -3,7 +3,7 @@
 Eine private Haushaltsauswertung mit Monatsansicht, Kategorien, Fixkosten,
 variablen Kosten, proportionaler Kostenaufteilung und Enable-Banking-Import.
 
-**Version 0.4.0 – Kontostandsprognose und verfügbares Geld planen.**
+**Version 0.4.1 – Kontostandsprognose mit kompakten Einrichtungshinweisen.**
 
 Der Programmcode enthält keine persönlichen Buchungen, Kontonummern oder
 Anwendungsschlüssel. Die App startet leer. Jeder Betreiber hinterlegt seine
