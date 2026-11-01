@@ -29,6 +29,7 @@ jobs:
           node tests/browser-smoke.mjs
           node tests/forecast-browser.mjs
           node tests/learning-browser.mjs
+          node tests/contracts-browser.mjs
       - name: Browser screenshots
         if: always()
         uses: actions/upload-artifact@v4

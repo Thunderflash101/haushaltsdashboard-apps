@@ -1,5 +1,17 @@
 # Änderungen
 
+## 0.6.0
+
+- Neuer Bereich „Verträge“ mit Monats-/Jahreskosten, Suche und Filtern.
+- Vorhandene Fixkosten und erkannte regelmäßige Zahlungen als Vertragsvorlage übernehmen.
+- Anbieter, Vertragsnummer, Zahlbetrag, Rhythmus, Laufzeit und Kündigungsangaben pflegen.
+- Fristen aus eigenen Angaben oder exaktem Datum; Hinweise auch in der Übersicht.
+- Preisverlauf aus passenden Abbuchungen, Abweichung zum gespeicherten Betrag und Übernahme des letzten Zahlbetrags.
+- Kalenderexport für Fristen mit lokaler Erinnerung.
+- Verträge ersetzen verknüpfte Fixkosten in Prognose und Aufteilung; kein doppelter Ansatz.
+- Gekündigte Verträge bis zum Enddatum einplanen, beendete Verträge archivieren.
+- Keine Kündigung wird versendet; bestehende Buchungen bleiben erhalten.
+
 ## 0.5.1
 
 - Eigener Monatsrahmen: gebuchte plus erwartete Monatseinnahmen minus gesamte geschätzte Monatskosten.
