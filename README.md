@@ -85,8 +85,10 @@ Erfolgreich lokal ausgeführt:
   Aktualisieren des vorhandenen Integrationseintrags beim Umstellen.
 - JavaScript-/Python-Syntax und Privacy-Audit.
 
-Noch ausstehend: GitHub-Workflow, tatsächlicher Container-Bau dieser Version,
-Installation in Home Assistant, Browserdarstellung und echter Bankabruf.
+Der erste [GitHub-Workflow](https://github.com/Thunderflash101/haushaltsdashboard-apps/actions/runs/41316959846)
+hat diese Prüfungen und den tatsächlichen Container-Bau erfolgreich abgeschlossen.
+
+Noch ausstehend: Installation in Home Assistant, Browserdarstellung und echter Bankabruf.
 Die Python-Tests ersetzen keinen vollständigen Home-Assistant-Core-Test.
 
 ## Daten und Sicherheit
