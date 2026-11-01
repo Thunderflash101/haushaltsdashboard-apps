@@ -3,7 +3,7 @@
 Eine private Haushaltsauswertung mit Monatsansicht, Kategorien, Fixkosten,
 variablen Kosten, proportionaler Kostenaufteilung und Enable-Banking-Import.
 
-**Version 0.4.1 – Kontostandsprognose mit kompakten Einrichtungshinweisen.**
+**Version 0.5.0 – Automatische Prognose aus wiederkehrenden Buchungen.**
 
 Der Programmcode enthält keine persönlichen Buchungen, Kontonummern oder
 Anwendungsschlüssel. Die App startet leer. Jeder Betreiber hinterlegt seine
@@ -34,6 +34,7 @@ Die Repository-URL bleibt nach der Einrichtung stabil.
 ## Funktionen
 
 - Gemeinsame Daten auf dem NUC, Zugriff über Home Assistant Ingress.
+- Automatische Erkennung von Rhythmen, Gehalt und typischen flexiblen Kosten mit nachvollziehbaren Quellen.
 - Kontostandsprognose für 30/60/90 Tage mit offenen Zahlungen und Restbudgets.
 - Frei verfügbar bis zum nächsten regelmäßigen Eingang; geschütztes Guthaben und Puffer.
 - Einkommenspläne mit monatlich unterschiedlichen Nettowerten und Einmalposten.
@@ -84,7 +85,7 @@ separate Installation und benötigt die dokumentierte Migration.
 
 Erfolgreich lokal ausgeführt:
 
-- 43 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
+- 59 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
   CSV-Überschneidungen, leere Ersteinrichtung, JSON-Datenübernahme,
   konfigurierbare Verbindung, Benutzerrechte und Datenerhalt nach Neustart,
   Teilbuchungen, Erstattungen, Umbuchungen, zeitlich passende Monatsvergleiche

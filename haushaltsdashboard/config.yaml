@@ -1,5 +1,5 @@
 name: Haushaltsdashboard
-version: "0.4.1"
+version: "0.5.0"
 slug: haushaltsdashboard
 description: Privates Haushaltsdashboard mit Enable-Banking-Import
 arch:

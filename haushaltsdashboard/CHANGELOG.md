@@ -1,5 +1,17 @@
 # Änderungen
 
+## 0.5.0
+
+- Automatisches Lernen aus der lokalen Buchungshistorie, standardmäßig aktiv und abschaltbar.
+- Fehlende Zahlungsrhythmen, Fälligkeitsmonate und Termine vorhandener Fixkosten aus wiederkehrenden Abbuchungen ableiten.
+- Regelmäßige Vertragsabbuchungen und Gehaltseingänge automatisch in der Prognose berücksichtigen.
+- Flexible Monatskosten aus bis zu sechs vergangenen Vergleichsmonaten schätzen; laufenden Monat und ersten Importmonat auslassen.
+- Seltene Händlerausgaben aus allgemeinen Kategorien ausschließen und große Monatsausreißer begrenzen.
+- Manuelle Budgets, Termine und Einkommenspläne behalten Vorrang.
+- Erklärung mit Quellbuchungen, Vergleichsmonaten, Schätzwert und Erkennungsstufe.
+- Muster ausschließbar; einzelne Buchungen als einmalig vom Lernen ausnehmen.
+- Zusätzliche Algorithmus- und Browserprüfungen mit synthetischen Daten.
+
 ## 0.4.1
 
 - Hinweise zur Prognose kompakt zusammengefasst, Details standardmäßig eingeklappt.

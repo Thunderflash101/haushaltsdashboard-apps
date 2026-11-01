@@ -190,3 +190,74 @@ sind durch Entfernen und erneutes Anlegen möglich.
 HA-App-Sicherung erstellen, dieselbe Repository-App auf 0.4.0 aktualisieren und
 geöffnete Dashboard-Seiten neu laden. Die Bankverbindung und vorhandenen Daten
 bleiben erhalten. Für dieses Update keine neue Rückleitungs-Integration installieren.
+
+## Automatische Erkennung (ab 0.5.0)
+
+Die Prognose lernt standardmäßig aus den vorhandenen lokalen Buchungen und
+aktualisiert ihre Schätzungen nach jedem Import. Die Rohbuchungen, gespeicherten
+Fixkosten und manuellen Budgets werden dabei nicht umgeschrieben. Unter
+**Planung → Automatisch erkannt** stehen erkannte Muster, Quellen, Monatswerte
+und eine qualitative Erkennungsstufe (mittel/hoch). Diese Stufe ist keine
+statistische Garantie. Die Erkennung kann in den Planungseinstellungen abgeschaltet
+werden. Einzelne Muster lassen sich ausschließen und später wieder zulassen.
+
+### Rhythmen und Fälligkeit
+
+Ähnliche Abbuchungen desselben Zahlungspartners und derselben Kategorie werden
+nach Betrag und gegebenenfalls Mandatsreferenz getrennt. Regelmäßige Monatsabstände
+und ähnliche Zahlungstage ergeben einen geschätzten Rhythmus (1, 2, 3, 6 oder
+12 Monate). Für vorhandene bekannte Rhythmen können zwei Zahlungstermine genügen,
+sonst sind mindestens drei nötig. Wiederholte Zahlungen im gleichen Monat sind
+kein eindeutiger Vertragsrhythmus. Eigene Fälligkeitstage und Monate bleiben
+vorrangig. Ein vorhandener normalisierter Monatsbetrag wird ebenfalls beibehalten.
+
+Neue Fixkostenmuster werden nur bei passenden Vertragskategorien oder bereits
+als sichere Fixkosten eingeordneten Buchungen verwendet. Ein Supermarkt wird
+deshalb nicht allein durch wiederholte Einkäufe zum Vertrag. Lange ausgebliebene
+Serien werden nicht unbegrenzt fortgeschrieben. Ausreichende Historie bleibt
+notwendig: Zwei jährliche Buchungen reichen für einen unbekannten Jahresvertrag
+noch nicht aus.
+
+### Gehalt
+
+Mindestens drei beobachtete Gehaltsmonate desselben Zahlungspartners liefern den
+typischen Termin. Monatsendzahlungen werden am letzten Wochentag des Monats
+angesetzt; Feiertage sind nicht berücksichtigt. Der Betrag ist der Median der
+letzten drei beobachteten Monatszahlungen. Damit beeinflusst eine einzelne
+Sonderzahlung die Prognose weniger. Bereits gebuchtes Gehalt wird nicht erneut
+eingeplant, auch wenn sein Betrag vom Schätzwert abweicht.
+
+Ein vorhandener manueller Einkommensplan für denselben Zahlungspartner hat Vorrang.
+Automatisch gelernt wird nur aus tatsächlichen Kontoeingängen; ein manuell
+eingetragenes Netto der zweiten Person erzeugt weiterhin keinen automatischen
+Kontoeingang. Explizite Einkommenspläne können wie bisher auf Monatsnettos zugreifen.
+Die Option für fehlende manuelle Monatsnettos ist getrennt von der automatischen
+Gehaltserkennung.
+
+### Flexible Ausgaben
+
+Fehlt ein eigenes Kategorienbudget, können typische variable Ausgaben geschätzt
+werden. Grundlage sind bis zu sechs vergangene Kalendermonate mit Buchungen.
+Der erste Importmonat und der laufende Monat werden vorsichtshalber ausgelassen;
+Monate ganz ohne Buchungsdaten werden nicht als Null gezählt. Mindestens zwei
+Vergleichsmonate und wiederholte Ausgaben in mindestens der Hälfte der Monate
+sind erforderlich. Importvollständigkeit lässt sich daraus nicht sicher beweisen.
+
+Für Lebensmittel, Tanken und Drogerie werden die passenden flexiblen Abbuchungen
+betrachtet. In anderen Kategorien zählen nur Händler mit Ausgaben in mindestens
+zwei Vergleichsmonaten. Seltene Reparaturen, Reisen oder Einzelkäufe gehen dadurch
+nicht pauschal in einen monatlichen Durchschnitt ein. Große Monatswerte werden
+oberhalb von Median plus dem Maximum aus dreifacher Medianabweichung, halbem
+Median und 20 € begrenzt. Der daraus berechnete Durchschnitt und die ursprünglichen
+Monatswerte sind sichtbar. Dies ist ein Planwert und kein Ausgabenlimit.
+
+Diese automatisch geschätzte flexible Rate wird zusätzlich zu geplanten Fixkosten
+und expliziten Einmalposten berücksichtigt. Ein manuelles Budget ersetzt sie und
+umfasst wie bisher die gesamte Kategorie. Die verbleibende flexible Rate wird
+auf die restlichen Kalendertage verteilt.
+
+Unter **Buchungen → Als einmalig markieren** können Sonderkäufe oder Sonderzahlungen
+vom Lernen ausgeschlossen werden. Sie bleiben vollständig in den tatsächlichen
+Monatsauswertungen und im Kontosaldo enthalten. Keine automatische Methode kann
+alle Einmalereignisse oder Vertragsenden zuverlässig erkennen; die Quellen und
+Korrekturmöglichkeiten sind deshalb Bestandteil der Ansicht.

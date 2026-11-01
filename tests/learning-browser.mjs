@@ -1,0 +1,25 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync,mkdirSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {createApp} from '../haushaltsdashboard/app/server.mjs';
+const dir=mkdtempSync(path.join(tmpdir(),'learning-browser-')),app=createApp({dataDir:dir,allowedIngress:['127.0.0.1']});await new Promise(r=>app.ingress.listen(0,'127.0.0.1',r));
+const origin=`http://127.0.0.1:${app.ingress.address().port}`,headers={'X-Remote-User-Id':'browser-test'};
+async function request(data){const r=await fetch(origin+'/api/dashboard',{method:data?'POST':'GET',headers:{...headers,...(data?{'Content-Type':'application/json','X-Haushalt-Request':'1'}:{})},...(data?{body:JSON.stringify(data)}:{})});assert.equal(r.status,200);return r.json();}
+const b=(date,amount,payee,category)=>({date,amount,payee,category,purpose:'Testzahlung',fixed:'Nein'});
+let browser,page;
+try{
+  let db=await request();db.state.forecast={balanceSource:'manual',manualBalance:{amount:1000,date:'2026-11-01'}};db.state.categories=['Gehalt','Lebensmittel','Rundfunkbeitrag'];db.state.fixed=[{name:'Testbeitrag',category:'Rundfunkbeitrag',monthly:18.36,rhythm:'vierteljährlich',status:'Ja'}];
+  db.state.bookings=[b('01.03.2026',1,'Start','Sonstiges'),b('15.05.2026',-55.08,'Testbeitragsservice','Rundfunkbeitrag'),b('15.08.2026',-55.08,'Testbeitragsservice','Rundfunkbeitrag'),b('01.11.2026',1,'Letzte Buchung','Sonstiges')];
+  for(const month of ['08','09','10'])db.state.bookings.push(b(`28.${month}.2026`,2000,'Testarbeitgeber','Gehalt'),b(`10.${month}.2026`,-300,'Testmarkt','Lebensmittel'));
+  await request(db);browser=await chromium.launch({headless:true});const context=await browser.newContext({extraHTTPHeaders:headers,timezoneId:'Europe/Berlin'});page=await context.newPage();page.setDefaultTimeout(15000);await page.clock.setFixedTime(new Date('2026-11-01T12:00:00Z'));const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(origin+'/dashboard.html');await page.locator('[data-view="forecast"]').click();assert.match(await page.locator('#forecast-learning-summary').innerText(),/1 Fixkostenmuster · 1 regelmäßige Einnahmen · 1 flexible Monatswerte/);assert.match(await page.locator('#forecast-events').innerText(),/Automatisches Gehalt/);assert.match(await page.locator('#forecast-events').innerText(),/55,08/);
+  const flex=page.locator('#forecast-learning > details').filter({hasText:'Flexible Kosten'});await flex.locator('> summary').click();assert.match(await flex.innerText(),/300,00/);await flex.getByText(/Quellbuchungen/).click();assert.match(await flex.innerText(),/Testmarkt/);
+  const saved=async()=>page.waitForFunction(()=>document.querySelector('#server-state').textContent==='Auf dem NUC gespeichert');
+  await flex.getByRole('button',{name:'Muster nicht berücksichtigen'}).click();await saved();assert.match(await page.locator('#forecast-learning-summary').innerText(),/0 flexible Monatswerte/);await page.locator('#forecast-learning-reset').click();await saved();assert.match(await page.locator('#forecast-learning-summary').innerText(),/1 flexible Monatswerte/);
+  await page.locator('[data-view="bookings"]').click();await page.locator('#booking-month').selectOption('2026-10');const row=page.locator('#booking-rows tr').filter({hasText:'Testmarkt'});await row.getByRole('button',{name:'Als einmalig markieren',exact:true}).click();await saved();db=await request();assert.equal(db.state.bookings.find(b=>b.payee==='Testmarkt'&&b.date==='10.10.2026').forecastOneOff,true);
+  await page.locator('[data-view="forecast"]').click();await page.locator('#forecast-settings > summary').click();await page.locator('#forecast-automatic').uncheck();await page.getByRole('button',{name:'Planung speichern',exact:true}).click();await saved();assert.match(await page.locator('#forecast-learning-summary').innerText(),/ausgeschaltet/);await page.locator('#forecast-automatic').check();await page.getByRole('button',{name:'Planung speichern',exact:true}).click();await saved();
+  mkdirSync('test-results',{recursive:true});await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'test-results/learning-desktop.png',fullPage:true});for(const width of [390,360]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}await page.screenshot({path:'test-results/learning-mobile.png',fullPage:true});
+  await page.reload();await page.locator('[data-view="forecast"]').click();assert.equal(await page.locator('#forecast-automatic').isChecked(),true);assert.deepEqual(errors,[]);console.log('Learning browser passed: quarterly terms, salary, flexible averages, sources, exclusion, one-off flag, toggle and mobile.');
+}catch(e){mkdirSync('test-results',{recursive:true});await page?.screenshot({path:'test-results/learning-failure.png',fullPage:true}).catch(()=>{});throw e;}finally{await browser?.close();app.stop();rmSync(dir,{recursive:true,force:true});}
