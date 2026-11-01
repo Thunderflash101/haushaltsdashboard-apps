@@ -9,6 +9,10 @@ export function flowKind(category, kind) {
   if (['expense','transfer','investment'].includes(kind)) return kind;
   return category === 'ETFs' ? 'investment' : category === 'Haushaltsgeld' ? 'transfer' : 'expense';
 }
+export function inflowKind(booking) {
+  if (['income','transfer','investment','refund'].includes(booking.flowType)) return booking.flowType;
+  return booking.flowType === 'expense' ? 'income' : flowKind(booking.category,booking.flowType) === 'expense' ? 'income' : flowKind(booking.category,booking.flowType);
+}
 export function bookingParts(booking) {
   if (!(booking.amount < 0)) return [];
   const parts = booking.splits;
@@ -94,8 +98,8 @@ export function analyzeMonth(bookings, key, options = {}) {
       if (b.refund && b.flowType === 'refund') {
         refunds += amount;
         if (spending) for (const p of b.refund.allocations) add(b,index,p,-cents(p.amount),true);
-      } else if (flowKind(b.category,b.flowType) === 'transfer') transfersIn += amount;
-      else if (b.flowType === 'investment') investmentIn += amount;
+      } else if (inflowKind(b) === 'transfer') transfersIn += amount;
+      else if (inflowKind(b) === 'investment') investmentIn += amount;
       else income += amount;
     } else {
       cashOut -= amount;
@@ -144,7 +148,7 @@ export function relationCandidates(bookings, booking, type) {
       if (!(booking.amount>0&&b.amount<0) || b.transferPeerId || remaining<cents(booking.amount) || days<0) return null;
       return {booking:b,score:(samePayee?100:0)+(remaining===cents(booking.amount)?20:0)-Math.min(days,365)/365,suggested:samePayee&&days<=180};
     }
-    if (b.refund||b.splits?.length||b.transferPeerId&&b.transferPeerId!==booking.financeId||cents(b.amount)+cents(booking.amount)!==0||!cents(b.amount)||b.account&&booking.account&&b.account===booking.account) return null;
+    if (b.refund||b.splits?.length||b.financeId&&bookings.some(x=>x.refund?.targetId===b.financeId)||b.transferPeerId&&b.transferPeerId!==booking.financeId||cents(b.amount)+cents(booking.amount)!==0||!cents(b.amount)||b.account&&booking.account&&b.account===booking.account) return null;
     const knownAccounts=b.account&&booking.account&&b.account!==booking.account;
     return {booking:b,score:(knownAccounts?100:0)-Math.abs(days),suggested:!!knownAccounts&&Math.abs(days)<=7};
   }).filter(Boolean).sort((a,b)=>b.score-a.score);

@@ -4,7 +4,7 @@ import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {analyzeMonth,compareMonths,validateFinanceState,refundableParts,relationCandidates,bookingParts} from '../haushaltsdashboard/app/public/finance.mjs';
+import {inflowKind,analyzeMonth,compareMonths,validateFinanceState,refundableParts,relationCandidates,bookingParts} from '../haushaltsdashboard/app/public/finance.mjs';
 import {validState} from '../haushaltsdashboard/app/lib/storage.mjs';
 import {reconcile} from '../haushaltsdashboard/app/lib/banking.mjs';
 import {createApp} from '../haushaltsdashboard/app/server.mjs';
@@ -39,6 +39,7 @@ test('investment and transfer flows are distinct from income and consumption',()
   assert.equal(validateFinanceState({bookings}),null);
   const spending=analyzeMonth(bookings,'2026-10',{spendingOnly:true}),cash=analyzeMonth(bookings,'2026-10');
   assert.equal(spending.expense,0);assert.equal(spending.income,1000);assert.equal(cash.income,1300);assert.equal(cash.expense,250);assert.equal(spending.balance,1050);
+  assert.equal(inflowKind({category:'ETFs'}),'investment');assert.equal(inflowKind({category:'ETFs',flowType:'income'}),'income');assert.equal(inflowKind({category:'Sonstiges',flowType:'expense'}),'income');
   bookings[2].transferPeerId='missing';assert.match(validateFinanceState({bookings}),/Umbuchungen/);
 });
 test('refund candidates suggest same merchant, but do not mutate or auto-link',()=>{
