@@ -13,7 +13,7 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
   function render(){
     const state=getState(),f=defaults(state.forecast),today=berlinToday();report=forecast(state,getBank(),{account:getAccount()});
     $('forecast-horizon').value=f.horizon;if(!settingsDirty){$('forecast-source').value=f.balanceSource;$('forecast-manual').value=f.manualBalance?.amount??'';$('forecast-asof').value=f.manualBalance?.date||today;$('forecast-asof').max=today;$('forecast-protected').value=f.protectedBalance;$('forecast-buffer').value=f.buffer;
-    $('forecast-budgets').checked=f.useBudgets;$('forecast-possible').checked=f.includePossible;$('forecast-estimates').checked=f.includeEstimates;
+    $('forecast-automatic').checked=f.automatic;$('forecast-budgets').checked=f.useBudgets;$('forecast-possible').checked=f.includePossible;$('forecast-estimates').checked=f.includeEstimates;
     $('forecast-manual').disabled=$('forecast-asof').disabled=f.balanceSource!=='manual';}
     for(const [id,value] of [['forecast-current',report.current],['forecast-free',report.available],['forecast-end',report.endBalance],['forecast-low',report.minimum]]){text(id,eur(value));$(id).classList.toggle('negative',value!==null&&value<0);}
     text('forecast-free-label',report.available!==null&&report.available<0?'Geplanter Fehlbetrag':report.warnings.length?'Vorläufig frei':'Rechnerisch frei');text('forecast-free-until','bis '+date(report.freeUntil));
@@ -21,7 +21,7 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
     text('forecast-balance-note',report.balance?`${f.balanceSource==='manual'?'Manueller Kontostand':'Gebuchter Bankkontostand'}: ${eur(report.balance.amount)} einschließlich ${date(report.balance.date)}. Spätere importierte Buchungen bis heute sind fortgeschrieben. Geplant im Zeitraum: +${eur(report.plannedIncome)} / −${eur(report.plannedExpense)}. Geschützt: ${eur(report.protected)}.`:'Kein geeigneter gebuchter Bankkontostand vorhanden. Unter „Kontostand und Planung einstellen“ einen manuellen Kontostand hinterlegen oder die Bankdaten aktualisieren.');
     $('forecast-settings').open=!report.balance||$('forecast-settings').open;
     renderNotices();
-    drawChart();renderDay();renderPlans();renderEvents();renderMonthlyIncome();
+    drawChart();renderDay();renderPlans();renderEvents();renderMonthlyIncome();renderLearning();
     for(const [value,key] of [['joern','first'],['bettina','second']])$('forecast-income-source').querySelector(`option[value="${value}"]`).textContent='Monatsnetto '+(state.people?.[key]||(key==='first'?'Person 1':'Person 2'));
     const categories=[...new Set(['Sonstiges',...(state.categories||[])])],select=$('forecast-once-category'),prior=select.value;select.replaceChildren(...categories.map(name=>el('option',{value:name,text:name})));if(categories.includes(prior))select.value=prior;
     if(!$('forecast-income-start').value)$('forecast-income-start').value=today.slice(0,7);if(!$('forecast-once-date').value)$('forecast-once-date').value=today;
@@ -54,6 +54,20 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
     box.append(el('div',{class:'forecast-notice-box'},[el('strong',{text:'Prognose noch vervollständigen'}),el('p',{text:'Die Berechnung ist vorläufig. Ergänze die offenen Angaben, damit Ausgaben und Einnahmen vollständig eingeplant sind.'}),actions,details]));
   }
 
+  function renderLearning(){
+    const l=report.learning,box=$('forecast-learning'),f=defaults(getState().forecast);box.replaceChildren();$('forecast-learning-reset').hidden=!f.ignoredPatterns.length;
+    text('forecast-learning-summary',!f.automatic?'Automatische Erkennung ausgeschaltet':`${l.fixed.length} Fixkostenmuster · ${l.incomes.length} regelmäßige Einnahmen · ${l.flexible.length} flexible Monatswerte`);
+    const models=[...l.fixed.map(p=>({...p,type:'fixed'})),...l.incomes.map(p=>({...p,...p.learned,amount:p.amount,type:'income'})),...l.flexible.map(p=>({...p,type:'flex'}))];
+    for(const model of models){
+      const isFlex=model.type==='flex',info=isFlex?`Ø ${eur(model.amount)}/Monat · ${model.months.length} vergangene Monate${model.outlierAdjusted?' · Monatsausreißer begrenzt':''}`:`${eur(model.amount)} · ${model.cycle===1?'monatlich':`alle ${model.cycle} Monate`} · ${model.endOfMonth?'zum Monatsende':`um Tag ${model.day}`} · ${model.count} Zahlungstermine`;
+      const details=el('details',{class:'details'},[el('summary',{text:`${model.name} · ${model.type==='income'?'Gehalt':isFlex?'Flexible Kosten':'Fixkosten'} · Erkennung ${model.confidence}`}),el('p',{text:info})]);
+      details.append(el('p',{text:isFlex?'Wiederkehrende variable Ausgaben, ohne als einmalig markierte Buchungen. Erster Importmonat und laufender Monat werden nicht für den Durchschnitt verwendet.':model.type==='income'?'Typischer Zahlungstermin aus den Buchungen, Betrag als Median der letzten drei beobachteten Gehaltsmonate. Feiertage sind nicht vorhersehbar.':model.reason||'Wiederkehrende Abbuchungen mit ähnlichen Beträgen und regelmäßigen Monatsabständen.'}));
+      if(isFlex){const table=el('table'),body=el('tbody');table.append(el('thead',{},[el('tr',{},['Monat','Beobachtet','Für Durchschnitt'].map(text=>el('th',{text})))]),body);for(const m of model.monthly)body.append(el('tr',{},[el('td',{text:m.month}),el('td',{class:'right',text:eur(m.amount)}),el('td',{class:'right',text:eur(m.used)})]));details.append(el('div',{class:'table-wrap'},[table]));}
+      const sources=el('details',{class:'details'},[el('summary',{text:`Quellbuchungen (${model.sources.length})`})]);for(const source of model.sources.slice(0,60))sources.append(el('p',{text:`${source.date} · ${source.payee} · ${eur(source.amount)}`}));if(model.sources.length>60)sources.append(el('p',{text:'Die ersten 60 Buchungen werden hier angezeigt; alle stehen im Buchungsbereich.'}));details.append(sources);
+      const ignore=el('button',{type:'button',class:'btn small',text:'Muster nicht berücksichtigen'});ignore.addEventListener('click',()=>update({...f,ignoredPatterns:[...new Set([...f.ignoredPatterns,model.id])]}));details.append(ignore);box.append(details);
+    }
+    if(!models.length)box.append(el('p',{class:'note',text:f.automatic?'Noch nicht genügend eindeutige Historie. Für neue Rhythmen und Gehalt sind in der Regel drei Zahlungstermine nötig; für vorhandene bekannte Rhythmen können zwei genügen. Flexible Durchschnitte benötigen mindestens zwei vergangene Vergleichsmonate.':'Manuelle Planwerte werden weiterhin berücksichtigt.'}));
+  }
   function renderMonthlyIncome(){
     const state=getState(),table=el('table'),body=el('tbody');table.append(el('thead',{},[el('tr',{},[el('th',{text:'Monat'}),el('th',{text:state.people?.first||'Person 1'}),el('th',{text:state.people?.second||'Person 2'})])]),body);
     for(let key=report.today.slice(0,7);key<=report.end.slice(0,7);key=shiftMonth(key,1)){const row=el('tr',{},[el('td',{text:key})]);for(const person of ['joern','bettina']){const input=el('input',{type:'number',min:'0',step:'0.01',class:'edit-input',value:state.incomes?.[key]?.[person]??'',placeholder:'Unbekannt','aria-label':`${person==='joern'?'Person 1':'Person 2'} Monatsnetto ${key}`}),month=key;input.addEventListener('change',()=>{if(!input.checkValidity())return;state.incomes||={};state.incomes[month]||={};state.incomes[month][person]=input.value===''?null:Number(input.value);save();render();});row.append(el('td',{},[input]));}body.append(row);} $('forecast-monthly-income').replaceChildren(table);
@@ -88,12 +102,13 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
   }
   function renderEvents(){
     const box=$('forecast-events');box.replaceChildren();const labels={planned:'Geplant',booked:'Bereits gebucht',excluded:'Nicht eingeplant','overdue-income':'Überfällig · nicht eingerechnet','estimate-excluded':'Schätzung ausgeschaltet'};
-    for(const e of report.events){const controls=el('div',{class:'status-line'},[el('span',{class:`pill ${e.status==='booked'?'yes':e.status==='planned'?'':'maybe'}`,text:labels[e.status]}),el('b',{text:eur(e.amount)})]);
+    for(const e of report.events){const controls=el('div',{class:'status-line'},[el('span',{class:`pill ${e.status==='booked'?'yes':e.status==='planned'?'':'maybe'}`,text:labels[e.status]+(e.automatic?' · automatisch':'')}),el('b',{text:eur(e.amount)})]);
       if(e.status!=='booked'){const button=el('button',{type:'button',class:'btn small',text:e.status==='excluded'?'Wieder einplanen':'Nicht mehr erwarten'});button.addEventListener('click',()=>{const f=defaults(getState().forecast);f.excluded=e.status==='excluded'?f.excluded.filter(id=>id!==e.id):[...new Set([...f.excluded,e.id])];update(f);});controls.append(button);}
       box.append(el('div',{class:'list-row'},[el('div',{},[el('strong',{text:e.name}),el('small',{text:`${date(e.originalDate)} · ${e.detail}${e.originalDate<report.today&&e.status==='planned'?' · offen, ab heute eingeplant':''}${e.booking?' · '+e.booking.date+' '+e.booking.payee+' '+eur(e.booking.amount):''}`})]),controls]));
     }
     if(!report.events.length)box.append(el('p',{class:'note',text:'Keine Fixkosten oder Zahlungspläne im ausgewählten Zeitraum.'}));
   }
+  $('forecast-learning-reset').addEventListener('click',()=>update({...defaults(getState().forecast),ignoredPatterns:[]}));
   $('forecast-preview-open').addEventListener('click',()=>openView('forecast'));
   $('forecast-horizon').addEventListener('change',()=>update({...defaults(getState().forecast),horizon:Number($('forecast-horizon').value)}));
   $('forecast-day').addEventListener('input',renderDay);
@@ -102,7 +117,7 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
   $('forecast-settings-form').addEventListener('change',()=>{settingsDirty=true;});
   $('forecast-settings-form').addEventListener('submit',event=>{event.preventDefault();const f=defaults(getState().forecast),source=$('forecast-source').value,manual=source==='manual'?{amount:$('forecast-manual').value===''?null:Number($('forecast-manual').value),date:$('forecast-asof').value}:f.manualBalance;
     if(source==='manual'&&manual.date>berlinToday()){text('forecast-form-error','Der Stichtag darf nicht in der Zukunft liegen.');return;}
-    settingsDirty=false;const ok=update({...f,balanceSource:source,manualBalance:manual,protectedBalance:Number($('forecast-protected').value),buffer:Number($('forecast-buffer').value),useBudgets:$('forecast-budgets').checked,includePossible:$('forecast-possible').checked,includeEstimates:$('forecast-estimates').checked});if(!ok)settingsDirty=true;});
+    settingsDirty=false;const ok=update({...f,balanceSource:source,manualBalance:manual,protectedBalance:Number($('forecast-protected').value),buffer:Number($('forecast-buffer').value),automatic:$('forecast-automatic').checked,useBudgets:$('forecast-budgets').checked,includePossible:$('forecast-possible').checked,includeEstimates:$('forecast-estimates').checked});if(!ok)settingsDirty=true;});
   $('forecast-income-form').addEventListener('submit',event=>{event.preventDefault();const f=defaults(getState().forecast),p={id:crypto.randomUUID(),name:$('forecast-income-name').value.trim(),source:$('forecast-income-source').value,amount:Number($('forecast-income-amount').value),day:Number($('forecast-income-day').value),startMonth:$('forecast-income-start').value,matchKeyword:$('forecast-income-match').value.trim(),category:'Gehalt'};if(update({...f,incomePlans:[...f.incomePlans,p]},'forecast-income-error')){event.target.reset();$('forecast-income-start').value=berlinToday().slice(0,7);}});
   $('forecast-once-amount').addEventListener('input',()=>{const amount=Number($('forecast-once-amount').value),kind=$('forecast-once-kind');if(amount>0&&kind.value==='expense')kind.value='income';else if(amount<0&&kind.value==='income')kind.value='expense';});
   $('forecast-once-form').addEventListener('submit',event=>{event.preventDefault();const f=defaults(getState().forecast),p={id:crypto.randomUUID(),name:$('forecast-once-name').value.trim(),date:$('forecast-once-date').value,amount:Number($('forecast-once-amount').value),kind:$('forecast-once-kind').value,category:$('forecast-once-category').value,matchKeyword:$('forecast-once-match').value.trim()};if(update({...f,oneOffs:[...f.oneOffs,p]},'forecast-once-error')){event.target.reset();$('forecast-once-date').value=berlinToday();}});
