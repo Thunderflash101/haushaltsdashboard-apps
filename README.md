@@ -85,7 +85,7 @@ separate Installation und benötigt die dokumentierte Migration.
 
 Erfolgreich lokal ausgeführt:
 
-- 59 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
+- 60 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
   CSV-Überschneidungen, leere Ersteinrichtung, JSON-Datenübernahme,
   konfigurierbare Verbindung, Benutzerrechte und Datenerhalt nach Neustart,
   Teilbuchungen, Erstattungen, Umbuchungen, zeitlich passende Monatsvergleiche

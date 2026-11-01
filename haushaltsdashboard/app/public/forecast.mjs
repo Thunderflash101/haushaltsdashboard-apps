@@ -90,6 +90,7 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   for(const e of all){
     if(settings.excluded.includes(e.id))continue;
     for(const s of slots){
+      if(e.automatic&&s.b.forecastOneOff)continue;
       if(Math.sign(s.amount)!==Math.sign(e.amount)||e.amount>0&&s.kind!==e.kind&&!(e.kind==='income'&&s.b.refund))continue;
       const sameMonth=s.date.slice(0,7)===e.month,distance=Math.abs(Date.parse(s.date)-Date.parse(e.date))/DAY;
       if(!sameMonth&&distance>5)continue;
@@ -118,7 +119,7 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   // Budgets contain fixed costs too: subtract actual spending AND planned category costs.
   const budgetEvents=[];
   if(settings.useBudgets)for(const key of months.filter(k=>k>=startMonth)){
-    const analysis=analyzeMonth(bookings,key,{spendingOnly:true}),actual=new Map(analysis.categories),flexActual=new Map();for(const entry of analysis.entries)if(entry.status==='variable'&&!entry.booking.forecastOneOff&&!learning.fixedSources.includes(entry.index)&&!events.some(e=>e.type==='once'&&e.booking?.index===entry.index))flexActual.set(entry.category,(flexActual.get(entry.category)||0)+entry.value);
+    const analysis=analyzeMonth(bookings,key,{spendingOnly:true}),actual=new Map(analysis.categories),flexActual=new Map();for(const entry of analysis.entries)if(entry.status==='variable'&&!entry.booking.forecastOneOff&&!learning.fixedSources.includes(entry.index+':'+entry.category)&&!events.some(e=>e.type==='once'&&e.booking?.index===entry.index&&e.category===entry.category))flexActual.set(entry.category,(flexActual.get(entry.category)||0)+entry.value);
     for(const [category,raw] of Object.entries(budgets)){
       const budget=cents(raw);if(!(budget>0))continue;
       const planned=events.filter(e=>e.month===key&&e.status==='planned'&&e.amount<0&&e.kind==='expense'&&e.category===category&&!autoCategories.has(category)).reduce((n,e)=>n-cents(e.amount),0);

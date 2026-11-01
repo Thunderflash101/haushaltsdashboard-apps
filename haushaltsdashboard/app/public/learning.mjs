@@ -61,8 +61,8 @@ export function learnPatterns(state,today){
   const dates=(state.bookings||[]).filter(b=>b.date&&iso(b)<=today).map(iso).sort(),allDates=dates.map(d=>d.slice(0,7)),present=new Set(allDates),first=allDates[0],last=allDates.at(-1),lastFull=dates.at(-1)?.slice(8)===String(days(last||today.slice(0,7))).padStart(2,'0'),months=[];
   for(let k=shiftMonth(today.slice(0,7),-6);k<today.slice(0,7);k=shiftMonth(k,1))if(k>first&&(k<last||k===last&&lastFull)&&present.has(k))months.push(k);
   const merchants=new Map();for(const r of rows)if(months.includes(monthKey(r.b.date))&&r.kind==='expense'&&r.fixed==='Nein'){const key=JSON.stringify([r.category,norm(r.b.payee)]);if(!merchants.has(key))merchants.set(key,new Set());merchants.get(key).add(monthKey(r.b.date));}
-  const fixedSources=[...new Set([...series.filter(s=>used.has(s.key)).flatMap(s=>s.rows.map(r=>r.index)),...automaticFixed.flatMap(f=>f.learned.sources.map(s=>s.index))])];
-  const grouped=new Map();for(const r of rows){const month=monthKey(r.b.date);if(!months.includes(month)||r.kind!=='expense'||r.fixed!=='Nein'||fixedSources.includes(r.index))continue;
+  const fixedSources=[...new Set([...series.filter(s=>used.has(s.key)).flatMap(s=>s.rows.map(r=>r.index+':'+r.category)),...automaticFixed.flatMap(f=>f.learned.sources.map(s=>s.index+':'+f.category))])];
+  const grouped=new Map();for(const r of rows){const month=monthKey(r.b.date);if(!months.includes(month)||r.kind!=='expense'||r.fixed!=='Nein'||fixedSources.includes(r.index+':'+r.category))continue;
     const recurrent=essentials(r.category)||(merchants.get(JSON.stringify([r.category,norm(r.b.payee)]))?.size||0)>=2;if(!recurrent)continue;
     if(!grouped.has(r.category))grouped.set(r.category,[]);grouped.get(r.category).push(r);
   }

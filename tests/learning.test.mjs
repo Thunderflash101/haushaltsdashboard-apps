@@ -66,3 +66,8 @@ test('stale contracts/salaries and sparse irregular payments are not projected i
   const s=state();s.bookings=['2025-03','2025-04','2025-05'].map(m=>b(m,2000,'Testarbeitgeber','Gehalt'));assert.equal(learnPatterns(s,today).incomes.length,0);
   s.bookings=['2026-02','2026-06','2026-10'].map(m=>b(m,-100,'Testabo','Abos'));assert.equal(learnPatterns(s,today).fixed.length,0);
 });
+
+test('a one-off credit cannot satisfy a learned salary, and fixed split parts do not swallow another category',()=>{
+  const s=state();salary(s);s.bookings.push(b('2026-11',2000,'Testarbeitgeber','Gehalt',{date:'01.11.2026',forecastOneOff:true}));assert.equal(forecast(s,null,{today}).events.find(e=>e.type==='income'&&e.month==='2026-11').status,'planned');
+  const t=state();coverage(t);t.fixed=[{name:'Abo',category:'Abos',monthly:40,rhythm:'monatlich',status:'Ja'}];for(const m of ['2026-08','2026-09','2026-10'])t.bookings.push(b(m,-100,'Testanbieter','Abos',{splits:[{category:'Abos',amount:40,kind:'expense',fixed:'Ja'},{category:'Lebensmittel',amount:60,kind:'expense',fixed:'Nein'}]}));const l=learnPatterns(t,today);assert.equal(l.flexible.find(f=>f.category==='Lebensmittel').amount,60);
+});
