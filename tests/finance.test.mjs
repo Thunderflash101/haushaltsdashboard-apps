@@ -86,8 +86,9 @@ test('HTTP saving rejects invalid relationships and persists valid ones across r
   await start();t.after(()=>{app.stop();rmSync(dir,{recursive:true,force:true});});
   const request=(route,data)=>fetch(`http://127.0.0.1:${app.ingress.address().port}${route}`,{method:data?'POST':'GET',headers:{'X-Remote-User-Id':'owner',...(data?{'Content-Type':'application/json','X-Haushalt-Request':'1'}:{})},...(data?{body:JSON.stringify(data)}:{})});
   const initial=await (await request('/api/dashboard')).json(),state=fixture();
+  state.forecast={balanceSource:'manual',manualBalance:{amount:1000,date:'2026-11-01'},horizon:60,protectedBalance:200};
   const result=await request('/api/dashboard',{revision:initial.revision,state});assert.equal(result.status,200);
   const saved=await result.json();state.bookings[1].refund.targetId='missing';assert.equal((await request('/api/dashboard',{revision:saved.revision,state})).status,400);
-  app.stop();await start();const reloaded=await (await request('/api/dashboard')).json();assert.equal(reloaded.state.bookings[1].refund.targetId,'purchase');assert.equal(reloaded.revision,saved.revision);
+  app.stop();await start();const reloaded=await (await request('/api/dashboard')).json();assert.equal(reloaded.state.bookings[1].refund.targetId,'purchase');assert.equal(reloaded.revision,saved.revision);assert.equal(reloaded.state.forecast.protectedBalance,200);assert.equal(reloaded.state.forecast.horizon,60);
   const module=await request('/finance.mjs');assert.equal(module.status,200);assert.match(module.headers.get('content-type'),/javascript/);
 });

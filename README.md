@@ -3,7 +3,7 @@
 Eine private Haushaltsauswertung mit Monatsansicht, Kategorien, Fixkosten,
 variablen Kosten, proportionaler Kostenaufteilung und Enable-Banking-Import.
 
-**Version 0.3.0 – Ausgaben verstehen, Buchungen aufteilen und Erstattungen zuordnen.**
+**Version 0.4.0 – Kontostandsprognose und verfügbares Geld planen.**
 
 Der Programmcode enthält keine persönlichen Buchungen, Kontonummern oder
 Anwendungsschlüssel. Die App startet leer. Jeder Betreiber hinterlegt seine
@@ -34,6 +34,9 @@ Die Repository-URL bleibt nach der Einrichtung stabil.
 ## Funktionen
 
 - Gemeinsame Daten auf dem NUC, Zugriff über Home Assistant Ingress.
+- Kontostandsprognose für 30/60/90 Tage mit offenen Zahlungen und Restbudgets.
+- Frei verfügbar bis zum nächsten regelmäßigen Eingang; geschütztes Guthaben und Puffer.
+- Einkommenspläne mit monatlich unterschiedlichen Nettowerten und Einmalposten.
 - Einnahmen, Kontoabgänge, Fix- und Flexkosten pro Monat.
 - Monatliche Einkommen zweier Personen und anteilige Fixkostenaufteilung.
 - Eigene Kategorien, Regeln, Budgets und Rücklagen.
@@ -81,17 +84,18 @@ separate Installation und benötigt die dokumentierte Migration.
 
 Erfolgreich lokal ausgeführt:
 
-- 28 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
+- 43 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
   CSV-Überschneidungen, leere Ersteinrichtung, JSON-Datenübernahme,
   konfigurierbare Verbindung, Benutzerrechte und Datenerhalt nach Neustart,
-  Teilbuchungen, Erstattungen, Umbuchungen und zeitlich passende Monatsvergleiche.
+  Teilbuchungen, Erstattungen, Umbuchungen, zeitlich passende Monatsvergleiche
+  und Prognosen mit Kontostand, Zahlungen, Budgets und fehlenden Einkommenswerten.
 - 3 fokussierte Python-Tests: zulässige interne Ziele, Webhook-Validierung und
   Aktualisieren des vorhandenen Integrationseintrags beim Umstellen.
 - JavaScript-/Python-Syntax und Privacy-Audit.
 
 Der [GitHub-Workflow](https://github.com/Thunderflash101/haushaltsdashboard-apps/actions)
 prüft außerdem den Container-Bau und mit Playwright die Browserabläufe: Aufteilen,
-Erstattung, Umbuchung, Fixkostenabgleich, Monatsvergleich und Mobilbreiten 360/390 px.
+Erstattung, Umbuchung, Fixkostenabgleich, Monatsvergleich, Prognoseeingaben, zukünftige Monatsnettos und Mobilbreiten 360/390 px.
 Die zugehörigen Screenshots enthalten ausschließlich synthetische Testdaten.
 
 Die bestehende Installation wurde vom Betreiber als funktionsfähig bestätigt.
