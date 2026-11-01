@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.5.1
+
+- Eigener Monatsrahmen: gebuchte plus erwartete Monatseinnahmen minus gesamte geschätzte Monatskosten.
+- Unabhängig von Anfangsguthaben, geschütztem Guthaben und Liquiditätspuffer.
+- Fixkosten, flexible Kosten, Anlagen/Überträge sowie gebuchte/offene Beträge getrennt nachvollziehbar.
+- Übersicht zeigt den freien Monatsrahmen; Kontostandsprognose bleibt zusätzlich vorhanden.
+- Roadmap mit erledigten und noch offenen Erweiterungen dokumentiert.
+
 ## 0.5.0
 
 - Automatisches Lernen aus der lokalen Buchungshistorie, standardmäßig aktiv und abschaltbar.

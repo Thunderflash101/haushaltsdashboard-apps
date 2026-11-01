@@ -3,7 +3,7 @@
 Eine private Haushaltsauswertung mit Monatsansicht, Kategorien, Fixkosten,
 variablen Kosten, proportionaler Kostenaufteilung und Enable-Banking-Import.
 
-**Version 0.5.0 – Automatische Prognose aus wiederkehrenden Buchungen.**
+**Version 0.5.1 – Freier Monatsrahmen und automatische Kontostandsprognose.**
 
 Der Programmcode enthält keine persönlichen Buchungen, Kontonummern oder
 Anwendungsschlüssel. Die App startet leer. Jeder Betreiber hinterlegt seine
@@ -85,7 +85,7 @@ separate Installation und benötigt die dokumentierte Migration.
 
 Erfolgreich lokal ausgeführt:
 
-- 60 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
+- 67 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
   CSV-Überschneidungen, leere Ersteinrichtung, JSON-Datenübernahme,
   konfigurierbare Verbindung, Benutzerrechte und Datenerhalt nach Neustart,
   Teilbuchungen, Erstattungen, Umbuchungen, zeitlich passende Monatsvergleiche

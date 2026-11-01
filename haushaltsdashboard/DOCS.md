@@ -261,3 +261,29 @@ vom Lernen ausgeschlossen werden. Sie bleiben vollständig in den tatsächlichen
 Monatsauswertungen und im Kontosaldo enthalten. Keine automatische Methode kann
 alle Einmalereignisse oder Vertragsenden zuverlässig erkennen; die Quellen und
 Korrekturmöglichkeiten sind deshalb Bestandteil der Ansicht.
+
+## Freier Monatsrahmen (ab 0.5.1)
+
+Die Übersicht und der erste Abschnitt unter Planung zeigen nun den **Monatsrahmen
+aus dem Einkommen** für den aktuellen Kalendermonat:
+
+Gebuchte Einnahmen + noch erwartete Einnahmen − bereits gebuchte Monatskosten
+− noch erwartete Monatskosten = vom Einkommen noch frei.
+
+Enthalten sind die gesamten Monatskosten einschließlich bereits bezahlter
+Fixkosten, flexibler Ausgaben, Anlagen und ausgehender Überträge. Zugeordnete
+Erstattungen senken die jeweiligen Kosten. Eingehende eigene Umbuchungen und
+Anlagerückflüsse zählen nicht als verdientes Monatseinkommen. Erkannte echte
+Zahlungen ersetzen ihren Planposten; sie werden nicht doppelt angesetzt.
+
+Diese Rechnung funktioniert ohne Kontostand. Anfangsguthaben, geschütztes
+Guthaben und der Liquiditätspuffer werden nicht als Monatseinkommen oder
+Monatskosten eingerechnet. Die Tabelle trennt gebuchte und offene Kosten pro
+Kategorie. Ein Fehlbetrag bleibt negativ; bei unbekanntem Monatseinkommen
+bleibt der freie Betrag offen.
+
+Die zusätzliche Kontostandsprognose darunter zeigt, wann das Geld voraussichtlich
+auf dem Konto verfügbar ist. Erwartetes Gehalt kann im Monatsrahmen berücksichtigt
+sein, obwohl es noch nicht eingegangen ist. Vergangene Monate und Verschieben des
+Gehalts in einen abweichenden Budgetmonat sind für diesen neuen Monatsrahmen noch
+nicht auswählbar.

@@ -141,7 +141,33 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   const nextIncome=active.filter(e=>e.type==='income'&&e.amount>0).sort((a,b)=>a.date.localeCompare(b.date))[0];
   const freeUntil=nextIncome?nextIncome.date===today?today:addDays(nextIncome.date,-1):[atDay(startMonth,31),end].sort()[0];
   const beforePay=points.filter(p=>p.date<=freeUntil),minimum=Math.min(currentCents/100,...points.map(p=>p.balance)),freeMinimum=Math.min(currentCents/100,...beforePay.map(p=>p.balance))-protectedCents/100;
-  return {today,end,settings,learning,balance,current:balance?currentCents/100:null,points:balance?points:[],events:events.filter(e=>e.date<=end).sort((a,b)=>a.date.localeCompare(b.date)||a.amount-b.amount),budgetEvents:budgetEvents.filter(e=>e.date<=end),warnings:[...warnings],endBalance:balance?running/100:null,minimum:balance?minimum:null,available:balance?Math.round(freeMinimum*100)/100:null,freeUntil,nextIncome:nextIncome||null,protected:protectedCents/100,plannedIncome:active.filter(e=>e.amount>0).reduce((n,e)=>n+cents(e.amount),0)/100,plannedExpense:active.filter(e=>e.amount<0).reduce((n,e)=>n-cents(e.amount),0)/100};
+  const monthly=monthlyRoom(bookings,events,budgetEvents,learning,startMonth,settings);
+  return {today,end,settings,learning,monthly,balance,current:balance?currentCents/100:null,points:balance?points:[],events:events.filter(e=>e.date<=end).sort((a,b)=>a.date.localeCompare(b.date)||a.amount-b.amount),budgetEvents:budgetEvents.filter(e=>e.date<=end),warnings:[...warnings],endBalance:balance?running/100:null,minimum:balance?minimum:null,available:balance?Math.round(freeMinimum*100)/100:null,freeUntil,nextIncome:nextIncome||null,protected:protectedCents/100,plannedIncome:active.filter(e=>e.amount>0).reduce((n,e)=>n+cents(e.amount),0)/100,plannedExpense:active.filter(e=>e.amount<0).reduce((n,e)=>n-cents(e.amount),0)/100};
 }
 
 function isLearnedSalary(b){return b.amount>0&&!b.refund&&inflowKind(b)==='income'&&(b.category==='Gehalt'||/lohn|gehalt|salary/i.test(b.purpose||''));}
+
+export function monthlyRoom(bookings,events,budgetEvents,learning,key,settings){
+  let received=0,expected=0,bookedFixed=0,bookedFlex=0,bookedOther=0,openFixed=0,openFlex=0,openOther=0;
+  const categories=new Map(),fixedSources=new Set(learning.fixedSources||[]);
+  const isFixed=(index,category,status)=>status==='Ja'||status==='Möglich'||fixedSources.has(index+':'+category)||events.some(e=>e.type==='fixed'&&e.booking?.index===index&&e.category===category);
+  function add(category,value,fixed,other,planned){
+    if(!categories.has(category))categories.set(category,{name:category,booked:0,planned:0});categories.get(category)[planned?'planned':'booked']+=value;
+    if(planned){if(other)openOther+=value;else if(fixed)openFixed+=value;else openFlex+=value;}
+    else{if(other)bookedOther+=value;else if(fixed)bookedFixed+=value;else bookedFlex+=value;}
+  }
+  bookings.forEach((b,index)=>{
+    if(monthKey(b.date)!==key)return;
+    if(b.amount>0){
+      if(b.refund&&b.flowType==='refund')for(const part of b.refund.allocations){const target=bookings.findIndex(x=>x.financeId===b.refund.targetId);add(part.category,-cents(part.amount),isFixed(target,part.category,part.fixed),part.kind!=='expense',false);}
+      else if(inflowKind(b)==='income')received+=cents(b.amount);
+    }else for(const part of bookingParts(b))add(part.category,part.cents,isFixed(index,part.category,part.fixed),part.kind!=='expense',false);
+  });
+  for(const e of [...events,...budgetEvents])if(e.month===key&&e.status==='planned'){
+    if(e.amount>0){if(e.kind==='income')expected+=cents(e.amount);}
+    else add(e.category,-cents(e.amount),e.type==='fixed',e.kind!=='expense',true);
+  }
+  const income=received+expected,booked=bookedFixed+bookedFlex+bookedOther,open=openFixed+openFlex+openOther,costs=booked+open;
+  const incomeKnown=received>0||settings.incomePlans.length>0||learning.incomes.length>0;
+  return {key,incomeKnown,income:income/100,received:received/100,expected:expected/100,costs:costs/100,booked:booked/100,open:open/100,fixed:(bookedFixed+openFixed)/100,flexible:(bookedFlex+openFlex)/100,other:(bookedOther+openOther)/100,available:incomeKnown?(income-costs)/100:null,categories:[...categories.values()].map(r=>({name:r.name,booked:r.booked/100,planned:r.planned/100,total:(r.booked+r.planned)/100})).sort((a,b)=>b.total-a.total)};
+}
