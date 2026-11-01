@@ -1,5 +1,19 @@
 # Änderungen
 
+## 0.4.0
+
+- Neuer Bereich „Planung“: Kontostandsprognose für 30, 60 oder 90 Tage mit anklickbaren Tagesständen.
+- „Rechnerisch frei“ bis vor dem nächsten geplanten regelmäßigen Kontoeingang, einschließlich geschütztem Guthaben und Sicherheitspuffer.
+- Ausgangspunkt: gebuchter Bankkontostand (ITBD/CLBD) oder manuell eingetragener Kontostand mit Stichtag.
+- Offene Fixkosten, einmalige Zahlungen und verbleibende Kategoriebudgets; bereits gebuchte Zahlungen werden abgeglichen.
+- Einkommenspläne mit festen Beträgen oder monatlichem Netto einer Person; zukünftige Monatsnettos direkt eintragbar.
+- Fehlende Monatsnettos sind erkennbare Schätzungen und standardmäßig aus der Prognose ausgeschlossen.
+- Keine automatische Annahme, dass das Einkommen einer zweiten Person auf das Haushaltskonto fließt.
+- Einmalige Planposten und „Nicht mehr erwarten“ ohne Veränderung echter Buchungen.
+- Zusätzliche Rechen-, Speicher- und Browsertests mit synthetischen Daten.
+
+Reguläres Update derselben App. Rückleitungs-Integration weiterhin 0.2.0.
+
 ## 0.3.0
 
 - Monatsanalyse „Warum war dieser Monat teuer?“ mit Vormonat, Vorjahr und Durchschnitt der vorherigen zwölf Kalendermonate.

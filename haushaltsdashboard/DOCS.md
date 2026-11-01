@@ -102,3 +102,91 @@ Kategorien, Einkommen und Bankfreigabe bleiben in `/data` erhalten. Kein erneute
 Import und keine Änderung der Rückleitungs-Integration erforderlich. Für eine
 Rückkehr zu einer älteren Version auch deren Datensicherung wiederherstellen, da
 sie die neue Erstattungslogik nicht kennt.
+
+## Kontostandsprognose (ab 0.4.0)
+
+Unter **Planung** einen Zeitraum von 30, 60 oder 90 Tagen wählen. Die Kurve zeigt
+Tagesendstände ab heute. Ein Tag ist über den Regler oder einen Kurvenpunkt
+auswählbar; darunter stehen seine geplanten Ein- und Ausgänge.
+
+### Kontostand als Ausgangspunkt
+
+Ein gebuchter EUR-Saldo des verbundenen Haushaltskontos (ITBD oder CLBD) wird
+übernommen. Verfügbare Salden mit Kreditrahmen/Vormerkungen werden nicht als
+gebuchtes Guthaben verwendet. Liefert die Bank keinen geeigneten Saldo, unter
+„Kontostand und Planung einstellen“ den Stand manuell hinterlegen. Er muss
+alle bereits gebuchten Zahlungen des gewählten Stichtags enthalten. Danach
+importierte Buchungen mit späterem Buchungsdatum werden hinzugerechnet;
+Buchungen am Stichtag werden nicht nochmals gezählt.
+
+Bei einem alten Saldo oder fehlendem Bank-Stichtag wird darauf hingewiesen.
+Nicht importierte Umsätze und noch nicht gebuchte Kartenvormerkungen sind
+unbekannt. Für eine aktuelle Prognose zuerst die Bankdaten aktualisieren.
+Die Planung bezieht sich ausschließlich auf das verbundene Haushaltskonto;
+Buchungen anderer ausdrücklich gekennzeichneter Konten sind ausgeschlossen.
+
+### Was „Rechnerisch frei“ bedeutet
+
+Verwendet wird der niedrigste geplante Kontostand vom Start bis zum Tag vor
+dem nächsten eingeplanten regelmäßigen Eingang. Ohne solchen Eingang im
+Prognosezeitraum gilt das Monatsende. Davon werden geschütztes Guthaben und
+Sicherheitspuffer abgezogen. Negative Werte zeigen einen geplanten Fehlbetrag.
+Die Kurve selbst zeigt den Kontostand, nicht dieses bereinigte Guthaben.
+
+Geschütztes Guthaben ist Geld, das tatsächlich auf diesem Konto liegt und
+im Prognosezeitraum liegen bleiben soll. Rücklagen auf anderen Konten und
+Geld für hier bereits eingeplante Rechnungen nicht nochmals eintragen. Die
+bestehende Rücklagenliste wird deshalb nicht pauschal vom Kontostand abgezogen.
+
+### Fixkosten und Budgets
+
+Fixkosten werden aus der bestehenden Liste übernommen. Bei Jahres-/Quartalskosten
+muss dort der Fälligkeitsmonat festgelegt sein. Fehlt nur der Tag, wird er aus
+vergangenen Buchungen geschätzt, ersatzweise auf das Monatsende gesetzt. Diese
+Termine sind gekennzeichnet. Posten ohne planbaren Rhythmus/Fälligkeitsmonat
+werden ausdrücklich als fehlend angezeigt.
+
+Der Abgleich sucht passende Buchungsteile nach Betrag, Datum und Suchtext bzw.
+eindeutiger Fixkostenkategorie. Eine Buchung kann nur einen Planposten erfüllen.
+Mehrdeutige Treffer und deutliche Betragsabweichungen bleiben offen. Erkannte
+Zahlungen stehen als „Bereits gebucht“ in der Liste und werden nicht erneut
+als zukünftiger Kontoabgang eingerechnet. Offene Ausgaben mit vergangenem
+Fälligkeitstag bleiben vorsichtshalber ab heute eingeplant.
+
+Restbudget = Monatsbudget minus gebuchte Konsumkosten minus noch geplante
+Konsumausgaben derselben Kategorie. Der Betrag ist mindestens null und wird
+centgenau auf die verbleibenden Kalendertage verteilt. Erstattungsüberschüsse
+erhöhen diesen Planbetrag nicht über das ursprüngliche Monatsbudget hinaus.
+So werden Fixkosten innerhalb eines Kategorienbudgets nicht doppelt abgezogen.
+Unbudgetierte flexible Ausgaben sind nur mit ausdrücklich geplanten Einmalposten
+enthalten; bekannte Kategorien ohne Budget werden genannt.
+
+### Monatlich unterschiedliches Einkommen
+
+Einen Einkommensplan nur anlegen, wenn das Geld auf dieses Konto fließt. Für
+jede Person kann der Betrag aus ihren gespeicherten Monatsnettos stammen.
+Unter „Monatsnetto für kommende Monate“ lassen sich diese Werte bearbeiten.
+Eine leere Zelle bedeutet unbekannt, 0 € bedeutet ausdrücklich kein Einkommen.
+Die Werte werden gemeinsam mit der bestehenden Fixkostenaufteilung gespeichert.
+
+Fehlt ein Monatsnetto, wird der Standardbetrag als Schätzung angeboten und
+nur mit aktivierter Option „Geschätztes Einkommen … einbeziehen“ gerechnet.
+Ein regelmäßiger Eingang ohne solche Monatsbindung verwendet den festen
+Planbetrag. Bereits gebuchte Eingänge werden anhand des Zahlungsbeteiligten
+und Betrags erkannt. Überfällige, noch nicht eingegangene Einnahmen werden
+nicht als künftiges Guthaben gerechnet.
+
+### Einmalposten und Korrekturen
+
+Einmalige Beträge mit Vorzeichen, Datum und Kategorie eintragen. Ein Suchtext
+erlaubt den späteren Abgleich mit dem tatsächlichen Umsatz. Ohne Suchtext
+muss der Posten nach Zahlung über „Nicht mehr erwarten“ aus der Prognose
+genommen werden. Diese Entscheidung lässt sich umkehren. Es entstehen keine
+echten Buchungen durch das Planen. Änderungen an Einkommens- und Einmalplänen
+sind durch Entfernen und erneutes Anlegen möglich.
+
+### Update von 0.3.0
+
+HA-App-Sicherung erstellen, dieselbe Repository-App auf 0.4.0 aktualisieren und
+geöffnete Dashboard-Seiten neu laden. Die Bankverbindung und vorhandenen Daten
+bleiben erhalten. Für dieses Update keine neue Rückleitungs-Integration installieren.
