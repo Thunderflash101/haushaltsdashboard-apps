@@ -21,7 +21,8 @@ try{
   await page.locator('#forecast-horizon').selectOption('90');await saved();assert.match(await page.locator('#forecast-events').innerText(),/Schätzung ausgeschaltet/);
   await page.getByText('Monatsnetto für kommende Monate',{exact:true}).click();const december=page.getByRole('spinbutton',{name:'Person 2 Monatsnetto 2026-12',exact:true});await december.fill('1900');await december.press('Tab');await saved();db=await request();assert.equal(db.state.incomes['2026-12'].bettina,1900);assert.match(await page.locator('#forecast-events').innerText(),/1.900,00/);
   const repair=page.locator('#forecast-events .list-row').filter({hasText:'Reparatur'});await repair.getByRole('button',{name:'Nicht mehr erwarten'}).click();await saved();assert.match(await repair.innerText(),/Nicht eingeplant/);await repair.getByRole('button',{name:'Wieder einplanen'}).click();await saved();
-  await page.locator('#forecast-day').fill('10');await page.locator('#forecast-day').dispatchEvent('input');assert.match(await page.locator('#forecast-day-detail').innerText(),/Reparatur/);
+  await page.locator('#forecast-day').evaluate(input=>{input.value='10';input.dispatchEvent(new Event('input',{bubbles:true}));});assert.match(await page.locator('#forecast-day-detail').innerText(),/Reparatur/);
+  if(!await page.locator('#forecast-settings').evaluate(el=>el.open))await page.locator('#forecast-settings > summary').click();
   await page.locator('#forecast-budgets').check();await page.locator('#forecast-settings-form').getByRole('button',{name:'Planung speichern'}).click();await saved();
   mkdirSync('test-results',{recursive:true});await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'test-results/forecast-desktop.png',fullPage:true});
   for(const width of [390,360]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,`Forecast overflows ${width}px`);}

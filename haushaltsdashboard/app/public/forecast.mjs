@@ -20,7 +20,7 @@ export function validateForecast(value){
     if(!p||typeof p.id!=='string'||!/^[a-zA-Z0-9-]{1,100}$/.test(p.id)||ids.has(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>80||typeof p.matchKeyword!=='string'||p.matchKeyword.length>100||p.category!==undefined&&(typeof p.category!=='string'||p.category.length>100))return 'Ungültiger Planposten.';ids.add(p.id);
   }
   for(const p of f.incomePlans)if(!['fixed','joern','bettina'].includes(p.source)||!money(p.amount)||p.amount<=0||!Number.isInteger(p.day)||p.day<1||p.day>31||!p.matchKeyword.trim()||!/^\d{4}-(0[1-9]|1[0-2])$/.test(p.startMonth||''))return 'Einkommensplan benötigt Betrag, Tag, Startmonat und Zahlungsbeteiligten.';
-  for(const p of f.oneOffs)if(!money(p.amount,true)||!p.amount||!isDate(p.date)||!['expense','investment','transfer','income'].includes(p.kind))return 'Einmalige Zahlung benötigt Datum, Art und Betrag.';
+  for(const p of f.oneOffs)if(!money(p.amount,true)||!p.amount||!isDate(p.date)||!['expense','investment','transfer','income'].includes(p.kind)||p.kind==='expense'&&p.amount>0||p.kind==='income'&&p.amount<0)return 'Einmalige Zahlung benötigt Datum, Art und Betrag.';
   return null;
 }
 // Only booked balances, never available balances containing overdraft/holds.
