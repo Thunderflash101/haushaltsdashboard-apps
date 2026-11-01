@@ -3,7 +3,7 @@
 Eine private Haushaltsauswertung mit Monatsansicht, Kategorien, Fixkosten,
 variablen Kosten, proportionaler Kostenaufteilung und Enable-Banking-Import.
 
-**Version 0.5.1 – Freier Monatsrahmen und automatische Kontostandsprognose.**
+**Version 0.6.0 – Vertragsverwaltung mit Preisen, Laufzeiten und Kündigungsfristen.**
 
 Der Programmcode enthält keine persönlichen Buchungen, Kontonummern oder
 Anwendungsschlüssel. Die App startet leer. Jeder Betreiber hinterlegt seine
@@ -41,6 +41,7 @@ Die Repository-URL bleibt nach der Einrichtung stabil.
 - Einnahmen, Kontoabgänge, Fix- und Flexkosten pro Monat.
 - Monatliche Einkommen zweier Personen und anteilige Fixkostenaufteilung.
 - Eigene Kategorien, Regeln, Budgets und Rücklagen.
+- Vertragsverwaltung, Preisentwicklung, Fristen und Kalenderexport.
 - Monatsdiagramme und Kategorienvergleich über zwölf Monate.
 - Erklärung von Mehrkosten und Entlastungen mit anklickbaren Einzelbuchungen.
 - Vormonat, Vorjahr und Zwölfmonatsdurchschnitt; optionale Vergleiche bis zum gleichen Kalendertag.
@@ -85,7 +86,7 @@ separate Installation und benötigt die dokumentierte Migration.
 
 Erfolgreich lokal ausgeführt:
 
-- 67 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
+- 82 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
   CSV-Überschneidungen, leere Ersteinrichtung, JSON-Datenübernahme,
   konfigurierbare Verbindung, Benutzerrechte und Datenerhalt nach Neustart,
   Teilbuchungen, Erstattungen, Umbuchungen, zeitlich passende Monatsvergleiche

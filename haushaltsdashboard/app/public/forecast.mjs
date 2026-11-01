@@ -1,4 +1,5 @@
 import {cents,bookingParts,monthKey,shiftMonth,berlinToday,analyzeMonth,inflowKind,flowKind} from './finance.mjs';
+import {contractFixedModels} from './contracts.mjs';
 import {learnPatterns} from './learning.mjs';
 const DAY=86400000;
 const norm=s=>String(s||'').normalize('NFC').trim().toLocaleLowerCase('de');
@@ -53,7 +54,8 @@ function fixedEvents(fixed,bookings,key,options,warnings){
     if(cycle>1&&(Number(key.slice(5))-anchor+12)%cycle)return;
     const hint=norm(f.matchKeyword),past=bookings.filter(b=>b.amount<0&&bookingParts(b).some(p=>p.category===f.category)&&(!hint||norm(b.payee+' '+b.purpose).includes(hint)));
     const days=past.map(b=>Number(b.date.slice(0,2))).sort((a,b)=>a-b),explicit=Number(f.dueDay),estimatedDay=!(explicit>=1&&explicit<=31),day=estimatedDay?(days.length>=2?days[Math.floor(days.length/2)]:daysInMonth(key)):explicit;
-    const amount=-cents(f.learned?f.learned.amount:Number(f.monthly)*cycle);if(!(amount<0))return;
+    const amount=-cents(f.contractAmount??(f.learned?f.learned.amount:Number(f.monthly)*cycle));if(!(amount<0))return;
+    const dueDate=atDay(key,day);if(f.startDate&&dueDate<f.startDate||f.untilDate&&dueDate>f.untilDate)return;
     events.push({id:f.id?`${f.id}-${key}`:`fixed-${index}-${key}`,name:f.name,date:atDay(key,day),month:key,amount:amount/100,category:f.category||'Sonstiges',kind:flowKind(f.category,f.flowType),type:'fixed',hint,uniqueCategory:categories.get(f.category)===1,estimated:estimatedDay||f.status==='Möglich',automatic:!!f.learned||!!f._learning,detail:f.learned||f._learning?'Automatisch erkannt · '+(f.learned||f._learning).confidence:estimatedDay?'Fälligkeit geschätzt':f.status==='Möglich'?'Mögliche Fixkosten':'Fixkosten'});
   });return events;
 }
@@ -61,6 +63,7 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   const settings=defaults(state.forecast),warnings=new Set(),end=addDays(today,settings.horizon),endMonth=end.slice(0,7),startMonth=today.slice(0,7);
   const bookings=(state.bookings||[]).filter(b=>(!account||!b.account||norm(b.account)===norm(account))&&isoDate(b)<=today);
   const learning=settings.automatic?learnPatterns({...state,bookings},today):{fixedModels:state.fixed||[],fixed:[],incomes:[],flexible:[],months:[],fixedSources:[]};
+  learning.fixedModels=contractFixedModels(state.contracts||[],learning.fixedModels,bookings,today);
   const budgets={...Object.fromEntries(learning.flexible.map(p=>[p.category,p.amount])),...(state.budgets||{})},autoCategories=new Set(learning.flexible.map(p=>p.category));
   const selected=settings.balanceSource==='manual'?settings.manualBalance:bank;
   const balance=selected&&isDate(selected.date)&&selected.date<=today&&money(selected.amount,true)?{...selected}:null;

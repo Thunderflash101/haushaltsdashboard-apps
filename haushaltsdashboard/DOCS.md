@@ -287,3 +287,64 @@ auf dem Konto verfügbar ist. Erwartetes Gehalt kann im Monatsrahmen berücksich
 sein, obwohl es noch nicht eingegangen ist. Vergangene Monate und Verschieben des
 Gehalts in einen abweichenden Budgetmonat sind für diesen neuen Monatsrahmen noch
 nicht auswählbar.
+
+## Vertragsverwaltung (ab 0.6.0)
+
+Unter **Verträge** können vorhandene Fixkosten oder erkannte Zahlungen als
+Vorlage übernommen werden. Beim Speichern Anbieter, Suchtext, Betrag pro
+Zahlung und Termine prüfen. Ein neuer Vertrag kann auch manuell angelegt werden.
+
+Ein verknüpfter Fixkostenposten bleibt gespeichert, wird aber in der Prognose
+und in den aktuellen Fixkostensummen/Anteilen durch den Vertrag ersetzt. So
+werden keine doppelten Kosten eingeplant. Mehrere gleichzeitig laufende Verträge
+dürfen nicht denselben Posten ersetzen. Erkannte automatische Vertragsmuster
+werden ebenfalls zugunsten des verwalteten Vertrags zurückgestellt.
+
+### Preise und Buchungszuordnung
+
+Abbuchungen werden über Suchtext und Kategorie zugeordnet. Bei mehreren passenden
+Verträgen dient der nächste gespeicherte Betrag zur Unterscheidung; Gleichstände
+bleiben ungeklärt. Bei mehreren Policen desselben Anbieters am besten eine genaue
+Mandatsreferenz als Suchtext verwenden. Als einmalig markierte Buchungen werden
+für den Preisverlauf nicht verwendet. Eine abweichende Abbuchung ist ein Hinweis,
+kein Beweis für eine vertragliche Preiserhöhung.
+
+Die Standardeinstellung verwendet den letzten passenden Zahlbetrag für die
+Prognose. Alternativ bleibt ein eigener Planbetrag maßgeblich. Der gespeicherte
+Betrag wird erst mit „Letzten Betrag als Planbetrag übernehmen“ geändert. Der
+Preisverlauf aus den Buchungen bleibt sichtbar.
+
+### Laufzeiten und Fristen
+
+Vertragsbeginn, Laufzeitende und Kündigungsfrist laut eigenen Unterlagen
+eintragen. Die Frist kann in Kalendertagen oder Kalendermonaten berechnet oder
+als exaktes Datum hinterlegt werden. Das genaue Datum hat Vorrang. Es werden
+keine gesetzlichen Kündigungsfristen angenommen. Bei besonderen Vertragsregeln
+das bestätigte exakte Datum verwenden. Ohne ausreichende Angaben bleibt die
+Frist unbekannt.
+
+Eine Verlängerung wird nur angenommen, wenn eine Monatszahl größer null
+eingetragen ist. Nach Ablauf wird das Ende anhand dieser Angabe weitergerechnet.
+Ein exaktes Datum aus einer alten Laufzeit wird dabei nicht als neue Frist
+weiterverwendet. Anstehende Fristen bis 30 Tage sowie verstrichene Fristen sind
+im Vertragsbereich sichtbar; die Übersicht weist zusätzlich auf sie hin.
+
+„Gekündigt bis Enddatum“ benötigt ein bestätigtes Enddatum. Bis dahin werden
+fällige Zahlungen weiter geplant; danach stoppt die Prognose. „Beendet /
+archiviert“ stoppt die Planung unmittelbar, ohne Vertragsdaten und Buchungen
+zu löschen. Die Beträge pro Jahr sind normalisierte Hochrechnungen, keine
+Restlaufzeitabrechnung.
+
+### Kalender
+
+„Frist als Kalendertermin“ lädt eine ICS-Datei herunter. Sie kann in einen eigenen
+Kalender importiert werden und enthält eine Erinnerung sieben Tage vor der Frist.
+Die Unterstützung der Erinnerung hängt vom Kalenderprogramm ab. Die Datei wird
+nicht automatisch mit späteren Vertragsänderungen synchronisiert. Die Anwendung
+versendet keine Kündigungen, E-Mails oder Push-Nachrichten.
+
+### Update
+
+Dieselbe Repository-App auf 0.6.0 aktualisieren und geöffnete Seiten neu laden.
+Bestehende Daten, Bankverbindung und Rückleitungs-Integration bleiben erhalten.
+Verträge werden in der gemeinsamen JSON-Sicherung mitgesichert.

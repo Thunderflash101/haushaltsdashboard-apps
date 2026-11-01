@@ -9,13 +9,14 @@
 - Kategoriebudgets und einfache Rücklagen mit Zielbetrag/Zielmonat.
 - Kontostandsprognose und automatische Erkennung von Rhythmen, Gehalt und flexiblen Kosten.
 - Monatsrahmen aus Einnahmen minus gesamten geschätzten Monatskosten.
+- Vertragsverwaltung mit Vorlagen, Preisänderungen, Laufzeiten, Fristen und Kalenderexport.
 
 ## Nächste Pakete
 
 1. **Gemeinsame Haushaltsabrechnung:** gemeinsame/persönliche Kosten, wer bezahlt hat,
    Soll-/Ist-Anteile und monatlicher Ausgleich zwischen beiden Personen.
-2. **Vertragsverwaltung:** erkannte Zahlungen als bearbeitbare Verträge, Preisänderungen,
-   Vertragsende und Kündigungsfristen. Die Erkennung aus 0.5.0 ist dafür die Grundlage.
+2. **Vertragsverwaltung weiter ausbauen:** externe Benachrichtigungen, Dokumentverknüpfung
+   und feinere Zuordnung mehrerer Verträge bei einem Anbieter. Die Grundverwaltung ist seit 0.6.0 verfügbar.
 3. **Sparziele und Rücklagen erweitern:** Fortschritt, übertragbare Budgetreste,
    tatsächliches Sparguthaben und klare Zuordnung geplanter Jahresrechnungen.
 4. **Vermögen und Kredite:** Depot-/ETF-Werte, Restschulden, Zins-/Tilgungsanteile
