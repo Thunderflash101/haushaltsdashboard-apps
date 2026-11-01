@@ -33,7 +33,7 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
     for(const message of report.warnings){
       if(/Kontostand|Saldo-Stichtag|Abruftag/.test(message))add('balance','Kontostand abgleichen',message);
       else if(/Rhythmus oder Fälligkeitsmonat/.test(message))add('fixed','Fixkostentermine ergänzen',message);
-      else if(/Budget|flexible Kategorien/.test(message))add('budget','Variable Ausgaben planen',message);
+      else if(/budget|flexible Kategorien/i.test(message))add('budget','Variable Ausgaben planen',message);
       else if(/Kontoeingang geplant|Geldeingang überfällig/.test(message))add('income','Erwartete Einnahmen prüfen',message);
       else add('other','Weitere Hinweise',message);
     }
