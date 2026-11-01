@@ -3,8 +3,7 @@
 Eine private Haushaltsauswertung mit Monatsansicht, Kategorien, Fixkosten,
 variablen Kosten, proportionaler Kostenaufteilung und Enable-Banking-Import.
 
-**Version 0.2.0 – erste Repository-Version, noch nicht als Gesamtinstallation auf
-Home Assistant und mit einer echten Bankverbindung geprüft.**
+**Version 0.3.0 – Ausgaben verstehen, Buchungen aufteilen und Erstattungen zuordnen.**
 
 Der Programmcode enthält keine persönlichen Buchungen, Kontonummern oder
 Anwendungsschlüssel. Die App startet leer. Jeder Betreiber hinterlegt seine
@@ -39,6 +38,10 @@ Die Repository-URL bleibt nach der Einrichtung stabil.
 - Monatliche Einkommen zweier Personen und anteilige Fixkostenaufteilung.
 - Eigene Kategorien, Regeln, Budgets und Rücklagen.
 - Monatsdiagramme und Kategorienvergleich über zwölf Monate.
+- Erklärung von Mehrkosten und Entlastungen mit anklickbaren Einzelbuchungen.
+- Vormonat, Vorjahr und Zwölfmonatsdurchschnitt; optionale Vergleiche bis zum gleichen Kalendertag.
+- Teilbuchungen mit eigener Kategorie, Ausgabenart und Fix-/Flexstatus.
+- Erstattungszuordnungen und verknüpfte Umbuchungen mit Betragsprüfung.
 - CSV-Import und regelmäßiger Bankabruf über Enable Banking.
 - Abgleich vorhandener Buchungen und Prüfliste für unklare Überschneidungen.
 - Geschützter Zugriff für ausdrücklich freigegebene HA-Benutzer.
@@ -78,18 +81,22 @@ separate Installation und benötigt die dokumentierte Migration.
 
 Erfolgreich lokal ausgeführt:
 
-- 14 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
+- 28 Node-Tests: Bank-Signatur, Callback-Zustand, Dubletten, Seitenabruf,
   CSV-Überschneidungen, leere Ersteinrichtung, JSON-Datenübernahme,
-  konfigurierbare Verbindung, Benutzerrechte und Datenerhalt nach Neustart.
+  konfigurierbare Verbindung, Benutzerrechte und Datenerhalt nach Neustart,
+  Teilbuchungen, Erstattungen, Umbuchungen und zeitlich passende Monatsvergleiche.
 - 3 fokussierte Python-Tests: zulässige interne Ziele, Webhook-Validierung und
   Aktualisieren des vorhandenen Integrationseintrags beim Umstellen.
 - JavaScript-/Python-Syntax und Privacy-Audit.
 
-Der erste [GitHub-Workflow](https://github.com/Thunderflash101/haushaltsdashboard-apps/actions/runs/41316959846)
-hat diese Prüfungen und den tatsächlichen Container-Bau erfolgreich abgeschlossen.
+Der [GitHub-Workflow](https://github.com/Thunderflash101/haushaltsdashboard-apps/actions)
+prüft außerdem den Container-Bau und mit Playwright die Browserabläufe: Aufteilen,
+Erstattung, Umbuchung, Fixkostenabgleich, Monatsvergleich und Mobilbreiten 360/390 px.
+Die zugehörigen Screenshots enthalten ausschließlich synthetische Testdaten.
 
-Noch ausstehend: Installation in Home Assistant, Browserdarstellung und echter Bankabruf.
-Die Python-Tests ersetzen keinen vollständigen Home-Assistant-Core-Test.
+Die bestehende Installation wurde vom Betreiber als funktionsfähig bestätigt.
+Jede neue Version muss nach dem Update zusätzlich auf dem eigenen HA-Gerät geprüft
+werden. Die Python-Tests ersetzen keinen vollständigen Home-Assistant-Core-Test.
 
 ## Daten und Sicherheit
 
