@@ -1,0 +1,19 @@
+name: Haushaltsdashboard
+version: "0.2.0"
+slug: haushaltsdashboard
+description: Privates Haushaltsdashboard mit Enable-Banking-Import
+arch:
+  - amd64
+startup: application
+boot: auto
+init: false
+ingress: true
+ingress_port: 8099
+ingress_stream: true
+panel_icon: mdi:finance
+panel_title: Haushalt
+options: {}
+schema: {}
+
+homeassistant: "2025.12.0"
+backup: cold

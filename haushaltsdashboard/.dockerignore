@@ -1,0 +1,10 @@
+__pycache__
+**/__pycache__
+*.pem
+*.key
+.env*
+private.json
+dashboard.json
+data
+snapshots
+

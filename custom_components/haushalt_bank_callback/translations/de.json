@@ -1,0 +1,31 @@
+{
+  "title": "Haushaltsdashboard Bankrückleitung",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Bankrückleitung verbinden",
+        "description": "Starte zuerst die Haushaltsdashboard-App und speichere dort ihre Verbindungsdaten. Trage die interne App-Adresse und den dort erzeugten Verbindungsschlüssel ein. Gemeint ist nicht die PEM-Datei und nicht deine Bank-PIN.",
+        "data": {
+          "bridge_secret": "Verbindungsschlüssel der Haushaltsdashboard-App",
+          "backend_url": "Interne App-Adresse (http://<App-ID mit Bindestrichen>:8100)"
+        }
+      },
+      "reconfigure": {
+        "title": "Bankrückleitung auf die Repository-App umstellen",
+        "description": "Starte zuerst die Haushaltsdashboard-App und speichere dort ihre Verbindungsdaten. Trage die interne App-Adresse und den dort erzeugten Verbindungsschlüssel ein. Gemeint ist nicht die PEM-Datei und nicht deine Bank-PIN.",
+        "data": {
+          "bridge_secret": "Verbindungsschlüssel der Haushaltsdashboard-App",
+          "backend_url": "Interne App-Adresse (http://<App-ID mit Bindestrichen>:8100)"
+        }
+      }
+    },
+    "error": {
+      "invalid_secret": "Der Verbindungsschlüssel stimmt nicht. Kopiere den 64-stelligen Schlüssel aus der Haushaltsdashboard-App.",
+      "cannot_connect": "Die lokale Haushaltsdashboard-App ist nicht erreichbar. Prüfe, ob sie installiert und gestartet ist.",
+      "invalid_backend": "Verwende die interne Adresse aus der Anleitung: http://<Repository-ID>-haushaltsdashboard:8100. Für die lokale App: http://local-haushaltsdashboard:8100."
+    },
+    "abort": {
+      "already_configured": "Die Bankrückleitung ist bereits eingerichtet."
+    }
+  }
+}

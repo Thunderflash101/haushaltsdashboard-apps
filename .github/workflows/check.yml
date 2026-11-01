@@ -1,0 +1,25 @@
+name: Check app
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Tests
+        run: node --test tests/*.test.mjs
+      - name: Python integration syntax
+        run: python3 -m compileall -q custom_components
+      - name: Callback bridge tests
+        run: python3 -m unittest discover -s tests -p '*_test.py'
+      - name: Repository privacy audit
+        run: python3 tools/audit_repository.py
+      - name: Container build
+        run: docker build --tag haushaltsdashboard-test haushaltsdashboard
+
