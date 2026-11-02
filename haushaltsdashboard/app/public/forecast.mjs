@@ -1,5 +1,5 @@
 import {cents,bookingParts,monthKey,shiftMonth,berlinToday,analyzeMonth,inflowKind,flowKind} from './finance.mjs';
-import {contractFixedModels} from './contracts.mjs';
+import {contractFixedModels,matchesContractBooking} from './contracts.mjs';
 import {learnPatterns} from './learning.mjs';
 const DAY=86400000;
 const norm=s=>String(s||'').normalize('NFC').trim().toLocaleLowerCase('de');
@@ -56,7 +56,7 @@ function fixedEvents(fixed,bookings,key,options,warnings){
     const days=past.map(b=>Number(b.date.slice(0,2))).sort((a,b)=>a-b),explicit=Number(f.dueDay),estimatedDay=!(explicit>=1&&explicit<=31),day=estimatedDay?(days.length>=2?days[Math.floor(days.length/2)]:daysInMonth(key)):explicit;
     const amount=-cents(f.contractAmount??(f.learned?f.learned.amount:Number(f.monthly)*cycle));if(!(amount<0))return;
     const dueDate=atDay(key,day);if(f.startDate&&dueDate<f.startDate||f.untilDate&&dueDate>f.untilDate)return;
-    events.push({id:f.id?`${f.id}-${key}`:`fixed-${index}-${key}`,name:f.name,date:atDay(key,day),month:key,amount:amount/100,category:f.category||'Sonstiges',kind:flowKind(f.category,f.flowType),type:'fixed',hint,uniqueCategory:categories.get(f.category)===1,estimated:estimatedDay||f.status==='Möglich',automatic:!!f.learned||!!f._learning,detail:f.learned||f._learning?'Automatisch erkannt · '+(f.learned||f._learning).confidence:estimatedDay?'Fälligkeit geschätzt':f.status==='Möglich'?'Mögliche Fixkosten':'Fixkosten'});
+    events.push({id:f.id?`${f.id}-${key}`:`fixed-${index}-${key}`,name:f.name,date:atDay(key,day),month:key,amount:amount/100,category:f.category||'Sonstiges',kind:flowKind(f.category,f.flowType),type:'fixed',hint,uniqueCategory:categories.get(f.category)===1,estimated:estimatedDay||f.status==='Möglich',contractId:f.contractId||null,automatic:!!f.learned||!!f._learning,detail:f.learned||f._learning?'Automatisch erkannt · '+(f.learned||f._learning).confidence:estimatedDay?'Fälligkeit geschätzt':f.status==='Möglich'?'Mögliche Fixkosten':'Fixkosten'});
   });return events;
 }
 export function forecast(state,bank,{today=berlinToday(),account=bank?.account||''}={}){
@@ -97,12 +97,14 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
       if(Math.sign(s.amount)!==Math.sign(e.amount)||e.amount>0&&s.kind!==e.kind&&!(e.kind==='income'&&s.b.refund))continue;
       const sameMonth=s.date.slice(0,7)===e.month,distance=Math.abs(Date.parse(s.date)-Date.parse(e.date))/DAY;
       if(!sameMonth&&distance>5)continue;
-      if(e.type==='fixed'&&s.category!==e.category)continue;
+      const linked=e.contractId&&s.b.contractId===e.contractId;
+      if(e.contractId){const c=(state.contracts||[]).find(c=>c.id===e.contractId);if(!c||!matchesContractBooking(c,s.b,s.category))continue;}
+      if(e.type==='fixed'&&!e.contractId&&s.category!==e.category)continue;
       const hinted=e.hint&&norm(s.b.payee+' '+s.b.purpose).includes(e.hint);
       const categoryMatch=e.type==='fixed'&&e.uniqueCategory&&s.category===e.category&&s.fixed!=='Nein';
-      if(!hinted&&!categoryMatch)continue;
+      if(!hinted&&!categoryMatch&&!linked)continue;
       const diff=Math.abs(cents(s.amount)-cents(e.amount)),tolerance=Math.max(200,Math.abs(cents(e.amount))*.05);
-      if(diff>tolerance&&!(e.automatic&&e.type==='income'&&isLearnedSalary(s.b)))continue;
+      if(diff>tolerance&&!linked&&!(e.automatic&&e.type==='income'&&isLearnedSalary(s.b)))continue;
       candidates.push({event:e,slot:s,score:(hinted?0:1000)+diff/100+distance});
     }
   }
@@ -153,7 +155,7 @@ function isLearnedSalary(b){return b.amount>0&&!b.refund&&inflowKind(b)==='incom
 export function monthlyRoom(bookings,events,budgetEvents,learning,key,settings){
   let received=0,expected=0,bookedFixed=0,bookedFlex=0,bookedOther=0,openFixed=0,openFlex=0,openOther=0;
   const categories=new Map(),fixedSources=new Set(learning.fixedSources||[]);
-  const isFixed=(index,category,status)=>status==='Ja'||status==='Möglich'||fixedSources.has(index+':'+category)||events.some(e=>e.type==='fixed'&&e.booking?.index===index&&e.category===category);
+  const isFixed=(index,category,status)=>status==='Ja'||status==='Möglich'||fixedSources.has(index+':'+category)||events.some(e=>e.type==='fixed'&&e.booking?.index===index&&(e.category===category||e.contractId&&bookings[index]?.contractId===e.contractId));
   function add(category,value,fixed,other,planned){
     if(!categories.has(category))categories.set(category,{name:category,booked:0,planned:0});categories.get(category)[planned?'planned':'booked']+=value;
     if(planned){if(other)openOther+=value;else if(fixed)openFixed+=value;else openFlex+=value;}

@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {validateContracts} from '../public/contracts.mjs';
+import {validateContracts,validateContractLinks} from '../public/contracts.mjs';
 import {validateForecast} from '../public/forecast.mjs';
 import {validateFinanceState} from '../public/finance.mjs';
 import path from 'node:path';
@@ -24,6 +24,6 @@ export function validState(value) {
     && value.bookings.length<=100000 && value.fixed.length<=10000
     && value.bookings.every(b=>b && typeof b.date==='string' && /^\d{2}\.\d{2}\.\d{4}$/.test(b.date) && typeof b.amount==='number' && Number.isFinite(b.amount) && Math.abs(b.amount)<1e12 && typeof b.payee==='string' && typeof b.purpose==='string')
     && value.fixed.every(f=>f && typeof f.name==='string' && Number.isFinite(Number(f.monthly)))
-    && validateFinanceState(value) === null && validateForecast(value.forecast) === null && validateContracts(value.contracts) === null;
+    && validateFinanceState(value) === null && validateForecast(value.forecast) === null && validateContracts(value.contracts) === null && validateContractLinks(value) === null;
 }
 

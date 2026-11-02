@@ -348,3 +348,28 @@ versendet keine Kündigungen, E-Mails oder Push-Nachrichten.
 Dieselbe Repository-App auf 0.6.0 aktualisieren und geöffnete Seiten neu laden.
 Bestehende Daten, Bankverbindung und Rückleitungs-Integration bleiben erhalten.
 Verträge werden in der gemeinsamen JSON-Sicherung mitgesichert.
+
+## PayPal und direkte Vertragszuordnung (ab 0.6.1)
+
+Unter **Buchungen → Zweck ansehen** wird der vollständige übermittelte
+Verwendungszweck angezeigt. Bei üblichen PayPal-Referenzpräfixen zeigt die Tabelle
+den danach stehenden Händlertext zuerst. Die Rohdaten werden dafür nicht
+verändert. Fehlt der Händlername in den von der Bank gelieferten Daten, lässt
+er sich aus einer PayPal-Zahlungsnummer nicht zuverlässig rekonstruieren.
+
+Über **Vertrag zuordnen** kann eine einzelne Abbuchung direkt einem vorhandenen
+Vertrag zugeordnet oder als Vorlage für einen neuen Vertrag verwendet werden.
+Die Verknüpfung hat für die Buchungszuordnung Vorrang vor Kategorie und Suchtext.
+Andere PayPal-Zahlungen werden dadurch nicht automatisch verknüpft.
+
+Bei einem stabilen Händlertext kann der Vertrag weiterhin automatisch über einen
+präzisen Suchtext zugeordnet werden. Allgemeine Suchtexte wie „PayPal“ reichen
+dafür nicht aus. Im Modus **Nur einzeln zugeordnete Buchungen** werden nur explizit
+verknüpfte Zahlungen verwendet. Bei reinen PayPal-Zahlungsreferenzen ist dieser
+Modus in neuen Vertragsvorlagen voreingestellt.
+
+Eine direkte Gesamtzuordnung ist für einzelne Abbuchungen vorgesehen. Bei
+aufgeteilten Buchungen oder verknüpften Umbuchungen ist sie nicht verfügbar. Vor
+einer nachträglichen Aufteilung einer verknüpften Abbuchung zuerst den Vertragslink
+lösen. Die Kategorie kann unabhängig bearbeitet werden. Import und Dublettenabgleich
+behalten den Link und den unveränderten Originalzweck bei.
