@@ -453,8 +453,8 @@ function planFixedMonth(fixed,bookings,key){
     const expected=expectedFixed({...f,anchorMonth:f.anchorMonth||timing[index].anchorMonth},key);if(expected===null)return;
     const hint=String(f.matchKeyword||'').trim().toLocaleLowerCase('de');
     debits.forEach(b=>{
-      if(b.category!==f.category)return;
-      if(hint&&!`${b.payee} ${b.purpose}`.toLocaleLowerCase('de').includes(hint))return;
+      if(b.contractId){if(b.contractId!==f.contractId)return;}else if(b.category!==f.category)return;
+      if(!b.contractId&&hint&&!`${b.payee} ${b.purpose}`.toLocaleLowerCase('de').includes(hint))return;
       // The closest amount wins when several fixed items share a category.
       const diff=Math.abs(Math.abs(b.amount)-expected);
       candidates.push({index,bookingIndex:b.index,partKey:b.partKey,diff});
@@ -710,7 +710,7 @@ function compareToTypical(bookings,key,spendingOnly=false){
       if(b.amount<0){const contract=node('button',{type:'button',class:'btn small',text:b.contractId?'Vertrag verknüpft':'Vertrag zuordnen'});contract.addEventListener('click',()=>contractsUI.openBooking(i));actions.append(contract);}
       const once=node('button',{type:'button',class:'btn small',text:b.forecastOneOff?'Einmalig ✓':'Als einmalig markieren',title:'Aus der automatischen Prognoseerkennung ausschließen; die Buchung bleibt in den Auswertungen erhalten.'});once.addEventListener('click',()=>{b.forecastOneOff=!b.forecastOneOff;save();renderAll();});actions.append(once);
       if(b.amount!==0){const relation=node('button',{type:'button',class:'btn small',text:locked?'Zuordnung':'Zuordnen'});relation.addEventListener('click',()=>openRelation(i));actions.append(relation)}
-      if(b.amount<0){const split=node('button',{type:'button',class:'btn small',text:b.splits?.length>1?`${b.splits.length} Teile`:'Aufteilen'});split.disabled=locked||!!b.contractId;if(locked)split.title='Vorher bestehende Zuordnungen lösen';split.addEventListener('click',()=>openSplit(i));actions.append(split)}
+      if(b.amount<0){const split=node('button',{type:'button',class:'btn small',text:b.splits?.length>1?`${b.splits.length} Teile`:'Aufteilen'});split.disabled=locked||!!b.contractId;if(locked||b.contractId)split.title='Vorher bestehende Zuordnungen lösen';split.addEventListener('click',()=>openSplit(i));actions.append(split)}
       const rule=node('button',{type:'button',class:'btn small',text:'Regel'});rule.addEventListener('click',()=>prefillRule(i));actions.append(rule);
       if(b.reviewReason&&!b.reviewed){const reviewed=node('button',{type:'button',class:'btn small',text:'Geprüft','aria-label':`${b.reviewReason}: als geprüft markieren`});reviewed.addEventListener('click',()=>{b.reviewed=true;save();renderBookings()});actions.append(node('span',{class:'pill maybe',text:b.reviewReason}),reviewed)}
       box.append(node('tr',{class:b.reviewReason&&!b.reviewed?'review-row':''},[node('td',{class:'nowrap',text:fmtDate(b.date)}),node('td',{text:b.payee}),purposeCell(b,i),node('td',{},[categorySelect]),node('td',{},[kindSelect]),node('td',{},[statusSelect]),node('td',{},[actions]),node('td',{class:`right ${b.amount<0?'negative':'positive'}`,text:eur(b.amount)})]));
