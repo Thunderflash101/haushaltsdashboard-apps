@@ -3,7 +3,7 @@ import {berlinToday,shiftMonth} from './finance.mjs';
 const $=id=>document.getElementById(id),eur=value=>value===null?'–':new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(value),date=value=>value?value.split('-').reverse().join('.'):'–';
 function el(tag,attrs={},children=[]){const node=document.createElement(tag);for(const [key,value] of Object.entries(attrs)){if(key==='text')node.textContent=value;else if(key==='class')node.className=value;else node.setAttribute(key,value)}node.append(...children);return node;}
 const text=(id,value)=>$(id).textContent=value;
-export function createForecastUI({getState,getBank,getAccount,save,openView,editFixed}){
+export function createForecastUI({getState,getBank,getAccount,save,openView,editFixed,onIncomeChange=()=>{}}){
   let report=null,settingsDirty=false;
   function update(value,errorId='forecast-form-error'){
     const error=validateForecast(value);text(errorId,error||'');if(error)return false;
@@ -17,7 +17,7 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
     $('forecast-manual').disabled=$('forecast-asof').disabled=f.balanceSource!=='manual';}
     for(const [id,value] of [['forecast-current',report.current],['forecast-free',report.available],['forecast-end',report.endBalance],['forecast-low',report.minimum]]){text(id,eur(value));$(id).classList.toggle('negative',value!==null&&value<0);}
     text('forecast-free-label',report.available!==null&&report.available<0?'Geplanter Fehlbetrag':report.warnings.length?'Vorläufig frei':'Rechnerisch frei');text('forecast-free-until','bis '+date(report.freeUntil));
-    text('forecast-preview-value',eur(report.monthly.available));$('forecast-preview-value').classList.toggle('negative',report.monthly.available!==null&&report.monthly.available<0);text('forecast-preview-note',report.monthly.incomeKnown?`${report.monthly.key} · ${eur(report.monthly.income)} Einnahmen − ${eur(report.monthly.costs)} geschätzte Monatskosten`:'Monatseinkommen noch nicht erkannt oder eingeplant');
+    text('forecast-preview-value',eur(report.budget.available));$('forecast-preview-value').classList.toggle('negative',report.budget.available!==null&&report.budget.available<0);text('forecast-preview-note',report.budget.incomeKnown?`${report.budget.key} · ${eur(report.budget.income)} Netto − ${eur(report.budget.obligations)} Verträge & Fixkosten`:'Monatsnetto für beide Personen ergänzen · Planung öffnen');
     text('forecast-balance-note',report.balance?`${f.balanceSource==='manual'?'Manueller Kontostand':'Gebuchter Bankkontostand'}: ${eur(report.balance.amount)} einschließlich ${date(report.balance.date)}. Spätere importierte Buchungen bis heute sind fortgeschrieben. Geplant im Zeitraum: +${eur(report.plannedIncome)} / −${eur(report.plannedExpense)}. Geschützt: ${eur(report.protected)}.`:'Kein geeigneter gebuchter Bankkontostand vorhanden. Unter „Kontostand und Planung einstellen“ einen manuellen Kontostand hinterlegen oder die Bankdaten aktualisieren.');
     $('forecast-settings').open=!report.balance||$('forecast-settings').open;
     renderNotices();
@@ -55,13 +55,22 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
   }
 
   function renderMonthRoom(){
-    const m=report.monthly;for(const [id,value] of [['month-room-free',m.available],['month-room-income',m.income],['month-room-fixed',m.fixed],['month-room-flex',m.flexible],['month-room-other',m.other]]){text(id,eur(value));$(id).classList.toggle('negative',value!==null&&value<0);}
-    text('month-room-period',new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(m.key+'-01T12:00:00Z'))+' · gesamter Kalendermonat, einschließlich bereits gebuchter Zahlungen');
-    text('month-room-income-detail',`${eur(m.received)} gebucht + ${eur(m.expected)} noch erwartet`);
-    text('month-room-equation',`${eur(m.income)} Einnahmen − ${eur(m.costs)} Monatskosten = ${eur(m.available)} noch frei`);
-    text('month-room-note',`${eur(m.booked)} Kosten bereits gebucht · ${eur(m.open)} noch eingeplant.${!m.incomeKnown?' Es fehlen erkannte oder geplante Monatseinnahmen.':''}${report.warnings.length?' Die Schätzung enthält noch offene Planungshinweise.':''}`);
-    const rows=$('month-room-rows');rows.replaceChildren();for(const row of m.categories)rows.append(el('tr',{},[el('td',{text:row.name}),el('td',{class:'right',text:eur(row.booked)}),el('td',{class:'right',text:eur(row.planned)}),el('td',{class:'right',text:eur(row.total)})]));
-    const chart=$('month-room-chart');chart.replaceChildren();const items=[['Fixkosten',m.fixed,'#142943'],['Flexibel',m.flexible,'#58b5c2'],['Anlagen / Überträge',m.other,'#b8a0d9'],['Noch frei',m.available||0,'#1aa889']],total=items.reduce((sum,[,value])=>sum+Math.max(0,value),0),bar=el('div',{class:'month-room-bar',role:'img','aria-label':'Aufteilung des Monatseinkommens nach geschätzten Kosten und freiem Betrag'}),legend=el('div',{class:'month-room-legend'});
+    const m=report.budget,state=getState(),names={shared:'Gemeinsam',joern:state.people?.first||'Person 1',bettina:state.people?.second||'Person 2'};
+    for(const [id,value] of [['month-room-free',m.available],['month-room-income',m.income],['month-room-fixed',m.obligations],['month-room-flex',m.spentFlexible],['month-room-other',m.spentOther],['month-room-remaining',m.remaining]]){text(id,eur(value));$(id).classList.toggle('negative',value!==null&&value<0);}
+    text('month-room-period',new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(m.key+'-01T12:00:00Z'))+' · Monatsanteile der Verpflichtungen');
+    text('month-room-income-detail','Monatsnetto beider Personen · unabhängig vom Kontoeingang');
+    text('month-room-equation',`${eur(m.income)} Netto − ${eur(m.obligations)} Verpflichtungen = ${eur(m.available)} Monatsbudget`);
+    text('month-room-note',m.warnings.join(' ')||`Gemeinsam: ${eur(m.shared)} · Persönlich: ${eur(m.personal)}. Flexible Durchschnittswerte und Kategoriebudgets verändern dieses Monatsbudget nicht.`);
+    const people=$('month-room-people');people.replaceChildren();
+    for(const person of ['joern','bettina']){
+      const p=m.people[person],card=el('section',{class:'budget-person','data-person':person},[el('h3',{text:names[person]})]);
+      for(const [label,value] of [['Monatsnetto',p.income],['Anteil gemeinsam',p.shared],['Eigene Verpflichtungen',p.personal]])card.append(el('div',{class:'list-row'},[el('span',{text:label}),el('strong',{text:eur(value)})]));
+      card.append(el('strong',{class:p.available!==null&&p.available<0?'negative':'',text:eur(p.available)}),el('p',{class:'note',text:'Persönliches Monatsbudget · '+p.source}));
+      const input=el('input',{type:'number',min:'0',step:'0.01',inputmode:'decimal',value:state.incomes?.[m.key]?.[person]??'',placeholder:p.income===null?'Netto eintragen':String(p.income),'aria-label':names[person]+' Netto im Budgetmonat',class:'edit-input'}),label=el('label',{class:'field'},[el('span',{text:'Monatsnetto eintragen / überschreiben'}),input]);
+      input.addEventListener('change',()=>{if(!input.checkValidity())return;state.incomes||={};state.incomes[m.key]||={};state.incomes[m.key][person]=input.value===''?null:Number(input.value);save();render();onIncomeChange();});card.append(label);people.append(card);
+    }
+    const rows=$('month-room-rows');rows.replaceChildren();for(const row of m.rows)rows.append(el('tr',{},[el('td',{text:row.name}),el('td',{text:names[row.owner]}),el('td',{text:row.source}),el('td',{class:'right',text:eur(row.amount)})]));
+    const chart=$('month-room-chart');chart.replaceChildren();const items=[['Verpflichtungen',m.obligations,'#142943'],['Bereits flexibel ausgegeben',Math.max(0,m.spentFlexible),'#58b5c2'],['Anlagen',Math.max(0,m.spentOther),'#b8a0d9'],['Davon noch übrig',Math.max(0,m.remaining||0),'#1aa889']],total=items.reduce((sum,[,value])=>sum+Math.max(0,value),0),bar=el('div',{class:'month-room-bar',role:'img','aria-label':'Aufteilung des Monatseinkommens in Verpflichtungen, bereits ausgegebene Beträge und verbleibendes Budget'}),legend=el('div',{class:'month-room-legend'});
     for(const [label,value,color] of items){if(value>0&&total)bar.append(el('span',{style:`width:${value/total*100}%;background:${color}`}));legend.append(el('span',{text:`${label}: ${eur(value)}`}));}chart.append(bar,legend);
   }
   function renderLearning(){
@@ -80,7 +89,7 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
   }
   function renderMonthlyIncome(){
     const state=getState(),table=el('table'),body=el('tbody');table.append(el('thead',{},[el('tr',{},[el('th',{text:'Monat'}),el('th',{text:state.people?.first||'Person 1'}),el('th',{text:state.people?.second||'Person 2'})])]),body);
-    for(let key=report.today.slice(0,7);key<=report.end.slice(0,7);key=shiftMonth(key,1)){const row=el('tr',{},[el('td',{text:key})]);for(const person of ['joern','bettina']){const input=el('input',{type:'number',min:'0',step:'0.01',class:'edit-input',value:state.incomes?.[key]?.[person]??'',placeholder:'Unbekannt','aria-label':`${person==='joern'?'Person 1':'Person 2'} Monatsnetto ${key}`}),month=key;input.addEventListener('change',()=>{if(!input.checkValidity())return;state.incomes||={};state.incomes[month]||={};state.incomes[month][person]=input.value===''?null:Number(input.value);save();render();});row.append(el('td',{},[input]));}body.append(row);} $('forecast-monthly-income').replaceChildren(table);
+    for(let key=report.today.slice(0,7);key<=report.end.slice(0,7);key=shiftMonth(key,1)){const row=el('tr',{},[el('td',{text:key})]);for(const person of ['joern','bettina']){const input=el('input',{type:'number',min:'0',step:'0.01',class:'edit-input',value:state.incomes?.[key]?.[person]??'',placeholder:'Unbekannt','aria-label':`${person==='joern'?'Person 1':'Person 2'} Monatsnetto ${key}`}),month=key;input.addEventListener('change',()=>{if(!input.checkValidity())return;state.incomes||={};state.incomes[month]||={};state.incomes[month][person]=input.value===''?null:Number(input.value);save();render();onIncomeChange();});row.append(el('td',{},[input]));}body.append(row);} $('forecast-monthly-income').replaceChildren(table);
   }
   function drawChart(){
     const box=$('forecast-chart');box.replaceChildren();const points=report.points;$('forecast-day').disabled=!points.length;$('forecast-day').max=Math.max(0,points.length-1);

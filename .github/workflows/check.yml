@@ -31,6 +31,7 @@ jobs:
           node tests/learning-browser.mjs
           node tests/contracts-browser.mjs
           node tests/paypal-browser.mjs
+          node tests/budget-browser.mjs
       - name: Browser screenshots
         if: always()
         uses: actions/upload-artifact@v4

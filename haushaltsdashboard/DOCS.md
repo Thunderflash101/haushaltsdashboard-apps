@@ -262,31 +262,57 @@ Monatsauswertungen und im Kontosaldo enthalten. Keine automatische Methode kann
 alle Einmalereignisse oder Vertragsenden zuverlässig erkennen; die Quellen und
 Korrekturmöglichkeiten sind deshalb Bestandteil der Ansicht.
 
-## Freier Monatsrahmen (ab 0.5.1)
+## Monatsbudget nach Verpflichtungen (ab 0.7.0)
 
-Die Übersicht und der erste Abschnitt unter Planung zeigen nun den **Monatsrahmen
-aus dem Einkommen** für den aktuellen Kalendermonat:
+Übersicht und Planung zeigen das Budget des aktuellen Kalendermonats:
 
-Gebuchte Einnahmen + noch erwartete Einnahmen − bereits gebuchte Monatskosten
-− noch erwartete Monatskosten = vom Einkommen noch frei.
+**Nettoeinkommen beider Personen − Verträge und Fixkosten = Monatsbudget.**
 
-Enthalten sind die gesamten Monatskosten einschließlich bereits bezahlter
-Fixkosten, flexibler Ausgaben, Anlagen und ausgehender Überträge. Zugeordnete
-Erstattungen senken die jeweiligen Kosten. Eingehende eigene Umbuchungen und
-Anlagerückflüsse zählen nicht als verdientes Monatseinkommen. Erkannte echte
-Zahlungen ersetzen ihren Planposten; sie werden nicht doppelt angesetzt.
+Geschätzte flexible Kosten, Lebensmittel-, Shopping- und andere Kategoriebudgets,
+geplante Einmalposten, Kontoguthaben und Liquiditätspuffer reduzieren diesen
+Ausgangswert nicht. Quartals- und Jahreszahlungen werden mit dem Monatsanteil
+reserviert, unabhängig vom tatsächlichen Fälligkeitsmonat. Die Tabelle zeigt
+alle enthaltenen Verpflichtungen und ihre Kostenträger.
 
-Diese Rechnung funktioniert ohne Kontostand. Anfangsguthaben, geschütztes
-Guthaben und der Liquiditätspuffer werden nicht als Monatseinkommen oder
-Monatskosten eingerechnet. Die Tabelle trennt gebuchte und offene Kosten pro
-Kategorie. Ein Fehlbetrag bleibt negativ; bei unbekanntem Monatseinkommen
-bleibt der freie Betrag offen.
+**Davon noch übrig** zieht bereits importierte flexible Ausgaben und Anlagen
+vom Monatsbudget ab. Zugeordnete Erstattungen stellen das flexible Budget wieder
+her. Eigene Umbuchungen verbrauchen es nicht. Bezahlte Verträge und Fixkosten
+werden nicht erneut abgezogen. Als fix markierte Buchungen ohne Planposten
+werden als zusätzliche gemeinsame Verpflichtung berücksichtigt. Nicht importierte
+Ausgaben, insbesondere auf einem zweiten persönlichen Konto, fehlen in dieser
+Anzeige. Die persönlichen Karten zeigen deshalb jeweils das Ausgangsbudget nach
+Verpflichtungen, keinen personenbezogenen Rest nach Einkäufen.
 
-Die zusätzliche Kontostandsprognose darunter zeigt, wann das Geld voraussichtlich
-auf dem Konto verfügbar ist. Erwartetes Gehalt kann im Monatsrahmen berücksichtigt
-sein, obwohl es noch nicht eingegangen ist. Vergangene Monate und Verschieben des
-Gehalts in einen abweichenden Budgetmonat sind für diesen neuen Monatsrahmen noch
-nicht auswählbar.
+### Gemeinsam oder persönlich
+
+Bei jedem Fixkostenposten und Vertrag **Wer trägt diese Kosten?** auswählen:
+
+- **Gemeinsam:** Aufteilung nach den monatlichen Nettoeinkommen.
+- **Nur Person 1 / Nur Person 2:** Vollständig dem persönlichen Budget zuordnen.
+
+Die Namen entsprechen den eingerichteten Anzeigenamen. Bestehende Posten ohne
+Zuordnung gelten weiterhin als gemeinsam. Persönliche Verträge deshalb einmalig
+bearbeiten. **Auch in der Fixkostenliste anzeigen** steuert bei Verträgen nur die
+Darstellung. Ein ausgeblendeter Vertrag bleibt in Budget und Kontostandsprognose
+enthalten. Verknüpfte Fixkostenposten werden durch ihren Vertrag ersetzt und nicht
+doppelt gezählt; die Kostenzuordnung des Vertrags gilt.
+
+### Einkommen pro Monat
+
+Die eingetragenen Monatsnettos haben Vorrang, auch ein ausdrücklich eingetragener
+Wert von 0 €. Ohne Eintrag wird auf passende aktuelle Gehaltsbuchungen und danach
+auf Einkommenspläne zurückgegriffen. Gehaltsbuchungen ohne personenspezifischen
+Plan werden wie bisher der ersten Person zugerechnet. Für Gehalt der zweiten
+Person auf demselben Konto einen passenden Einkommensplan verwenden oder ihr
+Monatsnetto ausdrücklich eintragen. Ein Planbetrag ohne Buchung ist eine Schätzung.
+Fehlendes Einkommen bleibt unbekannt. Bei gemeinsamen Verpflichtungen benötigen
+die persönlichen Anteile beide Nettoeinkommen. Die Beträge lassen sich direkt in
+den persönlichen Budgetkarten ändern und gelten nur für diesen Monat.
+
+Die Kontostandsprognose darunter verwendet weiterhin echte Bankeingänge,
+Fälligkeiten, flexible Schätzungen, Budgets und Einmalposten. Ein eingetragenes
+Monatsnetto erzeugt keinen zusätzlichen Bankeingang. Das Monatsbudget ist keine
+Aussage über das heute auf dem Konto verfügbare Guthaben.
 
 ## Vertragsverwaltung (ab 0.6.0)
 

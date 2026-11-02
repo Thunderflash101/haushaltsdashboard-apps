@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.7.0
+
+- Monatsbudget aus Nettoeinkommen minus Verträgen und Fixkosten; keine Reservierung geschätzter flexibler Ausgaben.
+- „Davon noch übrig“ berücksichtigt bereits importierte flexible Ausgaben und Anlagen.
+- Kostenzuordnung „Gemeinsam“, „Nur Person 1“ oder „Nur Person 2“ für Verträge und Fixkosten.
+- Persönliche Monatsbudgets nach eigenem Einkommen, anteiligen gemeinsamen und eigenen Verpflichtungen.
+- Verträge unabhängig von der Kostenzuordnung in der Fixkostenliste ein- oder ausblenden.
+- Verknüpfte Verträge und Fixkosten werden einmal berücksichtigt. Quartals- und Jahreszahlungen zählen mit Monatsanteilen.
+- Monatsnetto direkt in der Budgetansicht bearbeiten; fehlende Einkommen werden nicht als 0 € angenommen.
+- Kontostandsprognose und Bankeingänge bleiben unabhängig von der Budgetrechnung.
+
 ## 0.6.1
 
 - Vollständiger Verwendungszweck über „Zweck ansehen“ auch am Handy lesbar und kopierbar.

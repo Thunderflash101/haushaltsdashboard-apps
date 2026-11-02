@@ -146,8 +146,8 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   const nextIncome=active.filter(e=>e.type==='income'&&e.amount>0).sort((a,b)=>a.date.localeCompare(b.date))[0];
   const freeUntil=nextIncome?nextIncome.date===today?today:addDays(nextIncome.date,-1):[atDay(startMonth,31),end].sort()[0];
   const beforePay=points.filter(p=>p.date<=freeUntil),minimum=Math.min(currentCents/100,...points.map(p=>p.balance)),freeMinimum=Math.min(currentCents/100,...beforePay.map(p=>p.balance))-protectedCents/100;
-  const monthly=monthlyRoom(bookings,events,budgetEvents,learning,startMonth,settings);
-  return {today,end,settings,learning,monthly,balance,current:balance?currentCents/100:null,points:balance?points:[],events:events.filter(e=>e.date<=end).sort((a,b)=>a.date.localeCompare(b.date)||a.amount-b.amount),budgetEvents:budgetEvents.filter(e=>e.date<=end),warnings:[...warnings],endBalance:balance?running/100:null,minimum:balance?minimum:null,available:balance?Math.round(freeMinimum*100)/100:null,freeUntil,nextIncome:nextIncome||null,protected:protectedCents/100,plannedIncome:active.filter(e=>e.amount>0).reduce((n,e)=>n+cents(e.amount),0)/100,plannedExpense:active.filter(e=>e.amount<0).reduce((n,e)=>n-cents(e.amount),0)/100};
+  const monthly=monthlyRoom(bookings,events,budgetEvents,learning,startMonth,settings),budget=monthlyBudget({...state,bookings},{key:startMonth,today,learning});
+  return {today,end,settings,learning,monthly,budget,balance,current:balance?currentCents/100:null,points:balance?points:[],events:events.filter(e=>e.date<=end).sort((a,b)=>a.date.localeCompare(b.date)||a.amount-b.amount),budgetEvents:budgetEvents.filter(e=>e.date<=end),warnings:[...warnings],endBalance:balance?running/100:null,minimum:balance?minimum:null,available:balance?Math.round(freeMinimum*100)/100:null,freeUntil,nextIncome:nextIncome||null,protected:protectedCents/100,plannedIncome:active.filter(e=>e.amount>0).reduce((n,e)=>n+cents(e.amount),0)/100,plannedExpense:active.filter(e=>e.amount<0).reduce((n,e)=>n-cents(e.amount),0)/100};
 }
 
 function isLearnedSalary(b){return b.amount>0&&!b.refund&&inflowKind(b)==='income'&&(b.category==='Gehalt'||/lohn|gehalt|salary/i.test(b.purpose||''));}
@@ -175,4 +175,58 @@ export function monthlyRoom(bookings,events,budgetEvents,learning,key,settings){
   const income=received+expected,booked=bookedFixed+bookedFlex+bookedOther,open=openFixed+openFlex+openOther,costs=booked+open;
   const incomeKnown=received>0||settings.incomePlans.length>0||learning.incomes.length>0;
   return {key,incomeKnown,income:income/100,received:received/100,expected:expected/100,costs:costs/100,booked:booked/100,open:open/100,fixed:(bookedFixed+openFixed)/100,flexible:(bookedFlex+openFlex)/100,other:(bookedOther+openOther)/100,available:incomeKnown?(income-costs)/100:null,categories:[...categories.values()].map(r=>({name:r.name,booked:r.booked/100,planned:r.planned/100,total:(r.booked+r.planned)/100})).sort((a,b)=>b.total-a.total)};
+}
+
+// Monthly spending capacity is independent of account cash flow and flex estimates.
+export function validateCostOwners(state){
+  return (state.fixed||[]).some(f=>f.costOwner!==undefined&&!['shared','joern','bettina'].includes(f.costOwner))?'Ungültige Kostenzuordnung eines Fixkostenpostens.':null;
+}
+export function budgetIncomes(state,key,today=berlinToday(),learning=null){
+  const f=defaults(state.forecast),plans=[...f.incomePlans,...(learning?.incomes||[])].filter(p=>p.startMonth<=key),sums={joern:0,bettina:0},planned={joern:0,bettina:0},sources={joern:'Fehlt',bettina:'Fehlt'},warnings=[];
+  for(const p of plans)planned[p.source==='bettina'?'bettina':'joern']+=cents(p.amount);
+  for(const b of state.bookings||[]){
+    if(monthKey(b.date)!==key||isoDate(b)>today||!isLearnedSalary(b))continue;
+    const owners=new Set(plans.filter(p=>norm(p.matchKeyword)&&norm(b.payee+' '+b.purpose).includes(norm(p.matchKeyword))).map(p=>p.source==='bettina'?'bettina':'joern'));
+    if(owners.size>1){warnings.push('Ein Gehalt passt zu mehreren Personen. Monatsnetto bitte ausdrücklich eintragen.');continue;}
+    sums[[...owners][0]||'joern']+=cents(b.amount);
+  }
+  const result={};for(const person of ['joern','bettina']){
+    const entered=state.incomes?.[key]?.[person],explicit=typeof entered==='number'&&Number.isFinite(entered)&&entered>=0;
+    result[person]=explicit?cents(entered)/100:sums[person]>0?sums[person]/100:planned[person]>0?planned[person]/100:null;
+    sources[person]=explicit?'Monatsnetto eingetragen':sums[person]>0?'Gehaltsbuchungen':planned[person]>0?'Einkommensplan · geschätzt':'Fehlt';
+  }
+  return {...result,sources,warnings};
+}
+export function monthlyBudget(state,{key=berlinToday().slice(0,7),today=berlinToday(),learning=null}={}){
+  const settings=defaults(state.forecast),bookings=state.bookings||[];
+  learning||=settings.automatic?learnPatterns(state,today):{fixedModels:state.fixed||[],incomes:[],fixedSources:[]};
+  const models=contractFixedModels(state.contracts||[],learning.fixedModels.filter(f=>!f.contractId),bookings,today,key+'-01').filter(f=>f.status!=='Nein'&&(f.status!=='Möglich'||state.basis==='all')&&(!f.startDate||f.startDate<=atDay(key,31))&&(!f.untilDate||f.untilDate>=key+'-01'));
+  const income=budgetIncomes(state,key,today,learning),rows=models.filter(f=>Number(f.monthly)>0).map(f=>({name:f.name,category:f.category||'Sonstiges',owner:f.costOwner||'shared',cents:cents(f.monthly),source:f.contractId?'Vertrag':f.learned?'Automatisch erkannt':'Fixkosten',model:f}));
+  const fixedSources=new Set(learning.fixedSources||[]);
+  function isObligation(b,index,part){
+    if(b.contractId)return (state.contracts||[]).some(c=>c.id===b.contractId);
+    if((state.contracts||[]).some(c=>matchesContractBooking(c,b,part.category)))return true;
+    if(fixedSources.has(index+':'+part.category))return true;
+    return models.some(f=>!f.contractId&&f.category===part.category&&(norm(f.matchKeyword)?norm(b.payee+' '+b.purpose).includes(norm(f.matchKeyword)):part.fixed!=='Nein'&&models.filter(x=>!x.contractId&&x.category===part.category).length===1));
+  }
+  let spentFlexible=0,spentOther=0;
+  function actual(b,index,part,sign){
+    if(isObligation(b,index,part))return;
+    if(part.fixed==='Ja'||part.fixed==='Möglich'){
+      if(part.fixed!=='Möglich'||state.basis==='all')rows.push({name:b.payee||'Gebuchte Fixkosten',category:part.category,owner:'shared',cents:sign*part.cents,source:'Gebuchte Fixkosten ohne Planposten',model:null});
+    }else if(part.kind==='expense')spentFlexible+=sign*part.cents;
+    else if(part.kind==='investment')spentOther+=sign*part.cents;
+  }
+  bookings.forEach((b,index)=>{
+    if(monthKey(b.date)!==key||isoDate(b)>today)return;
+    if(b.amount<0)for(const part of bookingParts(b))actual(b,index,part,1);
+    else if(b.flowType==='refund'&&b.refund){const target=bookings.findIndex(x=>x.financeId===b.refund.targetId);if(target>=0)for(const p of b.refund.allocations)actual(bookings[target],target,{...p,cents:cents(p.amount)},-1);}
+  });
+  const costs={shared:0,joern:0,bettina:0};for(const r of rows)costs[r.owner]+=r.cents;
+  const known=income.joern!==null&&income.bettina!==null,total=known?cents(income.joern)+cents(income.bettina):null,canSplit=known&&(total>0||costs.shared===0);
+  const joernShare=canSplit?(total>0?Math.round(costs.shared*cents(income.joern)/total):0):costs.shared===0?0:null,bettinaShare=joernShare===null?null:costs.shared-joernShare;
+  const people={};for(const [person,share] of [['joern',joernShare],['bettina',bettinaShare]])people[person]={income:income[person],source:income.sources[person],shared:share===null?null:share/100,personal:costs[person]/100,available:income[person]!==null&&share!==null?(cents(income[person])-share-costs[person])/100:null};
+  const obligations=costs.shared+costs.joern+costs.bettina,available=known?(total-obligations)/100:null;
+  const warnings=[...income.warnings];if(!known)warnings.push('Monatsnetto für beide Personen ergänzen. Persönliche Aufteilung und Haushaltsbudget sind sonst unvollständig.');if(known&&!canSplit)warnings.push('Gemeinsame Kosten können bei insgesamt 0 € Einkommen nicht proportional aufgeteilt werden.');
+  return {key,income:known?total/100:null,incomeKnown:known,people,shared:costs.shared/100,personal:(costs.joern+costs.bettina)/100,obligations:obligations/100,available,spentFlexible:spentFlexible/100,spentOther:spentOther/100,remaining:available===null?null:(cents(available)-spentFlexible-spentOther)/100,rows:rows.map(({model,cents:value,...r})=>({...r,amount:value/100})),warnings};
 }
