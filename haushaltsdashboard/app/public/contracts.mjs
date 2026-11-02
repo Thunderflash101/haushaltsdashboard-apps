@@ -14,6 +14,7 @@ export function validateContracts(contracts){
     for(const [key,max,required] of [['name',80,true],['provider',100,true],['category',100,true],['matchKeyword',100,c.matchMode!=='manual'],['number',100,false],['notes',2000,false],['patternId',100,false]])if(c[key]!==undefined&&typeof c[key]!=='string'||required&&!String(c[key]||'').trim()||String(c[key]||'').length>max)return 'Bitte Vertragsbezeichnung, Anbieter, Kategorie und Suchtext prüfen.';
     if(typeof c.amount!=='number'||!Number.isFinite(c.amount)||c.amount<=0||c.amount>=1e10||Math.abs(c.amount*100-cents(c.amount))>.001||!Number.isInteger(c.cycleMonths)||!cycles[c.cycleMonths]||!Number.isInteger(c.dueDay)||c.dueDay<1||c.dueDay>31||!Number.isInteger(c.anchorMonth)||c.anchorMonth<1||c.anchorMonth>12)return 'Zahlbetrag, Rhythmus und Fälligkeit prüfen.';
     if(c.matchMode!==undefined&&!['text','manual'].includes(c.matchMode))return 'Ungültige Buchungszuordnung.';
+    if(c.costOwner!==undefined&&!['shared','joern','bettina'].includes(c.costOwner)||c.showInFixed!==undefined&&typeof c.showInFixed!=='boolean')return 'Ungültige Kostenzuordnung oder Fixkostenanzeige.';
     if(!['active','cancelled','ended'].includes(c.status)||!['observed','manual'].includes(c.priceMode))return 'Ungültiger Vertragsstatus oder Preisplan.';
     if(['startDate','endDate','deadline','cancellationSent'].some(key=>!dateOptional(c[key])))return 'Ungültiges Vertragsdatum.';
     if(c.startDate&&c.endDate&&c.startDate>c.endDate||c.deadline&&c.endDate&&c.deadline>c.endDate)return 'Vertragsdaten widersprechen sich.';
@@ -54,9 +55,9 @@ export function contractHistories(contracts,bookings,today){
   }
   return histories;
 }
-export function contractFixedModels(contracts,models,bookings,today){
+export function contractFixedModels(contracts,models,bookings,today,activeAt=today){
   const history=contractHistories(contracts,bookings,today),out=models.map((f,index)=>contracts.some(c=>c.linkedFixedIndex===index||c.patternId&&c.patternId===f.id||f.id?.startsWith('auto-fixed-')&&c.category===f.category&&(norm(c.matchKeyword).includes(norm(f.matchKeyword))||norm(f.matchKeyword).includes(norm(c.matchKeyword))))?{...f,status:'Nein'}:f);
-  for(const c of contracts){const term=contractTerm(c,today);if(term.ended)continue;const h=history.get(c.id);out.push({id:'contract-'+c.id,name:c.name,category:c.category,monthly:h.projectedAmount/c.cycleMonths,contractAmount:h.projectedAmount,rhythm:cycles[c.cycleMonths],dueDay:c.dueDay,anchorMonth:c.anchorMonth,status:'Ja',matchKeyword:c.matchKeyword,startDate:c.startDate||null,untilDate:c.status==='cancelled'||!c.renewalMonths?c.endDate||null:null,contractId:c.id});}
+  for(const c of contracts){const term=contractTerm(c,activeAt);if(term.ended)continue;const h=history.get(c.id);out.push({id:'contract-'+c.id,name:c.name,category:c.category,monthly:h.projectedAmount/c.cycleMonths,contractAmount:h.projectedAmount,rhythm:cycles[c.cycleMonths],dueDay:c.dueDay,anchorMonth:c.anchorMonth,status:'Ja',matchKeyword:c.matchKeyword,startDate:c.startDate||null,untilDate:c.status==='cancelled'||!c.renewalMonths?c.endDate||null:null,contractId:c.id,costOwner:c.costOwner||'shared',showInFixed:c.showInFixed!==false});}
   return out;
 }
 export function contractSuggestions(state,learning){
@@ -64,10 +65,10 @@ export function contractSuggestions(state,learning){
   for(const model of learning.fixed){if(existing.some(c=>c.patternId===model.id||model.existing&&c.linkedFixedIndex===Number(model.id.slice(9))))continue;
     const linkedFixedIndex=model.existing?Number(model.id.slice(9)):null,source=model.sources.at(-1),hint=linkedFixedIndex!==null?state.fixed[linkedFixedIndex]?.matchKeyword||source?.payee:source?.payee;
     if(!hint||existing.some(c=>c.category===model.category&&norm(c.matchKeyword)===norm(hint)))continue;
-    out.push({patternId:model.id,name:model.name,provider:source?.payee||model.name,category:model.category,amount:model.amount,cycleMonths:model.cycle,dueDay:model.day,anchorMonth:model.anchorMonth,matchKeyword:hint,linkedFixedIndex,sources:model.sources,confidence:model.confidence});
+    out.push({patternId:model.id,name:model.name,provider:source?.payee||model.name,category:model.category,amount:model.amount,cycleMonths:model.cycle,dueDay:model.day,anchorMonth:model.anchorMonth,matchKeyword:hint,linkedFixedIndex,costOwner:state.fixed?.[linkedFixedIndex]?.costOwner||'shared',sources:model.sources,confidence:model.confidence});
   }
   // Fully specified legacy fixed items may not appear in the missing-timing suggestions.
-  (state.fixed||[]).forEach((f,index)=>{if(f.status==='Nein'||existing.some(c=>c.linkedFixedIndex===index)||out.some(c=>c.linkedFixedIndex===index))return;const cycle=Object.entries(cycles).find(([,rhythm])=>rhythm===f.rhythm)?.[0];if(!cycle)return;out.push({name:f.name,provider:f.matchKeyword||f.name,category:f.category,amount:Math.round(f.monthly*Number(cycle)*100)/100,cycleMonths:Number(cycle),dueDay:Number(f.dueDay)||1,anchorMonth:Number(f.anchorMonth)||1,matchKeyword:f.matchKeyword||f.name,linkedFixedIndex:index,patternId:'existing-'+index,sources:[],confidence:'Bitte Termine prüfen'});});
+  (state.fixed||[]).forEach((f,index)=>{if(f.status==='Nein'||existing.some(c=>c.linkedFixedIndex===index)||out.some(c=>c.linkedFixedIndex===index))return;const cycle=Object.entries(cycles).find(([,rhythm])=>rhythm===f.rhythm)?.[0];if(!cycle)return;out.push({name:f.name,provider:f.matchKeyword||f.name,category:f.category,amount:Math.round(f.monthly*Number(cycle)*100)/100,cycleMonths:Number(cycle),dueDay:Number(f.dueDay)||1,anchorMonth:Number(f.anchorMonth)||1,matchKeyword:f.matchKeyword||f.name,linkedFixedIndex:index,costOwner:f.costOwner||'shared',patternId:'existing-'+index,sources:[],confidence:'Bitte Termine prüfen'});});
   return out;
 }
 export function calendarEntry(c,deadline){
