@@ -1,3 +1,4 @@
+import {genericPayPalKeyword} from './booking-text.mjs';
 import {bookingParts,cents,shiftMonth,monthKey} from './finance.mjs';
 const norm=s=>String(s||'').normalize('NFC').toLocaleLowerCase('de').replace(/\s+/g,' ').trim();
 const iso=b=>b.date.slice(6)+'-'+b.date.slice(3,5)+'-'+b.date.slice(0,2);
@@ -10,8 +11,9 @@ export function validateContracts(contracts){
   const ids=new Set();
   for(const c of contracts){
     if(!c||typeof c.id!=='string'||!/^[a-zA-Z0-9-]{1,100}$/.test(c.id)||ids.has(c.id))return 'Ungültige oder doppelte Vertragskennung.';ids.add(c.id);
-    for(const [key,max,required] of [['name',80,true],['provider',100,true],['category',100,true],['matchKeyword',100,true],['number',100,false],['notes',2000,false],['patternId',100,false]])if(c[key]!==undefined&&typeof c[key]!=='string'||required&&!String(c[key]||'').trim()||String(c[key]||'').length>max)return 'Bitte Vertragsbezeichnung, Anbieter, Kategorie und Suchtext prüfen.';
+    for(const [key,max,required] of [['name',80,true],['provider',100,true],['category',100,true],['matchKeyword',100,c.matchMode!=='manual'],['number',100,false],['notes',2000,false],['patternId',100,false]])if(c[key]!==undefined&&typeof c[key]!=='string'||required&&!String(c[key]||'').trim()||String(c[key]||'').length>max)return 'Bitte Vertragsbezeichnung, Anbieter, Kategorie und Suchtext prüfen.';
     if(typeof c.amount!=='number'||!Number.isFinite(c.amount)||c.amount<=0||c.amount>=1e10||Math.abs(c.amount*100-cents(c.amount))>.001||!Number.isInteger(c.cycleMonths)||!cycles[c.cycleMonths]||!Number.isInteger(c.dueDay)||c.dueDay<1||c.dueDay>31||!Number.isInteger(c.anchorMonth)||c.anchorMonth<1||c.anchorMonth>12)return 'Zahlbetrag, Rhythmus und Fälligkeit prüfen.';
+    if(c.matchMode!==undefined&&!['text','manual'].includes(c.matchMode))return 'Ungültige Buchungszuordnung.';
     if(!['active','cancelled','ended'].includes(c.status)||!['observed','manual'].includes(c.priceMode))return 'Ungültiger Vertragsstatus oder Preisplan.';
     if(['startDate','endDate','deadline','cancellationSent'].some(key=>!dateOptional(c[key])))return 'Ungültiges Vertragsdatum.';
     if(c.startDate&&c.endDate&&c.startDate>c.endDate||c.deadline&&c.endDate&&c.deadline>c.endDate)return 'Vertragsdaten widersprechen sich.';
@@ -40,7 +42,7 @@ export function contractHistories(contracts,bookings,today){
   bookings.forEach((b,index)=>{
     if(!(b.amount<0)||b.forecastOneOff||!b.date||iso(b)>today)return;
     for(const part of bookingParts(b)){
-      const candidates=contracts.filter(c=>c.category===part.category&&norm(b.payee+' '+b.purpose).includes(norm(c.matchKeyword))&&(!c.startDate||iso(b)>=c.startDate)&&(!c.endDate||c.status==='active'&&c.renewalMonths>0||iso(b)<=c.endDate)).map(c=>({c,diff:Math.abs(part.cents-cents(c.amount))})).sort((a,b)=>a.diff-b.diff);
+      const candidates=contracts.filter(c=>matchesContractBooking(c,b,part.category)&&(!c.startDate||iso(b)>=c.startDate)&&(!c.endDate||c.status==='active'&&c.renewalMonths>0||iso(b)<=c.endDate)).map(c=>({c,diff:Math.abs(part.cents-cents(c.amount))})).sort((a,b)=>a.diff-b.diff);
       if(!candidates.length)continue;
       if(candidates.length>1&&candidates[0].diff===candidates[1].diff){for(const item of candidates)histories.get(item.c.id).ambiguous++;continue;}
       const c=candidates[0].c;histories.get(c.id).rows.push({date:b.date,iso:iso(b),payee:b.payee,amount:part.cents/100,index,category:part.category});
@@ -71,4 +73,15 @@ export function contractSuggestions(state,learning){
 export function calendarEntry(c,deadline){
   if(!validDate(deadline))return null;const escape=s=>String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;'),compact=d=>d.replace(/-/g,'');const next=new Date(Date.parse(deadline+'T12:00:00Z')+86400000).toISOString().slice(0,10);
   return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Haushaltsdashboard//Vertragsfristen//DE','BEGIN:VEVENT',`UID:${c.id}-${compact(deadline)}@haushaltsdashboard.local`,'DTSTAMP:'+new Date().toISOString().replace(/[-:]|\.\d{3}/g,''),`DTSTART;VALUE=DATE:${compact(deadline)}`,`DTEND;VALUE=DATE:${compact(next)}`,`SUMMARY:${escape('Kündigungsfrist: '+c.name)}`,`DESCRIPTION:${escape(c.provider+' · Frist laut deinen Vertragsangaben. Kündigung selbst ausführen.')}`,'BEGIN:VALARM','TRIGGER:-P7D','ACTION:DISPLAY','DESCRIPTION:Vertragsfrist prüfen','END:VALARM','END:VEVENT','END:VCALENDAR',''].join('\r\n');
+}
+
+export function matchesContractBooking(c,b,category){
+  if(b.contractId)return b.contractId===c.id;
+  if(c.matchMode==='manual'||c.category!==category||!norm(c.matchKeyword)||genericPayPalKeyword(c,b))return false;
+  return norm(b.payee+' '+b.purpose).includes(norm(c.matchKeyword));
+}
+export function validateContractLinks(state){
+  const ids=new Set((state.contracts||[]).map(c=>c.id));
+  for(const b of state.bookings||[])if(b.contractId!==undefined&&(typeof b.contractId!=='string'||!ids.has(b.contractId)||!(b.amount<0)||b.splits?.length>1||b.transferPeerId))return 'Ungültige Vertragsverknüpfung. Nur einzelne Abbuchungen können direkt verknüpft werden.';
+  return null;
 }

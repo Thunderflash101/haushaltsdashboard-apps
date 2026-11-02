@@ -1,3 +1,4 @@
+import {matchesContractBooking} from './contracts.mjs';
 import {bookingParts,monthKey,shiftMonth,cents,inflowKind} from './finance.mjs';
 const norm=s=>String(s||'').normalize('NFC').toLocaleLowerCase('de').replace(/\s+/g,' ').trim();
 const iso=b=>b.date.slice(6)+'-'+b.date.slice(3,5)+'-'+b.date.slice(0,2);
@@ -24,7 +25,7 @@ function infer(rows,forcedCycle=0,variableAmount=false){
 }
 export function learnPatterns(state,today){
   const start=shiftMonth(today.slice(0,7),-24),rows=[];
-  (state.bookings||[]).forEach((b,index)=>{if(!b?.date||iso(b)>today||monthKey(b.date)<start||b.forecastOneOff)return;for(const p of bookingParts(b))rows.push({b,index,category:p.category,kind:p.kind,fixed:p.fixed,amount:-p.cents});});
+  (state.bookings||[]).forEach((b,index)=>{if(!b?.date||iso(b)>today||monthKey(b.date)<start||b.forecastOneOff)return;for(const p of bookingParts(b)){if((state.contracts||[]).some(c=>matchesContractBooking(c,b,p.category)))continue;rows.push({b,index,category:p.category,kind:p.kind,fixed:p.fixed,amount:-p.cents});}});
   const groups=new Map();
   for(const r of rows){const payee=norm(r.b.payee);if(payee.length<3||/^(paypal|sumup|adyen|nexi)$/.test(payee))continue;const mandate=norm(r.b.purpose).match(/\bmref:\s*(\S+)/)?.[1]||'',key=JSON.stringify([payee,r.category,r.kind,mandate]);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
   // Split different contracts from one payee by amount; reject repeated same-month series.

@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.6.1
+
+- Vollständiger Verwendungszweck über „Zweck ansehen“ auch am Handy lesbar und kopierbar.
+- Bei üblichen PayPal-Referenzpräfixen Händlertext zuerst anzeigen; Rohdaten bleiben unverändert.
+- Buchungen direkt mit einem bestehenden oder neu angelegten Vertrag verknüpfen.
+- Manueller Zuordnungsmodus für Verträge ohne eindeutigen Händlertext.
+- Allgemeine PayPal-Suchbegriffe ordnen nicht pauschal alle PayPal-Zahlungen einem Vertrag zu.
+- Explizite Vertragslinks bleiben beim Import erhalten und verhindern doppeltes Einplanen.
+- Kompaktere Aktionsspalte in der Buchungstabelle.
+
 ## 0.6.0
 
 - Neuer Bereich „Verträge“ mit Monats-/Jahreskosten, Suche und Filtern.
