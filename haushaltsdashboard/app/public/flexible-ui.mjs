@@ -51,6 +51,7 @@ export function createFlexibleUI({getReport,getState,save,refresh,openBooking}){
     $('flex-edit-category').replaceChildren(...categories.map(name=>el('option',{value:name,text:name})));$('flex-edit-category').value=category;
     $('flex-edit-amount').value=state.budgets?.[category]??row.average??'';$('flex-budget-delete').hidden=!Object.hasOwn(state.budgets||{},category);$('flex-edit').open=edit||row.target===null;
     if(!$('flex-dialog').open)$('flex-dialog').showModal();
+    $('flex-dialog').scrollTop=0;if(edit)$('flex-edit').scrollIntoView({block:'nearest'});else $('flex-dialog').querySelector('.modal-body').scrollTop=0;
   }
   function renderDetailTransactions(){const row=selectedRow(),entries=transactionMonth===selectedMonth?row.transactions:row.history.find(h=>h.month===transactionMonth)?.transactions||[];transactionList($('flex-detail-transactions'),entries);}
   function drawHistory(row){
