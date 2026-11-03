@@ -24,7 +24,7 @@ export function flexibleEntries(state,learning,today){
 export function flexiblePlans(state,learning,events,keys,today,settings){
   const bookings=(state.bookings||[]).filter(b=>b.date&&iso(b)<=today),entries=flexibleEntries(state,learning,today),months=comparisonMonths(bookings,today);
   const comparisons=new Map((learning.flexibleComparisons||learning.flexible||[]).map(p=>[p.category,p]));
-  const categories=new Set([...Object.keys(state.budgets||{}).filter(c=>flowKind(c)==='expense'),...comparisons.keys(),...entries.filter(e=>monthKey(e.booking.date)>=today.slice(0,7)||months.includes(monthKey(e.booking.date))).map(e=>e.category)]);
+  const categories=new Set([...Object.keys(state.budgets||{}).filter(c=>flowKind(c)==='expense'),...comparisons.keys(),...entries.filter(e=>monthKey(e.booking.date)>=today.slice(0,7)).map(e=>e.category)]);
   const cache=new Map(),analysis=key=>{if(!cache.has(key))cache.set(key,analyzeMonth(bookings,key,{spendingOnly:true}));return cache.get(key);};
   function detailEntries(category,key,manual){return (manual?analysis(key).entries:entries.filter(e=>monthKey(e.booking.date)===key)).filter(e=>e.category===category);}
   return keys.map(key=>{
@@ -35,7 +35,7 @@ export function flexiblePlans(state,learning,events,keys,today,settings){
       const rest=target===null?null:target-Math.max(0,spent)-planned;
       const history=months.map(month=>({month,spent:detailEntries(category,month,manual).reduce((n,e)=>n+cents(e.value),0)/100,used:model?.monthly.find(m=>m.month===month)?.used??null,transactions:detailEntries(category,month,manual)}));
       return {category,source:manual?'budget':model?'average':'unknown',target:target===null?null:target/100,average:model?.amount??null,spent:spent/100,scheduled:planned/100,remaining:rest===null?null:Math.max(0,rest)/100,over:rest===null?0:Math.max(0,-rest)/100,model,history,transactions,scope:manual?'category':'flexible',configuredBudget:configured>0?configured:null};
-    }).filter(r=>r.source!=='unknown'||r.spent!==0||r.history.some(h=>h.spent!==0));
+    }).filter(r=>r.source!=='unknown'||r.transactions.length>0);
     rows.sort((a,b)=>(a.source==='unknown')-(b.source==='unknown')||(b.target||0)-(a.target||0)||a.category.localeCompare(b.category,'de'));
     const known=rows.filter(r=>r.target!==null);
     return {key,rows,unknown:rows.filter(r=>r.target===null).length,target:known.length?known.reduce((n,r)=>n+cents(r.target),0)/100:null,spent:rows.reduce((n,r)=>n+cents(r.spent),0)/100,scheduled:known.reduce((n,r)=>n+cents(r.scheduled),0)/100,remaining:known.length?known.reduce((n,r)=>n+cents(r.remaining),0)/100:null,over:known.reduce((n,r)=>n+cents(r.over),0)/100};

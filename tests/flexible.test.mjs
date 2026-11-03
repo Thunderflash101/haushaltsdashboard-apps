@@ -36,13 +36,13 @@ test('overspending is explicit and does not create a negative future allowance',
   const s=state();s.bookings.push(booking('02.11.2026',-135));const food=row(run(s));assert.equal(food.remaining,0);assert.equal(food.over,35);assert.equal(food.target,100);assert.equal(run(s).endBalance,1000);
 });
 test('one-off-only categories remain unknown instead of predicting a zero monthly allowance',()=>{
-  const s=state();s.bookings.push(booking('02.11.2026',-800,'Werkstatt',{forecastOneOff:true}));const r=run(s),repair=row(r,'Werkstatt');assert.equal(repair.source,'unknown');assert.equal(repair.target,null);assert.equal(repair.remaining,null);assert.equal(repair.spent,800);assert.ok(r.flexibleMonths[0].unknown>0);
+  const s=state();s.bookings.push(booking('02.11.2026',-800,'Werkstatt',{forecastOneOff:true}));const r=run(s),repair=row(r,'Werkstatt');assert.equal(repair.source,'unknown');assert.equal(repair.target,null);assert.equal(repair.remaining,null);assert.equal(repair.spent,800);assert.ok(r.flexibleMonths[0].unknown>0);s.bookings=s.bookings.filter(b=>b.category!=='Werkstatt');s.bookings.push(booking('02.10.2026',-800,'Werkstatt',{forecastOneOff:true}));assert.equal(row(run(s),'Werkstatt'),undefined);
 });
 test('future months retain monthly estimates without adding transactions on the first day or any other day',()=>{
   const s=state();s.forecast.horizon=90;const r=run(s);assert.equal(row(r,'Lebensmittel','2026-12').remaining,100);assert.equal(row(r,'Lebensmittel','2026-12').spent,0);assert.ok(r.points.every(p=>p.events.every(e=>e.type!=='budget')));assert.equal(r.endBalance,1000);
 });
 test('automatic estimates and manually saved budgets respect their settings without modifying account cash flow',()=>{
-  const s=state();s.forecast.automatic=false;assert.equal(row(run(s)).target,null);s.budgets.Lebensmittel=200;assert.equal(row(run(s)).target,200);s.forecast.useBudgets=false;assert.equal(row(run(s)).target,null);assert.equal(run(s).endBalance,1000);
+  const s=state();s.bookings.push(booking('02.11.2026',-20));s.forecast.automatic=false;assert.equal(row(run(s)).target,null);s.budgets.Lebensmittel=200;assert.equal(row(run(s)).target,200);s.forecast.useBudgets=false;assert.equal(row(run(s)).target,null);assert.equal(run(s).endBalance,1000);
 });
 test('foreign accounts are excluded from both the category average and its current transactions',()=>{
   const s=state();s.bookings.push(booking('02.11.2026',-20,'Lebensmittel',{account:'household'}),booking('02.11.2026',-999,'Lebensmittel',{account:'other'}));const r=forecast(s,null,{today,account:'household'});assert.equal(row(r).spent,20);assert.equal(row(r).average,100);
