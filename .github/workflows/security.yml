@@ -1,0 +1,29 @@
+name: Security checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * 1'
+permissions:
+  contents: read
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install verified Gitleaks binary
+        shell: bash
+        run: bash tools/install_gitleaks.sh "$RUNNER_TEMP/household-gitleaks"
+      - name: Verify detection and redaction with a synthetic token
+        shell: bash
+        run: python3 tools/test_secret_scanner.py "$RUNNER_TEMP/household-gitleaks/gitleaks"
+      - name: Scan complete fetched Git history
+        shell: bash
+        run: '"$RUNNER_TEMP/household-gitleaks/gitleaks" git --redact=100 --no-banner --log-opts="--all" .'
+      - name: Repository privacy audit
+        run: python3 tools/audit_repository.py
