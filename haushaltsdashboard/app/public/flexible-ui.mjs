@@ -55,7 +55,7 @@ export function createFlexibleUI({getReport,getState,save,refresh,openBooking}){
   }
   function renderDetailTransactions(){const row=selectedRow(),entries=transactionMonth===selectedMonth?row.transactions:row.history.find(h=>h.month===transactionMonth)?.transactions||[];transactionList($('flex-detail-transactions'),entries);}
   function drawHistory(row){
-    const box=$('flex-detail-chart');box.replaceChildren();const values=[...row.history,{month:selectedMonth,spent:row.spent}],w=720,h=230,left=55,right=12,top=24,bottom=40,maximum=Math.max(1,row.target||0,...values.map(v=>v.spent))*1.15;
+    const box=$('flex-detail-chart');box.replaceChildren();const values=[...row.history,{month:selectedMonth,spent:row.spent}],w=Math.max(260,Math.min(680,innerWidth-80)),h=230,left=42,right=12,top=24,bottom=40,maximum=Math.max(1,row.target||0,...values.map(v=>v.spent))*1.15;
     const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('role','img');svg.setAttribute('aria-label','Monatliche Ausgaben und aktueller Vergleichswert');
     function add(tag,attrs,text){const n=document.createElementNS(svg.namespaceURI,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;svg.append(n);return n;}
     const y=n=>top+(1-n/maximum)*(h-top-bottom),base=y(0),cell=(w-left-right)/values.length,bw=Math.min(48,cell*.65);
