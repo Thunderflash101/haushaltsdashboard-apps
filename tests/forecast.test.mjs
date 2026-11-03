@@ -49,8 +49,8 @@ test('salary around a month boundary satisfies the closest month and is not coun
 });
 test('budget remaining subtracts actual spending and planned fixed/one-off expenses, without double counting',()=>{
   const state=base();state.forecast.useBudgets=true;state.fixed=[fixed()];state.budgets={Wohnen:500};state.bookings=[booking('05.11.2026',-50)];state.forecast.oneOffs=[{id:'repair',name:'Reparatur',date:'2026-11-20',amount:-200,kind:'expense',category:'Wohnen',matchKeyword:''}];
-  const r=run(state),budget=r.budgetEvents.filter(e=>e.month==='2026-11').reduce((n,e)=>n+Math.round(e.amount*100),0);
-  assert.equal(budget,-15000);assert.equal(r.events.filter(e=>e.month==='2026-11'&&e.status==='planned').reduce((n,e)=>n+e.amount,0),-300);
+  const r=run(state),budget=r.flexibleMonths.find(m=>m.key==='2026-11').rows.find(r=>r.category==='Wohnen');
+  assert.equal(budget.remaining,150);assert.deepEqual(r.budgetEvents,[]);assert.equal(r.events.filter(e=>e.month==='2026-11'&&e.status==='planned').reduce((n,e)=>n+e.amount,0),-300);
 });
 test('protected money and buffer affect availability but not the cash balance; minimum includes starting balance',()=>{
   const state=base();state.forecast.protectedBalance=200;state.forecast.buffer=100;state.forecast.incomePlans=[income()];state.fixed=[fixed()];const r=run(state);

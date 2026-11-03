@@ -1,6 +1,7 @@
 import {cents,bookingParts,monthKey,shiftMonth,berlinToday,analyzeMonth,inflowKind,flowKind} from './finance.mjs';
 import {contractFixedModels,matchesContractBooking} from './contracts.mjs';
 import {learnPatterns} from './learning.mjs';
+import {flexiblePlans} from './flexible.mjs';
 const DAY=86400000;
 const norm=s=>String(s||'').normalize('NFC').trim().toLocaleLowerCase('de');
 export const isoDate=b=>/^\d{2}\.\d{2}\.\d{4}$/.test(b.date||'')?b.date.slice(6)+'-'+b.date.slice(3,5)+'-'+b.date.slice(0,2):'';
@@ -64,7 +65,6 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   const bookings=(state.bookings||[]).filter(b=>(!account||!b.account||norm(b.account)===norm(account))&&isoDate(b)<=today);
   const learning=settings.automatic?learnPatterns({...state,bookings},today):{fixedModels:state.fixed||[],fixed:[],incomes:[],flexible:[],months:[],fixedSources:[]};
   learning.fixedModels=contractFixedModels(state.contracts||[],learning.fixedModels,bookings,today);
-  const budgets={...Object.fromEntries(learning.flexible.map(p=>[p.category,p.amount])),...(state.budgets||{})},autoCategories=new Set(learning.flexible.map(p=>p.category));
   const selected=settings.balanceSource==='manual'?settings.manualBalance:bank;
   const balance=selected&&isDate(selected.date)&&selected.date<=today&&money(selected.amount,true)?{...selected}:null;
   if(!balance)warnings.add('Ein gültiger gebuchter Kontostand mit Stichtag wird benötigt.');
@@ -121,24 +121,11 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
     if(!match&&!excluded&&e.amount>0&&e.estimated&&!e.automatic&&!settings.includeEstimates)status='estimate-excluded';
     events.push({...e,originalDate:e.date,date:e.date<today?today:e.date,status,booking:match?{date:match.b.date,payee:match.b.payee,amount:match.amount,index:match.index}:null});
   }
-  // Budgets contain fixed costs too: subtract actual spending AND planned category costs.
-  const budgetEvents=[];
-  if(settings.useBudgets)for(const key of months.filter(k=>k>=startMonth)){
-    const analysis=analyzeMonth(bookings,key,{spendingOnly:true}),actual=new Map(analysis.categories),flexActual=new Map();for(const entry of analysis.entries)if(entry.status==='variable'&&!entry.booking.forecastOneOff&&!learning.fixedSources.includes(entry.index+':'+entry.category)&&!events.some(e=>e.type==='once'&&e.booking?.index===entry.index&&e.category===entry.category))flexActual.set(entry.category,(flexActual.get(entry.category)||0)+entry.value);
-    for(const [category,raw] of Object.entries(budgets)){
-      const budget=cents(raw);if(!(budget>0))continue;
-      const planned=events.filter(e=>e.month===key&&e.status==='planned'&&e.amount<0&&e.kind==='expense'&&e.category===category&&!autoCategories.has(category)).reduce((n,e)=>n-cents(e.amount),0);
-      const remaining=Math.max(0,budget-Math.max(0,cents((autoCategories.has(category)?flexActual:actual).get(category)||0))-planned),start=key===startMonth?Number(today.slice(8)):1,days=daysInMonth(key)-start+1;
-      const daily=Math.floor(remaining/days),rest=remaining%days;
-      for(let i=0;i<days;i++)if(daily+(i<rest?1:0)>0)budgetEvents.push({id:`budget-${category}-${key}-${start+i}`,name:(autoCategories.has(category)?'Typische flexible Kosten: ':'Restbudget: ')+category,date:atDay(key,start+i),month:key,amount:-(daily+(i<rest?1:0))/100,category,type:'budget',kind:'expense',status:'planned',estimated:true,automatic:autoCategories.has(category),detail:autoCategories.has(category)?'Automatischer Durchschnitt · '+learning.months.length+' vergangene Monate':'Gleichmäßig auf verbleibende Kalendertage verteilt'});
-    }
-  }
-  if(!Object.values(budgets).some(n=>Number(n)>0)&&settings.useBudgets)warnings.add('Keine Kategoriebudgets vorhanden. Flexible Ausgaben sind nur über Einmalposten eingeplant.');
-  const uncovered=[...new Set(bookings.filter(b=>monthKey(b.date)>=shiftMonth(startMonth,-2)).flatMap(b=>bookingParts(b)).filter(p=>p.kind==='expense'&&p.fixed==='Nein'&&!(Number(budgets[p.category])>0)).map(p=>p.category))];
-  if(settings.useBudgets&&uncovered.length)warnings.add('Bekannte flexible Kategorien ohne Budget: '+uncovered.slice(0,6).join(', ')+(uncovered.length>6?' …':'')+'. Dafür sind nur ausdrücklich geplante Einmalposten berücksichtigt.');
-  if(!settings.useBudgets)warnings.add('Restbudgets sind ausgeschaltet. Flexible Ausgaben nur aus Einmalposten berücksichtigt.');
+  // Monthly budgets and flexible estimates have no invented payment date.
+  const flexibleMonths=flexiblePlans({...state,bookings},learning,events,months.filter(k=>k>=startMonth),today,settings);
+  const monthlyAllowances=flexibleMonths.flatMap(m=>m.rows.filter(r=>r.remaining!==null&&r.remaining>0).map(r=>({month:m.key,category:r.category,amount:-r.remaining,type:'allowance',kind:'expense',status:'planned'})));
   if(!settings.incomePlans.length&&!learning.incomes.length)warnings.add('Noch kein regelmäßiger Kontoeingang geplant. Die Freigrenze reicht bis zum Monatsende.');
-  const active=[...events,...budgetEvents].filter(e=>e.status==='planned'&&e.date>=today&&e.date<=end);
+  const active=events.filter(e=>e.status==='planned'&&e.date>=today&&e.date<=end);
   const protectedCents=cents(settings.protectedBalance)+cents(settings.buffer),points=[],byDate=new Map();
   for(const e of active){if(!byDate.has(e.date))byDate.set(e.date,[]);byDate.get(e.date).push(e);}
   let running=currentCents;
@@ -146,13 +133,13 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   const nextIncome=active.filter(e=>e.type==='income'&&e.amount>0).sort((a,b)=>a.date.localeCompare(b.date))[0];
   const freeUntil=nextIncome?nextIncome.date===today?today:addDays(nextIncome.date,-1):[atDay(startMonth,31),end].sort()[0];
   const beforePay=points.filter(p=>p.date<=freeUntil),minimum=Math.min(currentCents/100,...points.map(p=>p.balance)),freeMinimum=Math.min(currentCents/100,...beforePay.map(p=>p.balance))-protectedCents/100;
-  const monthly=monthlyRoom(bookings,events,budgetEvents,learning,startMonth,settings),budget=monthlyBudget({...state,bookings},{key:startMonth,today,learning});
-  return {today,end,settings,learning,monthly,budget,balance,current:balance?currentCents/100:null,points:balance?points:[],events:events.filter(e=>e.date<=end).sort((a,b)=>a.date.localeCompare(b.date)||a.amount-b.amount),budgetEvents:budgetEvents.filter(e=>e.date<=end),warnings:[...warnings],endBalance:balance?running/100:null,minimum:balance?minimum:null,available:balance?Math.round(freeMinimum*100)/100:null,freeUntil,nextIncome:nextIncome||null,protected:protectedCents/100,plannedIncome:active.filter(e=>e.amount>0).reduce((n,e)=>n+cents(e.amount),0)/100,plannedExpense:active.filter(e=>e.amount<0).reduce((n,e)=>n-cents(e.amount),0)/100};
+  const monthly=monthlyRoom(bookings,events,monthlyAllowances,learning,startMonth,settings),budget=monthlyBudget({...state,bookings},{key:startMonth,today,learning});
+  return {today,end,settings,learning,monthly,budget,balance,current:balance?currentCents/100:null,points:balance?points:[],events:events.filter(e=>e.date<=end).sort((a,b)=>a.date.localeCompare(b.date)||a.amount-b.amount),budgetEvents:[],flexibleMonths,warnings:[...warnings],endBalance:balance?running/100:null,minimum:balance?minimum:null,available:balance?Math.round(freeMinimum*100)/100:null,freeUntil,nextIncome:nextIncome||null,protected:protectedCents/100,plannedIncome:active.filter(e=>e.amount>0).reduce((n,e)=>n+cents(e.amount),0)/100,plannedExpense:active.filter(e=>e.amount<0).reduce((n,e)=>n-cents(e.amount),0)/100};
 }
 
 function isLearnedSalary(b){return b.amount>0&&!b.refund&&inflowKind(b)==='income'&&(b.category==='Gehalt'||/lohn|gehalt|salary/i.test(b.purpose||''));}
 
-export function monthlyRoom(bookings,events,budgetEvents,learning,key,settings){
+export function monthlyRoom(bookings,events,monthlyAllowances,learning,key,settings){
   let received=0,expected=0,bookedFixed=0,bookedFlex=0,bookedOther=0,openFixed=0,openFlex=0,openOther=0;
   const categories=new Map(),fixedSources=new Set(learning.fixedSources||[]);
   const isFixed=(index,category,status)=>status==='Ja'||status==='Möglich'||fixedSources.has(index+':'+category)||events.some(e=>e.type==='fixed'&&e.booking?.index===index&&(e.category===category||e.contractId&&bookings[index]?.contractId===e.contractId));
@@ -168,7 +155,7 @@ export function monthlyRoom(bookings,events,budgetEvents,learning,key,settings){
       else if(inflowKind(b)==='income')received+=cents(b.amount);
     }else for(const part of bookingParts(b))add(part.category,part.cents,isFixed(index,part.category,part.fixed),part.kind!=='expense',false);
   });
-  for(const e of [...events,...budgetEvents])if(e.month===key&&e.status==='planned'){
+  for(const e of [...events,...monthlyAllowances])if(e.month===key&&e.status==='planned'){
     if(e.amount>0){if(e.kind==='income')expected+=cents(e.amount);}
     else add(e.category,-cents(e.amount),e.type==='fixed',e.kind!=='expense',true);
   }

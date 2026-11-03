@@ -9,7 +9,9 @@
 - Persönliche Kostenzuordnung für Verträge und Fixkosten; persönliche Monatsbudgets.
 - Verträge unabhängig von der Kostenzuordnung in der Fixkostenliste ein-/ausblenden.
 - Kategoriebudgets und einfache Rücklagen mit Zielbetrag/Zielmonat.
-- Kontostandsprognose und automatische Erkennung von Rhythmen, Gehalt und flexiblen Kosten.
+- Kontostandsprognose aus Zahlungen mit Termin; flexible Monatswerte separat statt täglicher Schätzbuchungen.
+- Budgetkarten mit Verbrauch, Rest, Überschreitungen, Monatsdiagramm und Buchungsdetails.
+- Automatische Erkennung von Rhythmen, Gehalt und flexiblen Kosten.
 - Monatsbudget aus Netto minus Verträgen und Fixkosten, ohne flexible Schätzungen.
 - Verbleibendes Budget nach tatsächlich importierten flexiblen Ausgaben und Anlagen.
 - Vertragsverwaltung mit Vorlagen, Preisänderungen, Laufzeiten, Fristen und Kalenderexport.

@@ -57,7 +57,7 @@ test('marked one-offs are ignored for learning and user budgets override automat
 });
 test('learned flexible allowance is additional to fixed costs and exceptional planned purchases',()=>{
   const s=state();coverage(s);for(const m of ['2026-08','2026-09','2026-10'])s.bookings.push(b(m,-100,'Testmarkt','Lebensmittel'));s.fixed=[{name:'Festposten',category:'Lebensmittel',monthly:200,rhythm:'monatlich',dueDay:15,status:'Ja',matchKeyword:'Festanbieter'}];s.forecast.oneOffs=[{id:'party',name:'Feier',date:'2026-11-20',amount:-300,kind:'expense',category:'Lebensmittel',matchKeyword:''}];
-  const r=forecast(s,null,{today});assert.equal(r.budgetEvents.filter(e=>e.month==='2026-11').reduce((n,e)=>n+Math.round(-e.amount*100),0),10000);assert.equal(r.events.filter(e=>e.month==='2026-11'&&e.status==='planned').reduce((n,e)=>n-e.amount,0),500);
+  const r=forecast(s,null,{today});assert.equal(r.flexibleMonths[0].rows.find(r=>r.category==='Lebensmittel').remaining,100);assert.deepEqual(r.budgetEvents,[]);assert.equal(r.events.filter(e=>e.month==='2026-11'&&e.status==='planned').reduce((n,e)=>n-e.amount,0),500);
 });
 test('algorithm can be switched off and individual patterns can be excluded without modifying history',()=>{
   const s=state();salary(s);const before=JSON.stringify(s.bookings),l=learnPatterns(s,today);s.forecast.ignoredPatterns=[l.incomes[0].id];assert.equal(forecast(s,null,{today}).learning.incomes.length,0);s.forecast.ignoredPatterns=[];s.forecast.automatic=false;assert.equal(forecast(s,null,{today}).learning.incomes.length,0);assert.equal(JSON.stringify(s.bookings),before);assert.equal(validateForecast(s.forecast),null);
