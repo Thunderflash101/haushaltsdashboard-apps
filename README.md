@@ -6,7 +6,7 @@
 Eine private Haushaltsauswertung mit Monatsansicht, Kategorien, Fixkosten,
 variablen Kosten, proportionaler Kostenaufteilung und Enable-Banking-Import.
 
-**Version 0.7.0 – Monatsbudget nach Verpflichtungen und persönliche Kostenzuordnung.**
+**Version 0.8.0 – Separate Monatsbudgets und Kontostandsverlauf ohne Tagesdurchschnitte.**
 
 Der Programmcode enthält keine persönlichen Buchungen, Kontonummern oder
 Anwendungsschlüssel. Die App startet leer. Jeder Betreiber hinterlegt seine
@@ -38,7 +38,10 @@ Die Repository-URL bleibt nach der Einrichtung stabil.
 
 - Gemeinsame Daten auf dem NUC, Zugriff über Home Assistant Ingress.
 - Automatische Erkennung von Rhythmen, Gehalt und typischen flexiblen Kosten mit nachvollziehbaren Quellen.
-- Kontostandsprognose für 30/60/90 Tage mit offenen Zahlungen und Restbudgets.
+- Kontostandsprognose für 30/60/90 Tage ausschließlich mit Zahlungen mit Termin.
+- Separate Budgetkarten mit Fortschrittsbalken, verbleibendem Monatsrahmen,
+  Monatsvergleich und anklickbaren Buchungen; keine verteilten Tagesdurchschnitte.
+- Eigene Budgetlimits und automatische flexible Durchschnittswerte klar getrennt.
 - Zeitliche Kontodeckung bis zum nächsten regelmäßigen Eingang; geschütztes Guthaben und Puffer.
 - Einkommenspläne mit monatlich unterschiedlichen Nettowerten und Einmalposten.
 - Einnahmen, Kontoabgänge, Fix- und Flexkosten pro Monat.

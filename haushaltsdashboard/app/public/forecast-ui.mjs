@@ -1,10 +1,12 @@
+import {createFlexibleUI} from './flexible-ui.mjs';
 import {defaults,forecast,validateForecast,incomeSuggestions} from './forecast.mjs';
 import {berlinToday,shiftMonth} from './finance.mjs';
 const $=id=>document.getElementById(id),eur=value=>value===null?'–':new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(value),date=value=>value?value.split('-').reverse().join('.'):'–';
 function el(tag,attrs={},children=[]){const node=document.createElement(tag);for(const [key,value] of Object.entries(attrs)){if(key==='text')node.textContent=value;else if(key==='class')node.className=value;else node.setAttribute(key,value)}node.append(...children);return node;}
 const text=(id,value)=>$(id).textContent=value;
-export function createForecastUI({getState,getBank,getAccount,save,openView,editFixed,onIncomeChange=()=>{}}){
+export function createForecastUI({getState,getBank,getAccount,save,openView,editFixed,onIncomeChange=()=>{},onBudgetChange=null,openBooking=null}){
   let report=null,settingsDirty=false;
+  const flexibleUI=createFlexibleUI({getReport:()=>report,getState,save,refresh:()=>onBudgetChange?onBudgetChange():render(),openBooking});
   function update(value,errorId='forecast-form-error'){
     const error=validateForecast(value);text(errorId,error||'');if(error)return false;
     getState().forecast=value;save();render();return true;
@@ -16,12 +18,12 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
     $('forecast-automatic').checked=f.automatic;$('forecast-budgets').checked=f.useBudgets;$('forecast-possible').checked=f.includePossible;$('forecast-estimates').checked=f.includeEstimates;
     $('forecast-manual').disabled=$('forecast-asof').disabled=f.balanceSource!=='manual';}
     for(const [id,value] of [['forecast-current',report.current],['forecast-free',report.available],['forecast-end',report.endBalance],['forecast-low',report.minimum]]){text(id,eur(value));$(id).classList.toggle('negative',value!==null&&value<0);}
-    text('forecast-free-label',report.available!==null&&report.available<0?'Geplanter Fehlbetrag':report.warnings.length?'Vorläufig frei':'Rechnerisch frei');text('forecast-free-until','bis '+date(report.freeUntil));
+    text('forecast-free-label',report.available!==null&&report.available<0?'Geplanter Fehlbetrag':'Nach Terminzahlungen');text('forecast-free-until','bis '+date(report.freeUntil));
     text('forecast-preview-value',eur(report.budget.available));$('forecast-preview-value').classList.toggle('negative',report.budget.available!==null&&report.budget.available<0);text('forecast-preview-note',report.budget.incomeKnown?`${report.budget.key} · ${eur(report.budget.income)} Netto − ${eur(report.budget.obligations)} Verträge & Fixkosten`:'Monatsnetto für beide Personen ergänzen · Planung öffnen');
     text('forecast-balance-note',report.balance?`${f.balanceSource==='manual'?'Manueller Kontostand':'Gebuchter Bankkontostand'}: ${eur(report.balance.amount)} einschließlich ${date(report.balance.date)}. Spätere importierte Buchungen bis heute sind fortgeschrieben. Geplant im Zeitraum: +${eur(report.plannedIncome)} / −${eur(report.plannedExpense)}. Geschützt: ${eur(report.protected)}.`:'Kein geeigneter gebuchter Bankkontostand vorhanden. Unter „Kontostand und Planung einstellen“ einen manuellen Kontostand hinterlegen oder die Bankdaten aktualisieren.');
     $('forecast-settings').open=!report.balance||$('forecast-settings').open;
     renderNotices();
-    drawChart();renderDay();renderPlans();renderEvents();renderMonthlyIncome();renderLearning();renderMonthRoom();
+    drawChart();renderDay();renderPlans();renderEvents();renderMonthlyIncome();renderLearning();renderMonthRoom();flexibleUI.render();
     for(const [value,key] of [['joern','first'],['bettina','second']])$('forecast-income-source').querySelector(`option[value="${value}"]`).textContent='Monatsnetto '+(state.people?.[key]||(key==='first'?'Person 1':'Person 2'));
     const categories=[...new Set(['Sonstiges',...(state.categories||[])])],select=$('forecast-once-category'),prior=select.value;select.replaceChildren(...categories.map(name=>el('option',{value:name,text:name})));if(categories.includes(prior))select.value=prior;
     if(!$('forecast-income-start').value)$('forecast-income-start').value=today.slice(0,7);if(!$('forecast-once-date').value)$('forecast-once-date').value=today;
@@ -95,7 +97,7 @@ export function createForecastUI({getState,getBank,getAccount,save,openView,edit
     const box=$('forecast-chart');box.replaceChildren();const points=report.points;$('forecast-day').disabled=!points.length;$('forecast-day').max=Math.max(0,points.length-1);
     if(!points.length){box.append(el('p',{class:'empty',text:'Nach dem Eintragen eines Kontostands erscheint hier die Prognose.'}));return;}
     const width=850,height=300,left=65,right=16,top=20,bottom=40,values=[0,report.current,report.protected,...points.map(p=>p.balance)],low=Math.min(...values),high=Math.max(...values),span=Math.max(100,high-low),min=low-span*.08,max=high+span*.08;
-    const x=i=>left+i/(points.length-1||1)*(width-left-right),y=n=>top+(max-n)/(max-min)*(height-top-bottom),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('class','chart');svg.setAttribute('role','img');svg.setAttribute('aria-label','Prognose der täglichen Kontostände');
+    const x=i=>left+i/(points.length-1||1)*(width-left-right),y=n=>top+(max-n)/(max-min)*(height-top-bottom),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('class','chart');svg.setAttribute('role','img');svg.setAttribute('aria-label','Kontostand nach Zahlungen mit Termin, ohne flexible Monatswerte');
     function add(tag,attrs,label){const n=document.createElementNS(svg.namespaceURI,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);if(label!==undefined)n.textContent=label;svg.append(n);return n;}
     for(let i=0;i<=4;i++){const value=min+(max-min)*i/4;add('line',{x1:left,x2:width-right,y1:y(value),y2:y(value),stroke:'#e5edf2'});add('text',{x:left-8,y:y(value)+4,'text-anchor':'end',fill:'#64778b','font-size':12},Math.round(value).toLocaleString('de-DE'));}
     add('line',{x1:left,x2:width-right,y1:y(0),y2:y(0),stroke:'#e98274','stroke-dasharray':'3 4'});add('line',{x1:left,x2:width-right,y1:y(report.protected),y2:y(report.protected),stroke:'#b8a0d9','stroke-dasharray':'6 4','stroke-width':2});

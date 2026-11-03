@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.8.0
+
+- Keine Tagesverteilung flexibler Monatskosten mehr: Kurve und Tagesdetails enthalten nur Terminzahlungen.
+- Separate Budgetkarten unter Planung mit Monatswert, Verbrauch, Rest, Fortschrittsbalken und Überschreitungen.
+- Details mit monatlichem Säulendiagramm, Berechnungsgrundlage und anklickbaren Buchungen.
+- Eigene Kategorienbudgets direkt in Planung anlegen, ändern oder entfernen.
+- Automatische flexible Durchschnittswerte und eigene Kategorie-Limits getrennt kennzeichnen.
+- Zugeordnete Erstattungen auch in den historischen flexiblen Durchschnitt einrechnen.
+- Bestehende Budgets behalten ihren Bezug auf die gesamte Kategorie; Fixkosten und Terminposten werden einmal berücksichtigt.
+- Monatsbudget nach Verpflichtungen und persönliche Kostenzuordnungen bleiben erhalten.
+
 ## Repository-Pflege (ohne neue App-Version)
 
 - Sicherheitsregressionen für Zugriffsschutz, Geheimnisse, Dateirechte und Datenhaltung.

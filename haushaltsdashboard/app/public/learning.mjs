@@ -58,22 +58,27 @@ export function learnPatterns(state,today){
     if((state.forecast?.incomePlans||[]).some(p=>key.includes(norm(p.matchKeyword))||norm(p.matchKeyword).includes(key)))continue;
     incomes.push({id:'auto-income-'+id(key),name:group[0].b.payee,source:'fixed',amount,day:model.day,startMonth:monthKey(model.rows[0].b.date),matchKeyword:group[0].b.payee,category:'Gehalt',automatic:true,learned:model});
   }
-  // Only closed calendar months after the first imported month. Missing global months are not zero months.
-  const dates=(state.bookings||[]).filter(b=>b.date&&iso(b)<=today).map(iso).sort(),allDates=dates.map(d=>d.slice(0,7)),present=new Set(allDates),first=allDates[0],last=allDates.at(-1),lastFull=dates.at(-1)?.slice(8)===String(days(last||today.slice(0,7))).padStart(2,'0'),months=[];
-  for(let k=shiftMonth(today.slice(0,7),-6);k<today.slice(0,7);k=shiftMonth(k,1))if(k>first&&(k<last||k===last&&lastFull)&&present.has(k))months.push(k);
+  const months=comparisonMonths(state.bookings||[],today);
   const merchants=new Map();for(const r of rows)if(months.includes(monthKey(r.b.date))&&r.kind==='expense'&&r.fixed==='Nein'){const key=JSON.stringify([r.category,norm(r.b.payee)]);if(!merchants.has(key))merchants.set(key,new Set());merchants.get(key).add(monthKey(r.b.date));}
   const fixedSources=[...new Set([...series.filter(s=>used.has(s.key)).flatMap(s=>s.rows.map(r=>r.index+':'+r.category)),...automaticFixed.flatMap(f=>f.learned.sources.map(s=>s.index+':'+f.category))])];
-  const grouped=new Map();for(const r of rows){const month=monthKey(r.b.date);if(!months.includes(month)||r.kind!=='expense'||r.fixed!=='Nein'||fixedSources.includes(r.index+':'+r.category))continue;
+  const grouped=new Map();for(const r of rows){const month=monthKey(r.b.date);if(!months.includes(month)||r.kind!=='expense'||r.fixed!=='Nein'||fixedSources.includes(r.index+':'+r.category)||(state.fixed||[]).some(f=>f.status!=='Nein'&&f.category===r.category&&norm(f.matchKeyword)&&norm(r.b.payee+' '+r.b.purpose).includes(norm(f.matchKeyword))))continue;
     const recurrent=essentials(r.category)||(merchants.get(JSON.stringify([r.category,norm(r.b.payee)]))?.size||0)>=2;if(!recurrent)continue;
     if(!grouped.has(r.category))grouped.set(r.category,[]);grouped.get(r.category).push(r);
   }
   const flexible=[];
-  if(months.length>=2)for(const [category,items] of grouped){if(Object.hasOwn(state.budgets||{},category))continue;const totals=months.map(month=>items.filter(r=>monthKey(r.b.date)===month).reduce((n,r)=>n-r.amount,0));
+  if(months.length>=2)for(const [category,items] of grouped){const refundRows=[];for(const [index,b] of (state.bookings||[]).entries())if(b.flowType==='refund'&&b.refund&&iso(b)<=today&&months.includes(monthKey(b.date))){const target=(state.bookings||[]).findIndex(x=>x.financeId===b.refund.targetId);for(const part of b.refund.allocations)if(part.kind==='expense'&&part.fixed==='Nein'&&part.category===category&&items.some(r=>r.index===target&&r.category===category))refundRows.push({b,index,amount:cents(part.amount)});}
+    const rawTotals=months.map(month=>items.filter(r=>monthKey(r.b.date)===month).reduce((n,r)=>n-r.amount,0)-refundRows.filter(r=>monthKey(r.b.date)===month).reduce((n,r)=>n+r.amount,0)),totals=rawTotals.map(n=>Math.max(0,n));
     const nonzero=totals.filter(n=>n>0);if(nonzero.length<Math.max(2,Math.ceil(months.length*.5)))continue;
     const center=median(totals),mad=median(totals.map(n=>Math.abs(n-center))),cap=Math.round(center+Math.max(3*mad,center*.5,2000)),adjusted=totals.map(n=>Math.min(n,cap)),amount=Math.round(adjusted.reduce((n,x)=>n+x,0)/months.length)/100;
-    flexible.push({id:'auto-flex-'+id(category),name:category,category,amount,months,monthly:months.map((month,i)=>({month,amount:totals[i]/100,used:adjusted[i]/100})),confidence:months.length>=4?'hoch':'mittel',outlierAdjusted:totals.some(n=>n>cap),count:items.length,sources:proof(items),reason:'Durchschnitt wiederkehrender flexibler Kosten; große Monatsausreißer begrenzt.'});
+    flexible.push({id:'auto-flex-'+id(category),name:category,category,amount,months,monthly:months.map((month,i)=>({month,amount:rawTotals[i]/100,used:adjusted[i]/100})),confidence:months.length>=4?'hoch':'mittel',outlierAdjusted:totals.some(n=>n>cap),count:items.length,sources:proof([...items,...refundRows]),reason:'Durchschnitt wiederkehrender flexibler Kosten; große Monatsausreißer begrenzt.'});
   }
   const ignored=new Set(state.forecast?.ignoredPatterns||[]);
-  return {fixedModels:[...fixedModels.map((f,i)=>ignored.has('existing-'+i)?state.fixed[i]:f),...automaticFixed.filter(f=>!ignored.has(f.id))],fixed:fixed.filter(f=>!ignored.has(f.id)),incomes:incomes.filter(f=>!ignored.has(f.id)),flexible:flexible.filter(f=>!ignored.has(f.id)),months,fixedSources};
+  return {fixedModels:[...fixedModels.map((f,i)=>ignored.has('existing-'+i)?state.fixed[i]:f),...automaticFixed.filter(f=>!ignored.has(f.id))],fixed:fixed.filter(f=>!ignored.has(f.id)),incomes:incomes.filter(f=>!ignored.has(f.id)),flexible:flexible.filter(f=>!ignored.has(f.id)&&!Object.hasOwn(state.budgets||{},f.category)),flexibleComparisons:flexible.filter(f=>!ignored.has(f.id)),months,fixedSources};
 }
 function addMonthsDay(date,count){const key=shiftMonth(date.slice(0,7),count);return key+'-'+String(Math.min(Number(date.slice(8)),days(key))).padStart(2,'0');}
+
+export function comparisonMonths(bookings,today){
+  const dates=bookings.filter(b=>b.date&&iso(b)<=today).map(iso).sort(),allDates=dates.map(d=>d.slice(0,7)),present=new Set(allDates),first=allDates[0],last=allDates.at(-1),lastFull=dates.at(-1)?.slice(8)===String(days(last||today.slice(0,7))).padStart(2,'0'),months=[];
+  for(let k=shiftMonth(today.slice(0,7),-6);k<today.slice(0,7);k=shiftMonth(k,1))if(k>first&&(k<last||k===last&&lastFull)&&present.has(k))months.push(k);
+  return months;
+}

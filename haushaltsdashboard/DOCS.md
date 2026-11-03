@@ -125,13 +125,15 @@ unbekannt. Für eine aktuelle Prognose zuerst die Bankdaten aktualisieren.
 Die Planung bezieht sich ausschließlich auf das verbundene Haushaltskonto;
 Buchungen anderer ausdrücklich gekennzeichneter Konten sind ausgeschlossen.
 
-### Was „Rechnerisch frei“ bedeutet
+### Was „Nach Terminzahlungen“ bedeutet
 
 Verwendet wird der niedrigste geplante Kontostand vom Start bis zum Tag vor
 dem nächsten eingeplanten regelmäßigen Eingang. Ohne solchen Eingang im
 Prognosezeitraum gilt das Monatsende. Davon werden geschütztes Guthaben und
 Sicherheitspuffer abgezogen. Negative Werte zeigen einen geplanten Fehlbetrag.
-Die Kurve selbst zeigt den Kontostand, nicht dieses bereinigte Guthaben.
+Die Kurve selbst zeigt den Kontostand nach terminierten Zahlungen, nicht dieses
+bereinigte Guthaben. Flexible Monatswerte sind seit 0.8.0 separat ausgewiesen und
+werden hier nicht abgezogen. Der Wert ist kein frei verfügbares Einkaufsbudget.
 
 Geschütztes Guthaben ist Geld, das tatsächlich auf diesem Konto liegt und
 im Prognosezeitraum liegen bleiben soll. Rücklagen auf anderen Konten und
@@ -153,13 +155,46 @@ Zahlungen stehen als „Bereits gebucht“ in der Liste und werden nicht erneut
 als zukünftiger Kontoabgang eingerechnet. Offene Ausgaben mit vergangenem
 Fälligkeitstag bleiben vorsichtshalber ab heute eingeplant.
 
-Restbudget = Monatsbudget minus gebuchte Konsumkosten minus noch geplante
-Konsumausgaben derselben Kategorie. Der Betrag ist mindestens null und wird
-centgenau auf die verbleibenden Kalendertage verteilt. Erstattungsüberschüsse
-erhöhen diesen Planbetrag nicht über das ursprüngliche Monatsbudget hinaus.
-So werden Fixkosten innerhalb eines Kategorienbudgets nicht doppelt abgezogen.
-Unbudgetierte flexible Ausgaben sind nur mit ausdrücklich geplanten Einmalposten
-enthalten; bekannte Kategorien ohne Budget werden genannt.
+Seit **0.8.0** gibt es keine erfundenen Tagesbuchungen aus Monatsbudgets oder
+Durchschnittswerten mehr. Kurve, Tagesdetails, Endstand und niedrigster geplanter
+Stand berücksichtigen nur die Zahlungen mit Termin. Tatsächliche Einkäufe werden
+wie bisher über den gebuchten Kontostand bzw. später importierte Buchungen erfasst.
+
+### Separate Monatsbudgets und flexible Ausgaben (ab 0.8.0)
+
+Unter dem Verlauf zeigt **Flexible Ausgaben im Blick** Karten nach dem Prinzip
+Monatswert, Verbrauch und Rest. Der Monat ist für den aktuellen Prognosezeitraum
+wählbar. Suchfeld und Reiter **Budgets / Buchungen** helfen bei vielen Kategorien.
+
+- **Dein Budget:** gespeichertes monatliches Limit für die gesamte Kategorie.
+  Bereits gebuchte Konsumausgaben und offene terminierte Ausgaben dieser Kategorie
+  werden abgezogen. Fixkosten innerhalb des Limits zählen dadurch einmal.
+- **Automatischer Ø:** typischer flexibler Monatswert aus bis zu sechs abgeschlossenen
+  Vergleichsmonaten. Fixkosten und Verträge sind ausgenommen; der gebuchte flexible
+  Verbrauch wird abgezogen. Zusätzliche geplante Sonderzahlungen stehen in der Kurve.
+- **Ohne Planwert:** zu wenig Vergleichsdaten oder keine regelmäßig wiederkehrenden
+  Ausgaben. Der zukünftige Rest bleibt unbekannt und wird nicht als 0 € geschätzt.
+
+Die Anzeige **Noch vorgesehen** summiert bekannte positive Restbeträge einmal pro
+Monat. Kategorien ohne Planwert werden genannt. Ein überschrittener Monatswert
+wird rot gezeigt, mit 0 € verbleibendem Planrahmen; es entstehen keine negativen
+künftigen Zahlungen. Erstattungsüberschüsse erzeugen keinen zusätzlichen erwarteten
+Verbrauch über den Monatswert hinaus. Anlagen und eigene Umbuchungen gehören
+nicht in diese flexible Konsumübersicht.
+
+Eine Karte öffnet das Monatsdiagramm mit aktueller Budget-/Ø-Linie, eine Tabelle
+der Vergleichswerte sowie die zugehörigen Buchungen. Diagrammbalken oder die
+Monatsauswahl filtern die Buchungsliste. Ein Klick auf eine Buchung öffnet deren
+vollständigen Zweck und Vertragszuordnung. Historische Balken zeigen die tatsächlich
+erfassten Ausgaben; die Linie bezeichnet den aktuell gewählten Monatswert und ist
+kein historisch versioniertes Budget.
+
+In den Details können eigene Budgets angelegt, geändert und entfernt werden.
+Ein eigenes Limit gilt wie bisher für jeden Monat; die Monatsauswahl ist keine
+Beschränkung einer Budgetänderung auf diesen Monat. Nach Entfernen des Limits
+erscheint wieder ein automatischer Ø, sofern ausreichende Vergleichsdaten bestehen.
+Die Buchungen bleiben erhalten. Die Prognoseoption **Eigene Kategoriebudgets in der
+Monatsübersicht verwenden** betrifft diese Monatswerte, nicht die Kurve.
 
 ### Monatlich unterschiedliches Einkommen
 
@@ -251,10 +286,10 @@ oberhalb von Median plus dem Maximum aus dreifacher Medianabweichung, halbem
 Median und 20 € begrenzt. Der daraus berechnete Durchschnitt und die ursprünglichen
 Monatswerte sind sichtbar. Dies ist ein Planwert und kein Ausgabenlimit.
 
-Diese automatisch geschätzte flexible Rate wird zusätzlich zu geplanten Fixkosten
-und expliziten Einmalposten berücksichtigt. Ein manuelles Budget ersetzt sie und
-umfasst wie bisher die gesamte Kategorie. Die verbleibende flexible Rate wird
-auf die restlichen Kalendertage verteilt.
+Der automatische flexible Monatswert steht seit 0.8.0 separat in den Budgetkarten.
+Er wird nicht auf Tage verteilt und verändert die Kontostandskurve nicht.
+Ein eigenes Kategoriebudget hat Vorrang und umfasst die gesamte Kategorie.
+Zugeordnete Erstattungen senken auch die historischen flexiblen Vergleichswerte.
 
 Unter **Buchungen → Als einmalig markieren** können Sonderkäufe oder Sonderzahlungen
 vom Lernen ausgeschlossen werden. Sie bleiben vollständig in den tatsächlichen
@@ -310,7 +345,8 @@ die persönlichen Anteile beide Nettoeinkommen. Die Beträge lassen sich direkt 
 den persönlichen Budgetkarten ändern und gelten nur für diesen Monat.
 
 Die Kontostandsprognose darunter verwendet weiterhin echte Bankeingänge,
-Fälligkeiten, flexible Schätzungen, Budgets und Einmalposten. Ein eingetragenes
+Fälligkeiten und Einmalposten. Flexible Schätzungen und Budgets stehen separat
+in der Monatsübersicht. Ein eingetragenes
 Monatsnetto erzeugt keinen zusätzlichen Bankeingang. Das Monatsbudget ist keine
 Aussage über das heute auf dem Konto verfügbare Guthaben.
 
