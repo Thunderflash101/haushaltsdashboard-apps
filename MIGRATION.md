@@ -1,4 +1,17 @@
-# Wechsel von der lokalen App 0.1.0 zur Repository-App 0.2.0
+# Einmaliger Wechsel von der lokalen zur Repository-App
+
+Diese Anleitung beschreibt die Migration von der lokalen App 0.1.0. Die erste
+Repository-App war 0.2.0; derselbe Installationswechsel gilt auch beim direkten
+Wechsel auf die aktuelle Repository-Version.
+
+**Bereits auf der Repository-App?** Dann ist keine erneute Migration nötig.
+Normale Updates aus demselben Repository werden über Home Assistant installiert;
+`/data`, Bankkonfiguration und Finanzdaten bleiben erhalten. Eine neue Bankfreigabe
+ist nur erforderlich, wenn sie abgelaufen ist oder ausdrücklich verlangt wird.
+Die separate Rückleitungs-Integration nur aktualisieren, wenn deren Code geändert
+wurde.
+
+## Migration von einer lokalen Installation
 
 Die bestehende lokale App bleibt installiert. Eine Repository-App hat in Home
 Assistant eine eigene App-ID und ein eigenes Datenverzeichnis. Der Wechsel ist

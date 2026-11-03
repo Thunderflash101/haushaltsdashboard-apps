@@ -1,5 +1,13 @@
 # Änderungen
 
+## Repository-Pflege (ohne neue App-Version)
+
+- Sicherheitsregressionen für Zugriffsschutz, Geheimnisse, Dateirechte und Datenhaltung.
+- Gitleaks-Prüfung der Git-Historie mit verifiziertem Werkzeug und Erkennungs-/Maskierungskontrolle.
+- Dependabot für GitHub Actions und Docker; Actions auf Commit-SHAs festgelegt.
+- Optionale Pre-commit-Hooks, CI-Statusanzeigen und aktualisierte Sicherheits-/Update-Dokumentation.
+- Die installierbare App bleibt 0.7.0; dieses Paket erfordert kein NUC-Update.
+
 ## 0.7.0
 
 - Monatsbudget aus Nettoeinkommen minus Verträgen und Fixkosten; keine Reservierung geschätzter flexibler Ausgaben.
