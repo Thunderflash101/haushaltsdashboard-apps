@@ -10,6 +10,7 @@ export function flowKind(category, kind) {
   return category === 'ETFs' ? 'investment' : category === 'Haushaltsgeld' ? 'transfer' : 'expense';
 }
 export function inflowKind(booking) {
+  if(booking.householdContribution===true&&booking.amount>0&&!booking.refund&&!booking.transferPeerId)return 'income';
   if (['income','transfer','investment','refund'].includes(booking.flowType)) return booking.flowType;
   return booking.flowType === 'expense' ? 'income' : flowKind(booking.category,booking.flowType) === 'expense' ? 'income' : flowKind(booking.category,booking.flowType);
 }
@@ -41,9 +42,11 @@ export function refundableParts(bookings, target, excludingId) {
 export function validateFinanceState(state) {
   const bookings = state.bookings;
   if (!Array.isArray(bookings)) return 'Buchungen fehlen.';
+  if(state.contributionPayees!==undefined&&(!Array.isArray(state.contributionPayees)||state.contributionPayees.length>100||state.contributionPayees.some(s=>typeof s!=='string'||!s.trim()||s.length>200)))return 'Ungültige Absender für Kostenbeteiligungen.';
   const ids = new Map();
   for (const b of bookings) {
     if (!b) return 'Ungültige Buchung.';
+    if(b.householdContribution!==undefined&&(typeof b.householdContribution!=='boolean'||b.householdContribution&&(!(b.amount>0)||b.refund||b.transferPeerId||b.splits?.length||b.flowType==='refund'||b.flowType==='investment')))return 'Kostenbeteiligungen benötigen einen positiven, nicht anderweitig zugeordneten Kontoeingang.';
     if (b.financeId !== undefined) {
       if (typeof b.financeId !== 'string' || !/^[a-zA-Z0-9-]{1,100}$/.test(b.financeId) || ids.has(b.financeId)) return 'Doppelte oder ungültige Buchungskennung.';
       ids.set(b.financeId,b);
@@ -77,6 +80,11 @@ export function validateFinanceState(state) {
     }
   }
   return null;
+}
+export function applyContributionRules(bookings,payees=[]){
+  const norm=s=>String(s||'').normalize('NFC').trim().replace(/\s+/g,' ').toLocaleLowerCase('de'),known=new Set(payees.map(norm));let changed=false;
+  for(const b of bookings)if(b.householdContribution===undefined&&!(b.flowManual&&b.flowType==='transfer')&&b.amount>0&&!b.refund&&!b.transferPeerId&&!b.splits?.length&&b.flowType!=='refund'&&b.flowType!=='investment'&&known.has(norm(b.payee))){b.householdContribution=true;changed=true;}
+  return changed;
 }
 export function analyzeMonth(bookings, key, options = {}) {
   const spending = options.spendingOnly === true, maxDay = options.throughDay || 31;

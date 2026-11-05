@@ -41,7 +41,7 @@ export function bankSnapshot(vault){
 function berlinDay(date){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(date));}
 export function incomeSuggestions(bookings){
   const grouped=new Map();
-  for(const b of bookings)if(b.amount>0&&b.category==='Gehalt'&&inflowKind(b)==='income'&&norm(b.payee)){
+  for(const b of bookings)if(!b.householdContribution&&b.amount>0&&b.category==='Gehalt'&&inflowKind(b)==='income'&&norm(b.payee)){
     const key=norm(b.payee);if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(b);
   }
   return [...grouped.values()].map(rows=>{rows.sort((a,b)=>isoDate(b).localeCompare(isoDate(a)));const recent=rows.slice(0,3),amounts=recent.map(b=>b.amount).sort((a,b)=>a-b),days=recent.map(b=>Number(b.date.slice(0,2))).sort((a,b)=>a-b);return {name:rows[0].payee,amount:amounts[Math.floor(amounts.length/2)],day:days[Math.floor(days.length/2)],count:recent.length};});
@@ -49,7 +49,7 @@ export function incomeSuggestions(bookings){
 function fixedEvents(fixed,bookings,key,options,warnings){
   const events=[],categories=new Map();for(const f of fixed)if(f.status!=='Nein')categories.set(f.category,(categories.get(f.category)||0)+1);
   fixed.forEach((f,index)=>{
-    if(f.status==='Nein'||f.status==='Möglich'&&!options.includePossible)return;
+    if(f.status==='Nein'||f.costOwner==='bettina'||f.status==='Möglich'&&!options.includePossible)return;
     const cycle={'monatlich':1,'zweimonatlich':2,'vierteljährlich':3,'halbjährlich':6,'jährlich':12}[f.rhythm],anchor=Number(f.anchorMonth);
     if(!cycle||cycle>1&&(!Number.isInteger(anchor)||anchor<1||anchor>12)){warnings.add(`${f.name}: Rhythmus oder Fälligkeitsmonat fehlt; nicht eingerechnet.`);return;}
     if(cycle>1&&(Number(key.slice(5))-anchor+12)%cycle)return;
@@ -78,7 +78,7 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   for(const key of months){
     all.push(...fixedEvents(learning.fixedModels,bookings,key,settings,warnings));
     for(const p of [...settings.incomePlans,...learning.incomes]){
-      if(key<p.startMonth)continue;
+      if(p.source==='bettina'||key<p.startMonth)continue;
       const entered=p.source==='fixed'?p.amount:state.incomes?.[key]?.[p.source],explicit=typeof entered==='number'&&Number.isFinite(entered)&&entered>=0;
       const amount=explicit?entered:p.amount;
       if(amount<=0)continue;
@@ -137,7 +137,7 @@ export function forecast(state,bank,{today=berlinToday(),account=bank?.account||
   return {today,end,settings,learning,monthly,budget,balance,current:balance?currentCents/100:null,points:balance?points:[],events:events.filter(e=>e.date<=end).sort((a,b)=>a.date.localeCompare(b.date)||a.amount-b.amount),budgetEvents:[],flexibleMonths,warnings:[...warnings],endBalance:balance?running/100:null,minimum:balance?minimum:null,available:balance?Math.round(freeMinimum*100)/100:null,freeUntil,nextIncome:nextIncome||null,protected:protectedCents/100,plannedIncome:active.filter(e=>e.amount>0).reduce((n,e)=>n+cents(e.amount),0)/100,plannedExpense:active.filter(e=>e.amount<0).reduce((n,e)=>n-cents(e.amount),0)/100};
 }
 
-function isLearnedSalary(b){return b.amount>0&&!b.refund&&inflowKind(b)==='income'&&(b.category==='Gehalt'||/lohn|gehalt|salary/i.test(b.purpose||''));}
+function isLearnedSalary(b){return !b.householdContribution&&b.amount>0&&!b.refund&&inflowKind(b)==='income'&&(b.category==='Gehalt'||/lohn|gehalt|salary/i.test(b.purpose||''));}
 
 export function monthlyRoom(bookings,events,monthlyAllowances,learning,key,settings){
   let received=0,expected=0,bookedFixed=0,bookedFlex=0,bookedOther=0,openFixed=0,openFlex=0,openOther=0;
@@ -196,9 +196,13 @@ export function monthlyBudget(state,{key=berlinToday().slice(0,7),today=berlinTo
     if(fixedSources.has(index+':'+part.category))return true;
     return models.some(f=>!f.contractId&&f.category===part.category&&(norm(f.matchKeyword)?norm(b.payee+' '+b.purpose).includes(norm(f.matchKeyword)):part.fixed!=='Nein'&&models.filter(x=>!x.contractId&&x.category===part.category).length===1));
   }
-  let spentFlexible=0,spentOther=0;
+  let spentFlexible=0,spentOther=0,paidForPartner=0;
   function actual(b,index,part,sign){
-    if(isObligation(b,index,part))return;
+    if(isObligation(b,index,part)){
+      const contract=(state.contracts||[]).find(c=>matchesContractBooking(c,b,part.category));
+      const model=models.find(f=>!f.contractId&&f.category===part.category&&(norm(f.matchKeyword)?norm(b.payee+' '+b.purpose).includes(norm(f.matchKeyword)):part.fixed!=='Nein'));
+      if((contract?.costOwner||model?.costOwner)==='bettina')paidForPartner+=sign*part.cents;return;
+    }
     if(part.fixed==='Ja'||part.fixed==='Möglich'){
       if(part.fixed!=='Möglich'||state.basis==='all')rows.push({name:b.payee||'Gebuchte Fixkosten',category:part.category,owner:'shared',cents:sign*part.cents,source:'Gebuchte Fixkosten ohne Planposten',model:null});
     }else if(part.kind==='expense')spentFlexible+=sign*part.cents;
@@ -213,7 +217,20 @@ export function monthlyBudget(state,{key=berlinToday().slice(0,7),today=berlinTo
   const known=income.joern!==null&&income.bettina!==null,total=known?cents(income.joern)+cents(income.bettina):null,canSplit=known&&(total>0||costs.shared===0);
   const joernShare=canSplit?(total>0?Math.round(costs.shared*cents(income.joern)/total):0):costs.shared===0?0:null,bettinaShare=joernShare===null?null:costs.shared-joernShare;
   const people={};for(const [person,share] of [['joern',joernShare],['bettina',bettinaShare]])people[person]={income:income[person],source:income.sources[person],shared:share===null?null:share/100,personal:costs[person]/100,available:income[person]!==null&&share!==null?(cents(income[person])-share-costs[person])/100:null};
-  const obligations=costs.shared+costs.joern+costs.bettina,available=known?(total-obligations)/100:null;
-  const warnings=[...income.warnings];if(!known)warnings.push('Monatsnetto für beide Personen ergänzen. Persönliche Aufteilung und Haushaltsbudget sind sonst unvollständig.');if(known&&!canSplit)warnings.push('Gemeinsame Kosten können bei insgesamt 0 € Einkommen nicht proportional aufgeteilt werden.');
-  return {key,income:known?total/100:null,incomeKnown:known,people,shared:costs.shared/100,personal:(costs.joern+costs.bettina)/100,obligations:obligations/100,available,spentFlexible:spentFlexible/100,spentOther:spentOther/100,remaining:available===null?null:(cents(available)-spentFlexible-spentOther)/100,rows:rows.map(({model,cents:value,...r})=>({...r,amount:value/100})),warnings};
+  let contributions=0,otherIncome=0;
+  const plans=[...settings.incomePlans,...(learning.incomes||[])];
+  for(const b of bookings){
+    if(!(b.amount>0)||monthKey(b.date)!==key||isoDate(b)>today||b.refund||b.transferPeerId)continue;
+    if(b.householdContribution===true){contributions+=cents(b.amount);continue;}
+    if(inflowKind(b)!=='income')continue;
+    if(isLearnedSalary(b)||plans.some(p=>p.source!=='bettina'&&norm(p.matchKeyword)&&norm(b.payee+' '+b.purpose).includes(norm(p.matchKeyword)))){
+      const matches=plans.filter(p=>norm(p.matchKeyword)&&norm(b.payee+' '+b.purpose).includes(norm(p.matchKeyword)));
+      if(!matches.length||matches.some(p=>p.source!=='bettina'))continue;
+    }
+    otherIncome+=cents(b.amount);
+  }
+  const obligations=costs.shared+costs.joern+paidForPartner,accountKnown=income.joern!==null,accountIncome=accountKnown?cents(income.joern)+contributions+otherIncome:null,available=accountKnown?(accountIncome-obligations)/100:null;
+  const expected=bettinaShare===null?null:bettinaShare/100,received=contributions/100;
+  const warnings=[...income.warnings];if(!accountKnown)warnings.push('Dein Monatsnetto fehlt. Kostenbeteiligungen werden separat angezeigt.');if(income.bettina===null)warnings.push('Das zweite Monatsnetto fehlt für die Kostenaufteilung. Dein Kontobudget bleibt davon unabhängig.');if(known&&!canSplit)warnings.push('Gemeinsame Kosten können bei insgesamt 0 € Einkommen nicht proportional aufgeteilt werden.');
+  return {key,income:accountKnown?accountIncome/100:null,incomeKnown:accountKnown,ownIncome:income.joern,otherIncome:otherIncome/100,paidForPartner:paidForPartner/100,contributions:received,contributionExpected:expected,contributionOpen:expected===null?null:Math.max(0,cents(expected)-contributions)/100,contributionExtra:expected===null?null:Math.max(0,contributions-cents(expected))/100,people,shared:costs.shared/100,personal:costs.joern/100,obligations:obligations/100,allocationTotal:(costs.shared+costs.joern+costs.bettina)/100,available,spentFlexible:spentFlexible/100,spentOther:spentOther/100,remaining:available===null?null:(cents(available)-spentFlexible-spentOther)/100,rows:[...rows.filter(r=>r.owner!=='bettina'),...(paidForPartner?[{name:(state.people?.second||'Person 2')+' · vom Konto bezahlt',category:'Persönliche Verpflichtungen',owner:'bettina',cents:paidForPartner,source:'Tatsächlich gebucht',model:null}]:[])].map(({model,cents:value,...r})=>({...r,amount:value/100})),warnings};
 }

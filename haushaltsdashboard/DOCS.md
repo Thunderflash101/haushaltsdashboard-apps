@@ -297,26 +297,45 @@ Monatsauswertungen und im Kontosaldo enthalten. Keine automatische Methode kann
 alle Einmalereignisse oder Vertragsenden zuverlässig erkennen; die Quellen und
 Korrekturmöglichkeiten sind deshalb Bestandteil der Ansicht.
 
-## Monatsbudget nach Verpflichtungen (ab 0.7.0)
+## Eigenes Monatsbudget und Kostenbeteiligung (ab 0.9.0)
 
-Übersicht und Planung zeigen das Budget des aktuellen Kalendermonats:
+Das verbundene Konto und das Hauptbudget gehören der **ersten Person**:
 
-**Nettoeinkommen beider Personen − Verträge und Fixkosten = Monatsbudget.**
+**Eigenes Netto + eingegangene Kostenbeteiligungen + weitere tatsächliche Einnahmen
+− gemeinsame Verpflichtungen − eigene persönliche Verpflichtungen = Monatsbudget.**
 
-Geschätzte flexible Kosten, Lebensmittel-, Shopping- und andere Kategoriebudgets,
-geplante Einmalposten, Kontoguthaben und Liquiditätspuffer reduzieren diesen
-Ausgangswert nicht. Quartals- und Jahreszahlungen werden mit dem Monatsanteil
-reserviert, unabhängig vom tatsächlichen Fälligkeitsmonat. Die Tabelle zeigt
-alle enthaltenen Verpflichtungen und ihre Kostenträger.
+Das Netto der zweiten Person dient ausschließlich dazu, ihren proportionalen Anteil
+an den gemeinsamen Kosten zu bestimmen. Es wird nicht zum eigenen Einkommen addiert.
+Auch der berechnete Soll-Anteil ist kein bereits erhaltenes Geld. Ein entsprechender
+Unterschied zwischen Soll und tatsächlich eingegangener Beteiligung wird separat
+angezeigt. Ein fehlender zweiter Nettowert blockiert das eigene Budget nicht; nur die
+Kostenaufteilung bleibt offen. Vorhandene Einkommenspläne aus dem zweiten Monatsnetto
+werden nicht mehr als Eingang auf dem Konto der ersten Person geplant.
 
-**Davon noch übrig** zieht bereits importierte flexible Ausgaben und Anlagen
-vom Monatsbudget ab. Zugeordnete Erstattungen stellen das flexible Budget wieder
-her. Eigene Umbuchungen verbrauchen es nicht. Bezahlte Verträge und Fixkosten
-werden nicht erneut abgezogen. Als fix markierte Buchungen ohne Planposten
-werden als zusätzliche gemeinsame Verpflichtung berücksichtigt. Nicht importierte
-Ausgaben, insbesondere auf einem zweiten persönlichen Konto, fehlen in dieser
-Anzeige. Die persönlichen Karten zeigen deshalb jeweils das Ausgangsbudget nach
-Verpflichtungen, keinen personenbezogenen Rest nach Einkäufen.
+Unter **Buchungen → Zweck ansehen** einen tatsächlichen Eingang als **Kostenbeteiligung
+von Person 2** markieren und **Eingang zuordnen** wählen. Alternativ in der Buchungsart
+**Kostenbeteiligung** auswählen. So zählt auch ein zuvor als Haushaltsgeld/Umbuchung
+kategorisierter Eingang zum eigenen Budget. Die originale Kontobuchung bleibt einmal
+vorhanden; der Bankkontostand wird durch die Zuordnung nicht zusätzlich erhöht.
+
+Optional können unzugeordnete Eingänge desselben vollständigen Absenders erkannt
+werden, auch bereits vorhandene. Diese private Regel berücksichtigt Groß-/Kleinschreibung
+und überzählige Leerzeichen, aber keine Teilnamen. Sie wird auch beim CSV-/Bankimport
+angewendet. Eine ausdrücklich ausgenommene Buchung wird nicht wieder zugeordnet.
+Ohne bestätigte Zuordnung können wir die Identität eines Absenders nicht zuverlässig
+allein aus einem kurzen Anzeigenamen ableiten.
+
+Teilzahlungen werden addiert. Fehlende Zahlungen bleiben offen; Mehrzahlungen werden
+als solche ausgewiesen. Erstattungen und verknüpfte eigene Umbuchungen sind keine
+Kostenbeteiligung. Nicht als Gehalt eingeordnete normale Einnahmen erscheinen als
+weitere Eingänge; bereits berücksichtigtes eigenes Gehalt wird nicht nochmals addiert.
+
+Flexible Schätzungen und Kategoriebudgets verändern den Ausgangswert nicht. Quartals-
+und Jahreszahlungen zählen mit dem Monatsanteil. **Davon noch übrig** zieht bereits
+importierte flexible Ausgaben und Anlagen ab. Private Pläne der zweiten Person dienen
+ihrer eigenen Aufteilung und erzeugen keine erwarteten Kontoabgänge auf diesem Konto.
+Wurde eine ihrer Verpflichtungen tatsächlich über das verbundene Konto bezahlt, wird
+sie im eigenen Budget als gebuchter Betrag berücksichtigt.
 
 ### Gemeinsam oder persönlich
 
@@ -328,8 +347,9 @@ Bei jedem Fixkostenposten und Vertrag **Wer trägt diese Kosten?** auswählen:
 Die Namen entsprechen den eingerichteten Anzeigenamen. Bestehende Posten ohne
 Zuordnung gelten weiterhin als gemeinsam. Persönliche Verträge deshalb einmalig
 bearbeiten. **Auch in der Fixkostenliste anzeigen** steuert bei Verträgen nur die
-Darstellung. Ein ausgeblendeter Vertrag bleibt in Budget und Kontostandsprognose
-enthalten. Verknüpfte Fixkostenposten werden durch ihren Vertrag ersetzt und nicht
+Darstellung. Ein ausgeblendeter gemeinsamer oder eigener Vertrag bleibt im eigenen Budget und
+in der Kontostandsprognose enthalten. Private Pläne der zweiten Person bleiben
+auf deren Aufteilung beschränkt. Verknüpfte Fixkostenposten werden durch ihren Vertrag ersetzt und nicht
 doppelt gezählt; die Kostenzuordnung des Vertrags gilt.
 
 ### Einkommen pro Monat
@@ -340,8 +360,8 @@ auf Einkommenspläne zurückgegriffen. Gehaltsbuchungen ohne personenspezifische
 Plan werden wie bisher der ersten Person zugerechnet. Für Gehalt der zweiten
 Person auf demselben Konto einen passenden Einkommensplan verwenden oder ihr
 Monatsnetto ausdrücklich eintragen. Ein Planbetrag ohne Buchung ist eine Schätzung.
-Fehlendes Einkommen bleibt unbekannt. Bei gemeinsamen Verpflichtungen benötigen
-die persönlichen Anteile beide Nettoeinkommen. Die Beträge lassen sich direkt in
+Fehlendes Einkommen bleibt unbekannt. Die proportionalen Anteile benötigen beide
+Nettoeinkommen; das eigene Budget benötigt das erste Netto und tatsächliche Eingänge. Die Beträge lassen sich direkt in
 den persönlichen Budgetkarten ändern und gelten nur für diesen Monat.
 
 Die Kontostandsprognose darunter verwendet weiterhin echte Bankeingänge,

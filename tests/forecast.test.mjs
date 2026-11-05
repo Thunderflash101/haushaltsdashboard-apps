@@ -34,8 +34,8 @@ test('one booking cannot pay two plans and ambiguous category-only matches stay 
   const r=forecast(state,null,{today:'2026-11-12'});assert.equal(r.events.find(e=>e.id==='fixed-0-2026-11').status,'planned');assert.ok(r.warnings.some(x=>x.includes('mehrere Buchungen')));
 });
 test('monthly net income requires an explicit account plan; missing months are excluded estimates, zero stays zero',()=>{
-  const state=base();state.incomes={'2026-11':{bettina:1800},'2026-12':{bettina:0}};assert.equal(run(state).plannedIncome,0);
-  state.forecast.incomePlans=[income({source:'bettina',amount:1500})];state.forecast.horizon=90;let r=run(state);
+  const state=base();state.incomes={'2026-11':{joern:1800},'2026-12':{joern:0}};assert.equal(run(state).plannedIncome,0);
+  state.forecast.incomePlans=[income({source:'joern',amount:1500})];state.forecast.horizon=90;let r=run(state);
   assert.equal(r.events.find(e=>e.id==='income-salary-2026-11').amount,1800);assert.equal(r.events.some(e=>e.id==='income-salary-2026-12'),false);assert.equal(r.events.find(e=>e.id==='income-salary-2027-01').status,'estimate-excluded');
   state.forecast.includeEstimates=true;r=run(state);assert.equal(r.events.find(e=>e.id==='income-salary-2027-01').status,'planned');
 });
