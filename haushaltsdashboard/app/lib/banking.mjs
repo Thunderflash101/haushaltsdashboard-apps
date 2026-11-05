@@ -1,5 +1,6 @@
 import {createPrivateKey,createHash,randomBytes,sign,timingSafeEqual} from 'node:crypto';
 import {suggestCategory,suggestFixedStatus,reviewReason,matchingRule} from './categorization.mjs';
+import {applyContributionRules} from '../public/finance.mjs';
 
 export function equalSecret(a,b) {const x=Buffer.from(String(a||'')),y=Buffer.from(String(b||''));return x.length>0 && x.length===y.length && timingSafeEqual(x,y);}
 export function parseKey(pem) {
@@ -84,7 +85,7 @@ function annotate(b,state) {
   const c=suggestCategory(b,state.rules||[],state.bookings);if(c){b.category=c.category;b.categoryAuto=true;}
   const f=suggestFixedStatus(b,state.bookings,state.rules||[]);if(f){b.fixed=f;b.fixedAuto=true;}
   const rule=matchingRule(b,state.rules||[]);if(rule?.kind)b.flowType=rule.kind;
-  b.reviewReason=reviewReason(b,state.bookings);return b;
+  applyContributionRules([b],state.contributionPayees||[]);b.reviewReason=reviewReason(b,state.bookings);return b;
 }
 export function reconcile(state,incoming,defaultAccount) {
   const used=new Set(),ids=new Set(state.bookings.flatMap(b=>[b.bankId,...(b.bankIds||[])].filter(Boolean)));

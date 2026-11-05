@@ -8,7 +8,7 @@ const median=a=>{const x=[...a].sort((a,b)=>a-b),i=Math.floor(x.length/2);return
 const id=value=>{let n=14695981039346656037n;for(const c of new TextEncoder().encode(value)){n^=BigInt(c);n=BigInt.asUintN(64,n*1099511628211n);}return n.toString(16);};
 const cycles={monatlich:1,vierteljährlich:3,halbjährlich:6,jährlich:12};
 const rhythm={1:'monatlich',2:'zweimonatlich',3:'vierteljährlich',6:'halbjährlich',12:'jährlich'};
-const isSalary=b=>b.amount>0&&inflowKind(b)==='income'&&(b.category==='Gehalt'||/lohn|gehalt|salary/.test(norm(b.purpose+' '+b.booking)));
+const isSalary=b=>!b.householdContribution&&b.amount>0&&inflowKind(b)==='income'&&(b.category==='Gehalt'||/lohn|gehalt|salary/.test(norm(b.purpose+' '+b.booking)));
 const isContract=category=>/wohnen|finanzierung|versicherung|telefon|internet|abo|streaming|rundfunk|bankgebühr|kita|kommunal/i.test(category||'');
 const essentials=category=>/lebensmittel|tanken|drogerie/i.test(category||'');
 function proof(rows){return rows.map(r=>({index:r.index,date:r.b.date,payee:r.b.payee,amount:r.amount/100}));}

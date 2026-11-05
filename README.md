@@ -6,7 +6,7 @@
 Eine private Haushaltsauswertung mit Monatsansicht, Kategorien, Fixkosten,
 variablen Kosten, proportionaler Kostenaufteilung und Enable-Banking-Import.
 
-**Version 0.8.0 – Separate Monatsbudgets und Kontostandsverlauf ohne Tagesdurchschnitte.**
+**Version 0.9.0 – Eigenes Kontobudget mit tatsächlich eingegangenen Kostenbeteiligungen.**
 
 Der Programmcode enthält keine persönlichen Buchungen, Kontonummern oder
 Anwendungsschlüssel. Die App startet leer. Jeder Betreiber hinterlegt seine
@@ -45,7 +45,10 @@ Die Repository-URL bleibt nach der Einrichtung stabil.
 - Zeitliche Kontodeckung bis zum nächsten regelmäßigen Eingang; geschütztes Guthaben und Puffer.
 - Einkommenspläne mit monatlich unterschiedlichen Nettowerten und Einmalposten.
 - Einnahmen, Kontoabgänge, Fix- und Flexkosten pro Monat.
-- Monatsbudget aus Netto minus Verträgen und Fixkosten, ohne flexible Schätzungen.
+- Eigenes Monatsbudget aus eigenem Netto plus eingegangenen Kostenbeteiligungen und
+  weiteren Einnahmen minus gemeinsamen und eigenen Verpflichtungen.
+- Das zweite Netto dient ausschließlich der Aufteilung; Soll, Ist und offener Anteil
+  werden getrennt angezeigt. Absender können ausdrücklich für Folgeimporte gemerkt werden.
 - Persönliche Verpflichtungen und einkommensabhängige Aufteilung gemeinsamer Kosten.
 - Separat: verbleibendes Budget nach bereits importierten flexiblen Ausgaben und Anlagen.
 - Monatliche Einkommen zweier Personen, direkt im Budget bearbeitbar.

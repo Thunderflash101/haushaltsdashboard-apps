@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.9.0
+
+- Hauptbudget auf das Konto der ersten Person ausrichten: eigenes Netto plus tatsächliche Eingänge statt Summe beider Nettoeinkommen.
+- Zweites Netto nur für die proportionale Kostenaufteilung verwenden; kein fiktiver Eingang oder Vorschuss des Soll-Anteils.
+- Kostenbeteiligungen in den Buchungsdetails und in der Buchungsart zuordnen.
+- Optional den vollständigen Absendernamen für vorhandene unzugeordnete und neue Importbuchungen merken; Einzel-Ausnahmen bleiben erhalten.
+- Soll-Anteil, eingegangene Beteiligung, offenen Betrag und Mehrzahlung separat anzeigen.
+- Eigene Umbuchungen, Erstattungen und bereits berücksichtigtes Gehalt nicht als zusätzliches Einkommen doppelt zählen.
+- Private Pläne der zweiten Person nicht als eigene Kontoabgänge planen; tatsächliche Zahlungen für sie bleiben berücksichtigt.
+
 ## 0.8.0
 
 - Keine Tagesverteilung flexibler Monatskosten mehr: Kurve und Tagesdetails enthalten nur Terminzahlungen.

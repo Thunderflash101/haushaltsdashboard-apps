@@ -12,7 +12,8 @@
 - Kontostandsprognose aus Zahlungen mit Termin; flexible Monatswerte separat statt täglicher Schätzbuchungen.
 - Budgetkarten mit Verbrauch, Rest, Überschreitungen, Monatsdiagramm und Buchungsdetails.
 - Automatische Erkennung von Rhythmen, Gehalt und flexiblen Kosten.
-- Monatsbudget aus Netto minus Verträgen und Fixkosten, ohne flexible Schätzungen.
+- Eigenes Kontobudget aus eigenem Netto plus tatsächlichen Kostenbeteiligungen/weiteren Einnahmen, abzüglich gemeinsamer und eigener Verpflichtungen.
+- Zweites Netto nur für die Kostenaufteilung; Soll-/Ist-Anteil und bestätigte Absenderregeln für Kostenbeteiligungen.
 - Verbleibendes Budget nach tatsächlich importierten flexiblen Ausgaben und Anlagen.
 - Vertragsverwaltung mit Vorlagen, Preisänderungen, Laufzeiten, Fristen und Kalenderexport.
 
