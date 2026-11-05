@@ -9,7 +9,7 @@ import {writeJson,readJson} from '../haushaltsdashboard/app/lib/storage.mjs';
 
 const connection={applicationId:'00000000-0000-4000-8000-000000000001',redirectUrl:'https://ha.example.org/api/webhook/test-hook-0123456789',expectedAccount:'DE89370400440532013000'};
 const member='b'.repeat(32);
-const getRoutes=['/','/dashboard.html','/settings.js','/finance.mjs','/forecast.mjs','/learning.mjs','/contracts.mjs','/contracts-ui.mjs','/booking-text.mjs','/forecast-ui.mjs','/flexible.mjs','/flexible-ui.mjs','/api/dashboard','/api/revision','/api/status','/api/banks'];
+const getRoutes=['/theme.js','/theme.css','/','/dashboard.html','/settings.js','/finance.mjs','/forecast.mjs','/learning.mjs','/contracts.mjs','/contracts-ui.mjs','/booking-text.mjs','/forecast-ui.mjs','/flexible.mjs','/flexible-ui.mjs','/api/dashboard','/api/revision','/api/status','/api/banks'];
 const postRoutes=['/api/dashboard','/api/people','/api/connection','/api/key','/api/migration','/api/users','/api/settings','/api/auth','/api/accounts','/api/sync','/api/review','/api/disconnect'];
 async function fixture(t,options={}){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'household-security-'));

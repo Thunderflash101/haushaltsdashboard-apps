@@ -169,3 +169,10 @@ kalte Sicherungen, damit die App während einer HA-Sicherung angehalten wird.
 - https://contributors.home-assistant.io/core/integrations/reauth-reconfigure/
 - https://enablebanking.com/docs/api/reference/
 
+
+### Helle und dunkle Darstellung
+
+Ab 0.10.0 steht oben im Dashboard und auf der Bankseite eine Auswahl für
+**Automatisch**, **Hell** und **Dunkel** bereit. Die Auswahl wird pro Browser
+gespeichert. Automatisch folgt dem erkennbaren Home-Assistant-Farbschema, sonst
+der Geräteeinstellung.

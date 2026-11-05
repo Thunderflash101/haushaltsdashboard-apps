@@ -455,3 +455,19 @@ aufgeteilten Buchungen oder verknüpften Umbuchungen ist sie nicht verfügbar. V
 einer nachträglichen Aufteilung einer verknüpften Abbuchung zuerst den Vertragslink
 lösen. Die Kategorie kann unabhängig bearbeitet werden. Import und Dublettenabgleich
 behalten den Link und den unveränderten Originalzweck bei.
+
+
+## Darstellung (ab 0.10.0)
+
+Oben bei **Darstellung** zwischen **Automatisch**, **Hell** und **Dunkel** wählen.
+Die Auswahl gilt für Dashboard und Bankverbindung und wird nur in diesem Browser
+gespeichert. Handy und Desktop können unterschiedliche Einstellungen verwenden.
+
+**Automatisch** übernimmt das eindeutige CSS-Farbschema eines erreichbaren
+Home-Assistant-Rahmens. Ist dieses nicht erkennbar (zum Beispiel beim direkten
+Öffnen oder bei einem anderen Ursprung), gilt die Hell-/Dunkel-Einstellung des Geräts.
+Änderungen werden während der Nutzung übernommen. Eine manuelle Auswahl hat Vorrang.
+Bei blockiertem Browserspeicher bleibt die Auswahl bis zum nächsten Laden aktiv.
+
+Die Darstellung verändert keine Kontostände, Buchungen, Budgets oder gemeinsamen
+Einstellungen und ist nicht Bestandteil der Finanzdatensicherung.

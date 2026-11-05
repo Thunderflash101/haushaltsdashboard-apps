@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.10.0
+
+- Darstellung wählen: Automatisch, Hell oder Dunkel, im Dashboard und auf der Bankseite.
+- Auswahl pro Browser speichern; automatische Anpassung an das erkennbare Home-Assistant-Farbschema, sonst an die Geräteeinstellung.
+- Dunkle Karten, Tabellen, Formulare, Buchungsdetails und Diagramme mit lesbaren Beschriftungen.
+- Darstellung ändert keine Finanzdaten oder Berechnungen.
+
 ## 0.9.0
 
 - Hauptbudget auf das Konto der ersten Person ausrichten: eigenes Netto plus tatsächliche Eingänge statt Summe beider Nettoeinkommen.
