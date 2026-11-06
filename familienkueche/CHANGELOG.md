@@ -1,3 +1,8 @@
+# 0.5.1
+
+- Rezeptnamen in der Kalender-Essenszeile auf zwei Zeilen begrenzt.
+- Die Essenszeile bleibt auch bei langen Namen gleich hoch; vollständiger Name im Essensplan und Tooltip erreichbar.
+
 # 0.5.0
 
 - Wochenraster auf 07:00–22:00 Uhr begrenzt; Uhrzeitlinie außerhalb dieses Bereichs ausgeblendet.
