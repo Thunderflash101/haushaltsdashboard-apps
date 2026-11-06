@@ -176,3 +176,8 @@ Ab 0.10.0 steht oben im Dashboard und auf der Bankseite eine Auswahl für
 **Automatisch**, **Hell** und **Dunkel** bereit. Die Auswahl wird pro Browser
 gespeichert. Automatisch folgt dem erkennbaren Home-Assistant-Farbschema, sonst
 der Geräteeinstellung.
+
+
+## Familienküche
+
+Zusätzliche Tablet-App mit Home-Assistant-Familienkalender und Mealie-Essensplan. Installation und Updates über dieses Repository; [Anleitung und Wechsel von der lokalen Installation](familienkueche/DOCS.md).
