@@ -232,11 +232,13 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     setup(app, options or {})
     from weather import setup as setup_weather
     setup_weather(app, options)
+    from shopping import setup as setup_shopping
+    setup_shopping(app, options)
     app.router.add_get('/', index)
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'meals.js', 'weather.js', 'style.css'):
+    for filename in ('app.js', 'meals.js', 'weather.js', 'shopping.js', 'style.css'):
         async def asset(request, filename=filename):
             return web.FileResponse(ROOT / 'www' / filename)
         app.router.add_get('/' + filename, asset)

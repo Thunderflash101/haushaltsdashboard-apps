@@ -1,3 +1,12 @@
+# 0.6.0
+
+- Gemeinsame Einkaufsliste über die konfigurierbare Home-Assistant-To-do-Entität, Standard todo.einkaufsliste.
+- Hinzufügen, Abhaken, Wiederherstellen, Umbenennen und bestätigtes Entfernen direkt synchronisieren.
+- Erledigte Einträge einklappbar und Anzahl offener Artikel in der Navigation.
+- Aktualisierung spätestens alle 30 Sekunden im Einkaufsreiter; Entwurf und Scrollposition bleiben erhalten.
+- Unterstützung von Listenfähigkeiten, Konflikterkennung und Schutz vor doppelten Schreibanfragen.
+- Verbindungsfehler zeigen den letzten geladenen Stand; keine unbestätigten lokalen Änderungen.
+
 # 0.5.1
 
 - Rezeptnamen in der Kalender-Essenszeile auf zwei Zeilen begrenzt.
