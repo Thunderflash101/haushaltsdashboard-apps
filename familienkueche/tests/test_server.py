@@ -77,7 +77,7 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         app=make_app(ha,':memory:')
         req=make_mocked_request('GET','/api/calendar?start=2026-11-01&end=2026-12-01',app=app)
         response=await calendar(req);data=json.loads(response.text)
-        self.assertEqual([s['ok'] for s in data['sources']],[False,True,True])
+        self.assertEqual([s['ok'] for s in data['sources']],[False,True,True,True,True])
         self.assertEqual(len(data['sources'][1]['events']),1)
         self.assertTrue(data['sources'][1]['canCreate']);self.assertFalse(data['sources'][2]['canCreate'])
         app['db'].close()

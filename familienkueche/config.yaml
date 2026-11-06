@@ -1,5 +1,5 @@
 name: Familienküche
-version: "0.4.0"
+version: "0.5.0"
 slug: familienkueche
 description: Familienkalender mit Mealie-Anbindung
 arch:
@@ -14,12 +14,18 @@ panel_icon: mdi:calendar-heart
 panel_title: Familienküche
 panel_admin: false
 options:
+  birthdays_calendar: "calendar.geburtstage_2"
+  holidays_calendar: "calendar.feiertage_in_deutschland"
+  weather_entity: "weather.home"
   tina_calendar: "calendar.tina"
   joern_calendar: "calendar.joern"
   waste_calendar: "calendar.muell"
   mealie_entry_id: ""
   mealie_image_base_url: "http://a0d7b954-mealie:9001"
 schema:
+  birthdays_calendar: str?
+  holidays_calendar: str?
+  weather_entity: str?
   tina_calendar: str?
   joern_calendar: str?
   waste_calendar: str?

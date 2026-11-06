@@ -1,3 +1,11 @@
+# 0.5.0
+
+- Wochenraster auf 07:00–22:00 Uhr begrenzt; Uhrzeitlinie außerhalb dieses Bereichs ausgeblendet.
+- Tageshinweis für Termine außerhalb des sichtbaren Zeitbereichs.
+- Geburtstage und Feiertage als eigene lesbare Quellen ergänzt, unabhängig von Personenfiltern.
+- Echtes Wetter im Kopf und Ruhemodus, antippbare Detailansicht mit Tagesvorhersage.
+- Konfigurierbare Wetterquelle, Standard weather.home; Ladefehler und veraltete Daten werden angezeigt.
+
 # 0.4.0
 
 - Installation und Folgeupdates über dieses Home-Assistant-App-Repository.

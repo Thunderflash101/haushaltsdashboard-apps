@@ -1,0 +1,10 @@
+const fs=require('fs'),assert=require('assert'),{JSDOM}=require('jsdom');
+const dom=new JSDOM('<div id="header"></div><div id="modal"></div>',{runScripts:'outside-only'}),w=dom.window,d=w.document,pending=[];
+w.eval(fs.readFileSync(__dirname+'/../www/weather.js','utf8'));
+let widget;const esc=x=>String(x==null?'':x).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+widget=w.createFamilyWeather({api:(m,p,data,key,done)=>pending.push(done),esc,icon:()=>'<svg></svg>',repaint:()=>d.getElementById('header').innerHTML=widget.compact(),modal:(title,body)=>d.getElementById('modal').innerHTML=body});
+widget.ensure();assert.equal(pending.length,1);assert(d.body.textContent.includes('Wird geladen'));
+pending.shift()(null,{condition:'clear-night',temperature:0,temperatureUnit:'°C',humidity:0,windSpeed:0,windUnit:'km/h',source:'Home <script>',fetchedAt:'2026-11-06T12:00:00Z',forecastError:null,forecast:[{date:'2026-11-07',condition:'rainy',high:4,low:-1,rainChance:0}]});
+assert(d.body.textContent.includes('0 °C'));assert(d.body.textContent.includes('Klare Nacht'));widget.open();assert(d.body.textContent.includes('Regen 0 %'));assert(d.body.textContent.includes('Luftfeuchte 0 %'));assert(!d.querySelector('script'));assert.equal(pending.length,0);
+widget.refresh();pending.shift()({error:'Offline'});assert(d.body.textContent.includes('Letzter geladener Stand'));assert(d.getElementById('header').textContent.includes('Letzter Stand'));assert(d.body.textContent.includes('0 °C'));
+w.close();console.log('PASS: weather loading, current/forecast values including zero, German conditions, safe text, refresh and stale-data error.');

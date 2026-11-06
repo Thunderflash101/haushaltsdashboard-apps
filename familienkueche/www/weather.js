@@ -1,0 +1,19 @@
+(function(){
+'use strict';
+window.createFamilyWeather=function(h){
+var state={data:null,loading:false,error:'',lastAttempt:0},dialog=null;
+var labels={'clear-night':'Klare Nacht',cloudy:'Bewölkt',exceptional:'Ungewöhnliche Wetterlage',fog:'Nebel',hail:'Hagel',lightning:'Gewitter','lightning-rainy':'Gewitter mit Regen',partlycloudy:'Leicht bewölkt',pouring:'Starkregen',rainy:'Regen',snowy:'Schnee','snowy-rainy':'Schneeregen',sunny:'Sonnig',windy:'Windig','windy-variant':'Windig und bewölkt'};
+function label(condition){return labels[condition]||'Wetterlage nicht angegeben';}
+function symbol(condition){return h.icon(condition==='sunny'?'sun':condition==='clear-night'?'moon':'cloud');}
+function value(n){return n===null||typeof n==='undefined'?'—':Number(n).toLocaleString('de-DE',{maximumFractionDigits:1});}
+function compact(){var d=state.data;if(!d)return '<button class="weather-button row" type="button" data-action="weather">'+h.icon('cloud')+'<span>Wetter<br><small>'+(state.loading?'Wird geladen …':state.error?'Nicht verfügbar':'Wird geladen …')+'</small></span></button>';return '<button class="weather-button row" type="button" data-action="weather" aria-label="Wetter und Vorhersage öffnen">'+symbol(d.condition)+'<span><strong>'+h.esc(value(d.temperature)+' '+d.temperatureUnit)+'</strong><br><small>'+h.esc(state.error?'Letzter Stand':label(d.condition))+'</small></span></button>';}
+function body(){var d=state.data,html='<div class="row spread"><p class="source-label">'+h.esc(d?d.source:'Home Assistant')+'</p><button type="button" data-action="weather-refresh">Aktualisieren</button></div>';if(state.loading)html+='<p role="status" class="notice">Wetter wird geladen …</p>';if(state.error)html+='<p role="alert" class="notice">'+h.esc(state.error)+(d?' · Letzter geladener Stand.':'')+'</p>';if(!d)return html;
+html+='<div class="weather-current row">'+symbol(d.condition)+'<div><strong>'+h.esc(value(d.temperature)+' '+d.temperatureUnit)+'</strong><p>'+h.esc(label(d.condition))+'</p></div></div><div class="row wrap muted">'+(d.windSpeed!==null?'<span>Wind '+h.esc(value(d.windSpeed)+' '+d.windUnit)+'</span>':'')+(d.humidity!==null?'<span>Luftfeuchte '+h.esc(value(d.humidity))+' %</span>':'')+'</div><h3 style="margin-top:22px">Die nächsten Tage</h3>';
+if(d.forecastError)html+='<p class="notice">'+h.esc(d.forecastError)+'</p>';if(!d.forecast.length&&!d.forecastError)html+='<p class="notice">Keine Tagesvorhersage vorhanden.</p>';
+html+='<div class="weather-days">'+d.forecast.map(function(f){var date=new Date(f.date+'T12:00:00'),name=date.toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'numeric'});return '<article class="weather-day"><strong>'+h.esc(name)+'</strong>'+symbol(f.condition)+'<p>'+h.esc(label(f.condition))+'</p><p><strong>'+h.esc(value(f.high))+'°</strong> / '+h.esc(value(f.low))+'°</p>'+(f.rainChance!==null?'<small>Regen '+h.esc(value(f.rainChance))+' %</small>':'')+'</article>';}).join('')+'</div><p class="source-label">'+h.esc('Temperaturen in '+d.temperatureUnit+' · Abgerufen '+new Date(d.fetchedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}))+'</p>';return html;}
+function redraw(){h.repaint();if(dialog&&document.contains(dialog))dialog.innerHTML=body();}
+function load(force){if(state.loading||(!force&&Date.now()-state.lastAttempt<300000))return;state.loading=true;state.lastAttempt=Date.now();redraw();h.api('GET','api/weather',null,null,function(err,data){state.loading=false;if(!err&&(!data||!Array.isArray(data.forecast)))err={error:'Ungültige Wetterantwort.'};state.error=err?err.error:'';if(!err)state.data=data;redraw();});}
+function open(){h.modal('Wetter bei euch','<div id="weather-detail">'+body()+'</div>',true);dialog=document.getElementById('weather-detail');load(false);}
+return {compact:compact,open:open,ensure:function(){load(false);},refresh:function(){load(true);}};
+};
+})();

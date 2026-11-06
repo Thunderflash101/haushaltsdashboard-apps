@@ -17,6 +17,8 @@ SOURCES = (
     {'key': 'tina', 'entity': 'calendar.tina', 'label': 'Tina · Kalender', 'person': 'tina'},
     {'key': 'joern', 'entity': 'calendar.joern', 'label': 'Jörn · Google', 'person': 'joern'},
     {'key': 'waste', 'entity': 'calendar.muell', 'label': 'Müllabfuhr', 'person': 'alle'},
+    {'key': 'birthdays', 'entity': 'calendar.geburtstage_2', 'label': 'Geburtstage', 'person': 'alle'},
+    {'key': 'holidays', 'entity': 'calendar.feiertage_in_deutschland', 'label': 'Feiertage', 'person': 'alle'},
 )
 
 class UpstreamError(Exception):
@@ -88,7 +90,7 @@ def normalize_event(event, source, start, end):
             'date': day.isoformat(), 'start': segment_start.strftime('%H:%M'),
             'end': '24:00' if segment_end.date() > day else segment_end.strftime('%H:%M'),
             'person': source['person'], 'source': source['key'], 'sourceLabel': source['label'],
-            'allDay': all_day, 'readOnly': True, 'isWaste': source['key'] == 'waste',
+            'allDay': all_day, 'kind': source['key'], 'readOnly': True, 'isWaste': source['key'] == 'waste',
             'description': event.get('description') or '', 'location': event.get('location') or '',
             'originalStart': begins.isoformat(), 'originalEnd': finishes.isoformat()})
         day += timedelta(days=1)
@@ -217,7 +219,7 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     app = web.Application(middlewares=[ingress_only], client_max_size=8192)
     app['ha'], app['write_lock'] = ha, asyncio.Lock()
     options = options or {}
-    app['sources'] = [dict(source, entity=options.get(field) or source['entity']) for source, field in zip(SOURCES, ('tina_calendar', 'joern_calendar', 'waste_calendar'))]
+    app['sources'] = [dict(source, entity=options.get(field) or source['entity']) for source, field in zip(SOURCES, ('tina_calendar', 'joern_calendar', 'waste_calendar', 'birthdays_calendar', 'holidays_calendar'))]
     if any(not re.fullmatch(r'calendar\.[a-z0-9_]+', source['entity']) for source in app['sources']):
         raise ValueError('Ungültige Kalender-Entität in der App-Konfiguration.')
     db = sqlite3.connect(db_path)
@@ -228,11 +230,13 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     app.on_cleanup.append(close_db)
     from meals import setup
     setup(app, options or {})
+    from weather import setup as setup_weather
+    setup_weather(app, options)
     app.router.add_get('/', index)
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'meals.js', 'style.css'):
+    for filename in ('app.js', 'meals.js', 'weather.js', 'style.css'):
         async def asset(request, filename=filename):
             return web.FileResponse(ROOT / 'www' / filename)
         app.router.add_get('/' + filename, asset)
