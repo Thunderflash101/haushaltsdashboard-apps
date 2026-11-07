@@ -1,3 +1,12 @@
+# 0.10.1
+
+- Dateiauswahl bleibt beim Nachladen des Fotoalbums bestehen; eine bereits geöffnete native Auswahl verliert ihr Zielfeld nicht mehr.
+- Natives sichtbares Dateifeld und direkte Verarbeitung des Auswahlereignisses für ältere Browser.
+- JPEG-/PNG-/WebP-Dateien mit fehlendem oder allgemeinem Dateityp anhand ihrer Endung zulassen; gebräuchliche JPEG-MIME-Aliase berücksichtigen.
+- Sichtbare Fortschrittsmeldungen je Foto; Uploadfehler und Erfolgsbestätigung bleiben nach Album-Aktualisierung erhalten.
+- Abgebrochene, blockierte und nicht lesbare Fotodateien melden, statt den Upload dauerhaft zu blockieren; verzögerte Rückmeldungen nach Zeitüberschreitung ignorieren.
+- Nach erfolgreichem Upload das Album auch dann erneut laden, wenn vorher noch eine Leseanfrage offen war.
+
 # 0.10.0
 
 - Eigener Aufgaben-Reiter mit Personenfiltern, Einzelaufgaben und wiederkehrenden Aufgaben nach Wochentag.

@@ -134,9 +134,10 @@
 .saver-settings{margin:16px 0}
 .saver-settings-actions{margin-top:14px}
 .photo-upload{margin:20px 0}
-.photo-upload-button{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 15px;background:#dce7c9;border-radius:13px;cursor:pointer;color:#385324;border:1px solid #bdcda8;font-weight:bold;overflow:hidden}
-.photo-upload-button input{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer}
-.photo-upload-button:focus-within{outline:3px solid #b36b49;outline-offset:2px}
+.photo-file-picker{display:flex;flex-direction:column;gap:7px;min-width:0;flex:1}
+.photo-file-picker label{font-size:14px;font-weight:bold}
+.photo-file-picker input[type=file]{display:block;position:static;width:100%;max-width:100%;min-height:48px;padding:10px;background:#fffaf4;border:1px solid #d7c8b9;border-radius:12px;color:#342f28;opacity:1;cursor:pointer}
+.photo-progress{overflow-wrap:break-word}
 .family-photo-grid{display:flex;flex-wrap:wrap;gap:12px}
 .family-photo-grid article{width:calc(33.333% - 8px);background:#eee4d8;border-radius:13px;overflow:hidden;padding-bottom:6px}
 .family-photo-grid img{display:block;width:100%;height:120px;object-fit:cover}
