@@ -261,3 +261,22 @@ Abschlussstand 0.11.0: alle 62 Backend-Tests und 15 DOM-/Timer-Prüfgruppen erfo
 Aktualisierungen von Uhr, Wetter, Kalender und Album ändern nur die betroffenen Texte und Attribute. Das sichtbare Foto bleibt sowohl in der App als auch in der HA-Vollbildfläche als dasselbe Bildelement montiert. Ein neues Foto wird vor dem Wechsel geladen; bei langsamen oder fehlerhaften Anfragen bleibt das bisherige Bild sichtbar. Überholte Ladeantworten dürfen kein neueres Foto überschreiben.
 
 `tests/saver-render.cjs` prüft Bildbeständigkeit, Vorladen, Wiederverwendung einer laufenden Anfrage, Fehler, verspätete Antworten und Beenden während des Ladens. `tests/browser-saver.js` prüft zusätzlich die Identität der tatsächlich sichtbaren Bildelemente nach Uhr-, Kalender-, Album- und Größenaktualisierungen im eingebetteten Bereich und in der HA-Vollbildfläche. Alle 16 DOM-/Timer-Prüfgruppen und der Vollbild-Browsertest bestanden. Das Verhalten auf dem physischen Fire-Tablet ist nach dem Update zu prüfen.
+
+
+## Personenfotos, Kalenderfilter und Farben (0.12.0)
+
+Oben im Kalender stehen **Familie, Tina, Jörn und Felix**. Eine Person antippen, um nur die ihr zugeordneten Termine zu sehen. Erneutes Antippen derselben Person behält diese Auswahl; **Familie** zeigt wieder alles. Die Auswahl gilt in Woche, Monat, Liste und den jeweiligen Tagesdetails. Auch der Hinweis auf den nächsten Termin im Kalender berücksichtigt sie. Der Ruhemodus zeigt weiterhin den nächsten Familientermin. Beim Neuladen beginnt der Kalender mit Familie.
+
+Müllabfuhr, Geburtstage und Feiertage sind gemeinsame Einträge und stehen unter Familie. Die Auswahl ändert keine Kalenderdaten. Felix hat weiterhin keinen eigenen angeschlossenen Kalender; seine Auswahl enthält derzeit keine eigenen Termine. Namen und Kalender-Zuordnungen bleiben die vorhandenen festen Profile.
+
+Unter **Optionen → Personen & Farben** die Person wählen. Über **Foto auswählen** ein einzelnes JPEG-/PNG-/WebP-Bild hochladen. Das Gesicht sollte möglichst in der Mitte liegen: Das Foto wird mittig quadratisch zugeschnitten, auf 320×320 Pixel normalisiert und rund dargestellt. Ein weiteres Foto ersetzt das bisherige; **Foto entfernen** stellt die Initialen wieder her. Die Profilfotos liegen getrennt vom Familien-Bildschirmschoner-Album in der App-Datenbank und zählen nicht zu dessen 20 Bildern. Upload verwendet dieselbe Android-kompatible Einzeldatei-Auswahl und Verkleinerung wie das bestehende Album. Kamerametadaten werden entfernt; die Fotos werden nicht auf GitHub veröffentlicht.
+
+Eine eigene Farbe über die Farbauswahl oder die Palette wählen und **Farbe speichern** drücken. Der Farbton wird erst nach bestätigter Speicherung für Fotoringe und vorhandene Personenkennzeichnungen übernommen. Terminflächen erhalten eine helle Abstufung und dunkle Schrift. Auch Familie besitzt eine eigene Farbe. Andere bereits geöffnete Geräte lesen Profile etwa einmal pro Minute neu; Neuladen übernimmt Änderungen ebenfalls. Fotos und Farben bleiben nach App-Neustarts erhalten.
+
+Die Profilverwaltung verändert beim Nachladen nur Status und Vorschaubereich; der native Dateipicker bleibt bestehen. Änderungen verwenden Revisionsnummern. Nach einem Konflikt oder unbestätigtem Speichern zuerst **Aktualisieren**, den angezeigten Stand prüfen und die gewünschte Änderung erneut ausführen. Die App überschreibt solche Konflikte nicht automatisch.
+
+### Prüfung 0.12.0
+
+67 Python-Backendtests und 17 DOM-/Timer-Prüfgruppen erfolgreich. Neue Backendprüfungen decken Farben, ungültige Eingaben, Revisionen, doppelte Anfragen, Avatar-Normalisierung, Kamerametadaten, getrenntes Fotoalbum, Austausch/Entfernen und Neustart-Persistenz ab. `tests/profiles-frontend.cjs` prüft bestätigte Schreibvorgänge, Konflikte, sichere Bildpfade, Initialen und erhaltene native Dateifelder.
+
+`tests/browser-profiles.js` prüft die drei Kalenderansichten einschließlich Monatsdetails, Personen-/Familienauswahl, Farben, Bild-Upload mit fehlendem Dateityp, Smartphone-Einzeldatei-Picker und Übernahme auf einem zweiten Gerät mit echtem lokalem temporärem Backend. Layout bei 1280×800 und 960×600 sowie Profilverwaltung bei 412×915 geprüft. Bestehende Aufgaben-/Routinen-/Fotoalbum-Abläufe und der flackerfreie Vollbild-Ruhemodus ebenfalls im Browser geprüft. Alle HA-Daten sind dabei simuliert; keine realen Kalender, Fotos, Benachrichtigungen oder Mealie-Daten verändert. Prüfung auf dem physischen Fire nach Installation steht aus.

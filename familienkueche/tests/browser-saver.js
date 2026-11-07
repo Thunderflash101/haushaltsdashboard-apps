@@ -8,7 +8,7 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  browser=await chromium.launch({executablePath:process.env.FAMILY_CHROMIUM||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage'],timeout:12000});
  const mockApi=async route=>{
   const url=new URL(route.request().url()),p=url.pathname;
-  if(p.startsWith('/api/family')||p.startsWith('/api/saver')||p.startsWith('/api/reminders'))return route.continue();
+  if(p.startsWith('/api/profiles')||p.startsWith('/api/family')||p.startsWith('/api/saver')||p.startsWith('/api/reminders'))return route.continue();
   let data;
   if(p==='/api/calendar'){const day=new Date().toISOString().slice(0,10);data={fetchedAt:day+'T12:00:00+01:00',sources:[{key:'tina',ok:true,canCreate:false,events:[{id:'example',date:day,title:'Gemeinsamer Nachmittag',start:'20:00',end:'21:00',person:'tina',source:'tina',sourceLabel:'Tina'}]},{key:'joern',ok:true,canCreate:true,events:[]}]};}
   else if(p==='/api/weather')data={source:'Testwetter',condition:'partlycloudy',temperature:18,temperatureUnit:'°C',windSpeed:5,windUnit:'km/h',humidity:60,forecast:[],fetchedAt:new Date().toISOString()};
@@ -45,7 +45,7 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  await source.evaluate(()=>window.dispatchEvent(new Event('resize')));await page.clock.runFor(250);
  assert(await source.evaluate(()=>window.stableSaverPhoto===document.querySelector('[data-saver-photo]')&&window.stableSaverPhoto.complete&&window.stableSaverSection===document.querySelector('.family-saver')),'Clock, calendar and album refreshes keep source image mounted');
  assert(await page.evaluate(()=>window.stableMirrorPhoto===document.querySelector('[data-family-saver-fullscreen]').shadowRoot.querySelector('[data-saver-photo]')&&window.stableMirrorPhoto.complete),'Clock, calendar and album refreshes keep fullscreen image mounted');
- await source.evaluate(()=>document.querySelector('[data-clock]').textContent='12:34');await page.waitForFunction(()=>document.querySelector('[data-family-saver-fullscreen]').shadowRoot.querySelector('[data-clock]').textContent==='12:34');
+ await source.evaluate(()=>document.querySelector('[data-clock]').textContent='12:34');await page.waitForFunction(()=>document.querySelector('[data-family-saver-fullscreen]').shadowRoot.querySelector('[data-clock]').textContent===document.querySelector('#panel').shadowRoot.querySelector('iframe').contentDocument.querySelector('[data-clock]').textContent);
  await page.screenshot({path:'/tmp/familienkueche-ruhemodus-vollbild.png'});
  await page.locator('[data-family-saver-fullscreen] .family-saver').click({position:{x:30,y:30}});await iframe.locator('.calendar').waitFor();assert.equal(await page.locator('[data-family-saver-fullscreen]').count(),0,'Tap fully removes host layer');assert.equal(await page.locator('header').innerText(),'Familienküche');
  await enter();await page.locator('[data-family-saver-fullscreen] [data-action="weather"]').click();await iframe.locator('#overlay:not([hidden])').waitFor();assert.equal(await page.locator('[data-family-saver-fullscreen]').count(),0,'Weather opens in accessible original UI');await iframe.locator('#overlay [data-action="close"]').first().click();

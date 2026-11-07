@@ -1,3 +1,13 @@
+# 0.12.0
+
+- Personenleiste mit runden Fotos für Tina, Jörn und Felix sowie eigener Familie-Schaltfläche.
+- Ein Tipp auf eine Person zeigt ausschließlich deren zugeordnete Termine; Familie stellt alle Termine einschließlich Müll, Geburtstagen und Feiertagen wieder her. Auswahl gilt für Woche, Monat, Liste, Tagesdetails und die nächste Kalenderanzeige.
+- Optionen → Personen & Farben: private Personenfotos hochladen/ersetzen/entfernen; ohne Foto erscheinen Initialen.
+- Frei wählbare Personenfarben mit Farbauswahl und Palette; Farben auf Fotoringe, Kalendertermine und vorhandene Personenkennzeichnungen anwenden.
+- Profile zentral auf dem NUC speichern und auf weiteren Geräten übernehmen. Revisionsprüfung verhindert versehentliches Überschreiben gleichzeitiger Änderungen.
+- Fotos separat vom Ruhemodus-Album als normalisierte 320×320-JPEGs ohne Kamerametadaten speichern und ausschließlich über HA-Ingress ausliefern.
+- Bewährte Einzeldatei-Auswahl und Bildaufbereitung für Android wiederverwenden; native Dateifelder beim Nachladen erhalten.
+
 # 0.11.2
 
 - Flackern der Hintergrundfotos im Ruhemodus behoben: Bild und Ansicht bei Uhr-, Wetter-, Kalender- und Fotoalbum-Aktualisierungen nicht mehr vollständig entfernen und neu einsetzen.

@@ -237,3 +237,37 @@
 html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-height:0;margin:0;padding:0;overflow:hidden}
 #app.saver-active{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;min-width:0;min-height:0;margin:0;padding:0;gap:0;overflow:hidden}
 #app.saver-active>.family-saver.saver{flex:1;width:100%;height:100%;min-width:0;min-height:0;border:0;border-radius:0;margin:0}
+
+/* Family portraits stay compact so the week keeps its available height. */
+.profile-filters{gap:6px}
+.calendar-toolbar .profile-filter{display:flex;flex-direction:column;align-items:center;gap:5px;background:transparent;min-width:50px;min-height:60px;border:0;padding:4px 6px;border-radius:12px;font-size:11px;line-height:1.1}
+.profile-filter:hover{background:#ffffff66}
+.profile-avatar{display:inline-flex;position:relative;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0;border:3px solid;border-radius:50%;padding:2px;background:#f9f5ef;overflow:hidden}
+.profile-initials{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:18px;font-weight:bold;background:#eee6dc;color:#504a40}
+.profile-initials svg{width:24px;height:24px}
+.profile-avatar img{position:absolute;top:2px;left:2px;width:calc(100% - 4px);height:calc(100% - 4px);border-radius:50%;object-fit:cover}
+.profile-filter[aria-pressed="true"] .profile-avatar{box-shadow:0 0 0 2px #faf5ef,0 0 0 4px currentColor}
+.profile-filter[aria-pressed="true"] .profile-name{font-weight:bold;text-decoration:underline;text-underline-offset:3px}
+.profile-filter[aria-pressed="false"]{opacity:.75}
+.profile-manager-people{margin:18px 0;gap:8px}
+.profile-editor{display:flex;align-items:center;gap:22px;margin:22px 0}
+.profile-editor-avatar{padding:8px;border-radius:50%}
+.profile-editor-avatar .profile-avatar{width:96px;height:96px;border-width:4px}
+.profile-editor-avatar .profile-initials{font-size:38px}
+.profile-editor-avatar svg{width:48px;height:48px}
+.profile-editor-content{flex:1;min-width:0}
+.profile-editor-content .source-label{line-height:1.6;margin:7px 0}
+.profile-photo-picker{margin:12px 0}
+.profile-photo-picker label{display:block;font-size:13px;margin-bottom:6px}
+.profile-photo-picker input{max-width:100%;font-size:14px}
+#profile-color-form>label{display:block;font-weight:bold;margin-bottom:12px}
+.profile-color-row{display:flex;align-items:center;gap:12px}
+.profile-color-row input{width:70px;height:48px;padding:4px;border-radius:10px;border:1px solid #d7cbbb;background:#fffaf4}
+.profile-swatches{gap:8px;margin-top:16px}
+.profile-swatch{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:6px;border-radius:50%;border:2px solid transparent}
+.profile-swatch>span{display:block;width:28px;height:28px;border-radius:50%;border:1px solid #0001}
+.profile-swatch[aria-pressed="true"]{border-color:#4d5e41;background:#e5ebdb}
+#family-profile-manager [data-profile-status]{margin-top:14px}
+@media(max-width:1050px){.profile-filters{gap:3px}.calendar-toolbar .profile-filter{min-width:44px;padding:4px;font-size:10px}.profile-avatar{width:36px;height:36px}}
+@media(max-height:660px){.calendar-toolbar .profile-filter{min-height:50px;gap:3px}.profile-avatar{width:34px;height:34px}}
+@media(max-width:600px){.profile-editor{gap:12px;align-items:flex-start}.profile-editor-avatar .profile-avatar{width:70px;height:70px}.profile-manager-people{gap:4px}.profile-manager-people button{padding:8px 12px}.profile-photo-picker input{width:100%}}
