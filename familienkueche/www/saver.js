@@ -1,5 +1,40 @@
 (function(){
 'use strict';
+// Keep the running app in its ingress iframe. Only the quiet view is mirrored
+// into an isolated, removable layer in the same-origin host document.
+window.createFamilySaverViewport=function(h){
+var host=null,root=null,target=null,frame=null,watch=null,poll=null,active=false,queued=false,route='',nativeKiosk=false;
+function absolute(url){var a=document.createElement('a');a.href=url;return a.href;}
+function copy(node){var clone=node.cloneNode(true),sources=[node].concat(Array.prototype.slice.call(node.querySelectorAll('*'))),copies=[clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*')));sources.forEach(function(source,i){copies[i]._familySource=source;if(source.tagName==='IMG')copies[i].src=absolute(source.getAttribute('src'));});return clone;}
+function sync(){queued=false;if(!root||!active)return;var stage=root.querySelector('[data-saver-stage]');while(stage.firstChild)stage.removeChild(stage.firstChild);stage.appendChild(copy(document.getElementById('app')));var dock=document.querySelector('.timer-dock'),toast=document.getElementById('toast');if(dock)stage.appendChild(copy(dock));if(toast)stage.appendChild(copy(toast));}
+function schedule(){if(queued||!active)return;queued=true;window.setTimeout(sync,0);}
+function clean(){active=false;queued=false;if(watch){watch.disconnect();watch=null;}if(target){target.clearInterval(poll);target.removeEventListener('keydown',key,true);target.removeEventListener('popstate',navigation);target.removeEventListener('hashchange',navigation);target.removeEventListener('location-changed',navigation);}if(host&&host.parentNode)host.parentNode.removeChild(host);host=root=target=frame=null;if(nativeKiosk){window.parent.postMessage({type:'home-assistant/unsubscribe-properties'},'*');nativeKiosk=false;}}
+function leave(){clean();h.wake();}
+function key(e){if(e.key==='Escape'||e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();leave();}}
+function navigation(){if(target&&target.location.href!==route)leave();}
+function nativeOpen(){if(window.parent===window)return;try{window.parent.postMessage({type:'home-assistant/subscribe-properties',kioskMode:true},'*');nativeKiosk=true;}catch(e){}}
+function open(){
+active=true;
+try{
+var win=window;while(win.parent!==win){if(win.parent.location.origin!==window.location.origin)break;win=win.parent;}
+if(win===window)return;
+target=win;frame=window.frameElement;route=target.location.href;host=target.document.createElement('div');host.setAttribute('data-family-saver-fullscreen','');host.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:2147483647;display:block;margin:0;padding:0;border:0;overflow:hidden;background:#eee6d7;visibility:hidden;';
+root=host.attachShadow?host.attachShadow({mode:'open'}):host.createShadowRoot?host.createShadowRoot():null;
+if(!root){host=null;target=null;nativeOpen();return;}
+var layer=host,css=target.document.createElement('link');css.rel='stylesheet';css.href=absolute('style.css');css.onload=function(){if(host===layer)layer.style.visibility='visible';};css.onerror=function(){if(host===layer){clean();active=true;nativeOpen();}};root.appendChild(css);
+var local=target.document.createElement('style');local.textContent=':host{font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:16px;color:#34382c;line-height:normal} [data-saver-stage]{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden}';root.appendChild(local);
+var stage=target.document.createElement('div');stage.setAttribute('data-saver-stage','');root.appendChild(stage);
+root.addEventListener('click',function(e){var b=e.target.closest?e.target.closest('[data-action]'):null;e.preventDefault();e.stopPropagation();if(b&&b._familySource&&b._familySource.isConnected!==false)b._familySource.click();else leave();});
+root.addEventListener('error',function(e){if(e.target.hasAttribute&&e.target.hasAttribute('data-saver-photo')){e.target.style.display='none';var section=e.target.closest('.family-saver');if(section)section.classList.remove('saver-has-photo');}},true);
+target.document.body.appendChild(host);sync();target.addEventListener('keydown',key,true);target.addEventListener('popstate',navigation);target.addEventListener('hashchange',navigation);target.addEventListener('location-changed',navigation);
+if(window.MutationObserver){watch=new MutationObserver(schedule);watch.observe(document.getElementById('app'),{childList:true,subtree:true,characterData:true,attributes:true});var dock=document.querySelector('.timer-dock'),toast=document.getElementById('toast');if(dock)watch.observe(dock,{childList:true,subtree:true,characterData:true,attributes:true});if(toast)watch.observe(toast,{childList:true,subtree:true,characterData:true,attributes:true});}
+// Parent-owned timer also removes the layer if HA removes the source iframe.
+poll=target.setInterval(function(){if(!frame||(frame.isConnected===false)||!frame.getClientRects().length){leave();return;}navigation();},1000);
+}catch(e){clean();active=true;nativeOpen();}
+}
+window.addEventListener('pagehide',clean);window.addEventListener('unload',clean);
+return {update:function(enabled){if(enabled&&!active)open();else if(!enabled&&active)clean();else if(enabled)sync();},close:clean};
+};
 window.createFamilySaver=function(h){
 var state={photos:[],loaded:false,loading:false,busy:false,error:'',uploadError:'',uploadStatus:'',selectedName:'',refreshPending:false,lastAttempt:0},manager=null,preview=false,lastFrame='',photoIndex=0,changedAt=Date.now();
 function validPhoto(x){return x&&/^[a-f0-9]{32}$/.test(x.id)&&x.url==='api/saver/photos/'+x.id+'.jpg';}

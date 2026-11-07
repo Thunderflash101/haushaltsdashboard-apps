@@ -1,3 +1,11 @@
+# 0.11.1
+
+- Ruhemodus ohne Außenabstände und abgerundeten Rahmen über die gesamte verfügbare Bildschirmfläche anzeigen.
+- Bei Home-Assistant-Ingress mit gleichem Ursprung eine isolierte Vollbildfläche über HA-Kopfzeile und Seitenleiste legen; die App läuft im ursprünglichen eingebetteten Bereich weiter.
+- Fotos, Uhr, Wetter und Küchentimer-Hinweise weiter aktualisieren; Wetter öffnet die normale Detailansicht.
+- Tippen oder Escape beendet den Ruhemodus und stellt den Kalender wieder her. Vollbildfläche bei HA-Navigation, Neuladen oder Entfernen der Einbettung automatisch entfernen.
+- Automatischer Start nach Inaktivität benötigt keine Browser-Vollbildberechtigung. Android-Systemleisten werden weiterhin über den Vollbildmodus der Home-Assistant-App gesteuert.
+
 # 0.11.0
 
 - Zentrale Erinnerungs-Vorschau für die nächsten 14 Tage: Müllabfuhr am Vorabend um 18 Uhr und zeitgebundene Termine von Tina/Jörn mit 30 Minuten Vorlauf.
