@@ -21,7 +21,7 @@ function verify(w){
  click('[data-action="prev"]');a(!d.querySelector('.agenda-event'),'Past week upcoming list empty');a(has('Vergangene Einträge'),'Empty state explains historical views');click('[data-action="next"]');click('[data-mode="week"]');click('[data-mode="month"]');a(has('Geburtstag vergangen'),'History persists after midnight and navigation');
  return 'PASS: past birthday filtered only from upcoming list; ongoing/future/today retained, exact end/midnight updates, week/month/detail history intact.';
 }
-const files=['timer-core.js','cooking.js','ingredients.js','shopping.js','weather.js','suggestions.js','meals.js','app.js'];
+const files=['family.js','saver.js','timer-core.js','cooking.js','ingredients.js','shopping.js','weather.js','suggestions.js','meals.js','app.js'];
 if(process.argv[2]==='--browser-fixture'){
  const html='<!doctype html><html lang="de"><meta charset="utf-8"><link rel="stylesheet" href="file://'+path.resolve(__dirname,'../www/style.css')+'"><body><div id="app"></div><div id="overlay" class="overlay" hidden></div><div id="toast"></div><pre id="result"></pre><script>('+setup.toString()+')(window);</script>'+files.map(file=>'<script src="file://'+path.resolve(__dirname,'../www',file)+'"></script>').join('')+'<script>try{document.getElementById("result").textContent=('+verify.toString()+')(window);}catch(e){document.getElementById("result").textContent="FAIL: "+e.message;}</script></body></html>';
  fs.writeFileSync(process.argv[3],html);console.log('Browser fixture ready');

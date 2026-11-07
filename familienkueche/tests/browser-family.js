@@ -1,0 +1,42 @@
+const fs=require('fs'),path=require('path'),assert=require('assert'),{spawn}=require('child_process');
+const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
+(async()=>{
+ const server=spawn('python3',['-W','ignore',path.join(__dirname,'family_fixture.py')],{stdio:['ignore','pipe','pipe']});
+ let browser,log='';server.stderr.on('data',x=>log+=x);
+ try{
+ const port=await new Promise((resolve,reject)=>{let output='';let timeout=setTimeout(()=>reject(Error('Fixture startup timeout '+log)),12000);server.stdout.on('data',x=>{output+=x;try{const result=JSON.parse(output.trim().split('\n')[0]);clearTimeout(timeout);resolve(result.port);}catch(e){}});server.on('error',reject);server.on('exit',code=>{clearTimeout(timeout);reject(Error('Fixture stopped '+code+' '+log));});});
+ browser=await chromium.launch({executablePath:process.env.FAMILY_CHROMIUM||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage'],timeout:12000});
+ const page=await browser.newPage({viewport:{width:1280,height:800}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/**',async route=>{
+  const url=new URL(route.request().url()),p=url.pathname;
+  if(p.startsWith('/api/family')||p.startsWith('/api/saver'))return route.continue();
+  let data;
+  if(p==='/api/calendar'){const day=new Date().toISOString().slice(0,10);data={fetchedAt:day+'T12:00:00+01:00',sources:[{key:'tina',ok:true,canCreate:false,events:[{id:'example',date:day,title:'Gemeinsamer Nachmittag',start:'20:00',end:'21:00',person:'tina',source:'tina',sourceLabel:'Tina'}]},{key:'joern',ok:true,canCreate:true,events:[]}]};}
+  else if(p==='/api/weather')data={source:'Testwetter',condition:'partlycloudy',temperature:18,temperatureUnit:'°C',windSpeed:5,windUnit:'km/h',humidity:60,forecast:[],fetchedAt:new Date().toISOString()};
+  else if(p==='/api/shopping')data={items:[],label:'Test-Einkauf',canAdd:true,canUpdate:true,canRemove:true};
+  else if(p==='/api/meals')data={entries:[],revisions:{}};
+  else if(p==='/api/recipes')data={recipes:[]};
+  else if(p==='/api/suggestions')data={recipes:[],matches:0,poolSize:0,warnings:[],today:new Date().toISOString().slice(0,10)};
+  else return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Fixture endpoint not mocked'})});
+  return route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
+ });
+ const base='http://127.0.0.1:'+port+'/';await page.goto(base);
+ await page.locator('[data-screen="family"]').click();await page.getByRole('button',{name:'+ Aufgabe',exact:true}).waitFor();
+ await page.getByRole('button',{name:'+ Aufgabe',exact:true}).click();await page.locator('#family-title').fill('Spülmaschine ausräumen');await page.locator('#family-person').selectOption('joern');await page.locator('#family-icon').selectOption('dishes');await page.locator('#family-edit-form [type="submit"]').click();await page.locator('.family-task strong').waitFor();
+ await page.locator('.family-task input').check();await page.locator('.family-completed summary').waitFor();await page.locator('.family-completed summary').click();assert(await page.locator('.family-task input').isChecked());
+ await page.locator('[data-tab="routine"]').click();await page.locator('[data-template="morning"]').click();await page.locator('#family-edit-form [type="submit"]').click();await page.locator('.routine-card').waitFor();
+ for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);assert(await page.locator('.app-main').evaluate(x=>x.scrollWidth<=x.clientWidth+1),'No horizontal overflow in tasks');assert(await page.locator('.side-nav').evaluate(x=>x.scrollHeight<=x.clientHeight+1),'Sidebar fits tablet height');}
+ await page.screenshot({path:'/tmp/familienkueche-aufgaben.png'});
+ await page.locator('[data-action="family-open"]').click();await page.locator('.routine-step input').first().check();await page.waitForFunction(()=>document.querySelector('.routine-step input').checked&&!document.querySelector('.routine-step input').disabled);assert.equal(await page.locator('.routine-step').count(),3);await page.screenshot({path:'/tmp/familienkueche-routine.png'});
+ await page.reload();await page.locator('[data-screen="family"]').click();await page.locator('[data-tab="routine"]').click();await page.locator('[data-action="family-open"]').click();assert(await page.locator('.routine-step input').first().isChecked(),'Progress survives reload');await page.locator('#overlay [data-action="close"]').first().click();
+ await page.locator('[data-action="family-date"][data-offset="1"]').click();await page.locator('.routine-card').waitFor();await page.locator('[data-action="family-open"]').click();assert.equal(await page.locator('.routine-step input:checked').count(),0,'New day has new checks');assert(await page.locator('.routine-step input').first().isDisabled(),'Future date is preview');await page.locator('#overlay [data-action="close"]').first().click();
+ await page.locator('[data-action="settings"]').click();await page.locator('[name="photoFit"]').selectOption('contain');await page.locator('[name="photoInterval"]').selectOption('30');await page.locator('[data-action="saver-photos"]').click();
+ const jpg=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=1280;c.height=800;const g=c.getContext('2d');const gradient=g.createLinearGradient(0,0,0,800);gradient.addColorStop(0,'#8fada5');gradient.addColorStop(0.6,'#ecd4ae');gradient.addColorStop(1,'#718565');g.fillStyle=gradient;g.fillRect(0,0,1280,800);g.fillStyle='#b9c59d';g.beginPath();g.moveTo(0,800);g.quadraticCurveTo(320,300,700,600);g.quadraticCurveTo(1000,350,1280,600);g.lineTo(1280,800);g.fill();return c.toDataURL('image/jpeg',0.85).split(',')[1];});
+ await page.locator('#family-photo-input').setInputFiles({name:'Testlandschaft.jpg',mimeType:'image/jpeg',buffer:Buffer.from(jpg,'base64')});await page.locator('.family-photo-grid article').waitFor();assert.equal(await page.locator('.family-photo-grid article').count(),1);let photos=await (await page.request.get(base+'api/saver/photos')).json();assert.equal(photos.photos.length,1);assert.equal(photos.photos[0].name,'Testlandschaft');
+ await page.locator('#overlay [data-action="close"]').first().click();await page.locator('[data-screen="saver"]').click();await page.locator('.saver-photo').waitFor();await page.waitForFunction(()=>document.querySelector('.saver-photo').complete&&document.querySelector('.saver-photo').naturalWidth>0);assert(await page.locator('.photo-contain').count());
+ for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);await page.waitForTimeout(200);await page.screenshot({path:'/tmp/family-saver-debug.png'});const dimensions=await page.locator('.family-saver').evaluate(x=>({width:x.clientWidth,height:x.clientHeight,scrollWidth:x.scrollWidth,scrollHeight:x.scrollHeight,inner:getComputedStyle(x.querySelector('.saver-inner')).padding,middle:x.querySelector('.saver-middle').getBoundingClientRect().height}));assert(dimensions.scrollWidth<=dimensions.width+1&&dimensions.scrollHeight<=dimensions.height+1,'Screensaver fits tablet '+JSON.stringify(size)+' '+JSON.stringify(dimensions));}
+ await page.screenshot({path:'/tmp/familienkueche-bildschirmschoner.png'});await page.locator('.family-saver').click({position:{x:25,y:25}});await page.locator('.calendar').waitFor();
+ await page.reload();await page.locator('[data-action="settings"]').click();assert.equal(await page.locator('[name="photoFit"]').inputValue(),'contain');assert.equal(await page.locator('[name="photoInterval"]').inputValue(),'30');await page.locator('[data-action="saver-photos"]').click();await page.locator('.family-photo-grid article').waitFor();await page.locator('[data-action="saver-photo-remove"]').click();await page.locator('#saver-photo-remove-form [type="submit"]').click();await page.getByText('Euer Zuhause, eure Bilder',{exact:true}).waitFor();photos=await (await page.request.get(base+'api/saver/photos')).json();assert.equal(photos.photos.length,0);
+ assert.deepEqual(errors,[],'No browser runtime errors');console.log('PASS: real local backend create/check/reload/day preview, photo canvas upload/serve/delete, saver preferences/wake and tablet layout at 1280×800 / 960×600. No HA writes.');
+ }finally{if(browser)await browser.close();server.kill('SIGTERM');}
+})().catch(e=>{console.error(e.stack);process.exitCode=1;});

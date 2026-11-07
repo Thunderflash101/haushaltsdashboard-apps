@@ -133,3 +133,39 @@ Timer speichern feste Endzeitpunkte im lokalen Browserspeicher. Nach einer Brows
 Die neuen Berechnungen und Abläufe wurden mit Backend- und DOM-Prüfungen getestet. Zusätzlich wurden Kochansicht und Wocheneinkauf mit Chromium/Playwright bei 1280×800 und 960×600 Pixeln geprüft, einschließlich Haken, Schrittwechsel, Timerstart, Vorratsauswahl und bearbeiteter Übergabe. Der Test verwendet Beispieldaten. Es wurden keine Testartikel in die echte Bring-Liste geschrieben; nach dem Update die Quellen, den Signalton und die Übernahme auf dem Fire-Tablet prüfen.
 
 Zusätzliche Prüfungen: `node tests/timers.cjs`, `node tests/cooking-frontend.cjs`, `node tests/weekly-frontend.cjs` mit verfügbarem jsdom. Die Browserprüfung `node tests/browser-kitchen.js` benötigt Playwright und Chromium; optional `FAMILY_PLAYWRIGHT_MODULE` und `FAMILY_CHROMIUM` an die lokale Installation anpassen.
+
+
+## Aufgaben und Routinen (0.10.0)
+
+Im schmalen linken Menü öffnet **Aufgaben** einen eigenen Reiter, ohne den Kalender zu verkleinern. Oben zwischen **Aufgaben** und **Routinen** wechseln; Personenfilter für Alle, Tina, Jörn und Felix. „Alle“ zeigt alle Zuordnungen, „Alle“ als Aufgabenzuständigkeit bedeutet gemeinsam. Einzelne Personenfilter zeigen nur deren ausdrücklich zugeordnete Einträge.
+
+- **+ Aufgabe:** Titel, Person, Symbol und Datum. Ohne Wochentage einmalig; offen gebliebene Einzelaufgaben bleiben ab ihrem Datum sichtbar, auch an Folgetagen. Einmal erledigt bleiben sie erledigt, bis jemand sie wieder öffnet.
+- Mit gewählten Wochentagen wiederholt sich eine Aufgabe jede Woche an genau diesen Tagen ab dem Startdatum. Jeder vorgesehene Tag hat eigene Häkchen; verpasste Wiederholungen werden nicht als zusätzliche heutige Aufgaben gestapelt.
+- **+ Routine:** mindestens einen Wochentag und 1–12 Schritte wählen. Schritte werden in der angegebenen Reihenfolge mit großen Symbolen dargestellt, können aber unabhängig abgehakt werden. Unter „Guten Morgen“ / „Gute Nacht“ im leeren Routinenbereich stehen bearbeitbare Vorlagen für Felix bereit; angelegt wird erst mit Speichern.
+- Die Tagesnavigation zeigt vorherige und kommende Tage (bis zu ein Jahr Abstand). Zukünftige Tage sind nur Vorschau. Häkchen sind für heute und die letzten 31 Tage möglich. „Heute“ springt zurück.
+- „Geschafft“ enthält erledigte Aufgaben bzw. Routinen. „Alle verwalten“ zeigt auch für den gewählten Tag nicht vorgesehene Einträge, damit zukünftige oder anders wiederkehrende Definitionen bearbeitbar bleiben. Entfernen löscht nach Bestätigung die gesamte Aufgabe/Routine samt zugehörigen Häkchen, nicht nur den ausgewählten Wiederholungstag.
+- Unveränderte Routinen-Schritte behalten beim Bearbeiten ihre Häkchen. Geänderter Text oder ein anderes Schrittsymbol erzeugen eine neue Schrittkennung und damit neue Häkchen für diesen Schritt. Titeländerungen an der Routine selbst lassen deren Schritte bestehen. Änderungen am Wiederholungsmuster können die Zuordnung der bisherigen Tageshäkchen ändern; es werden keine vergangenen Kalendertermine verändert.
+
+Die Daten liegen in neuen Tabellen der bestehenden `/data/submissions.sqlite`, werden zentral gespeichert und bleiben bei normalen App-Updates/Neustarts erhalten. Sie sind eigenständige Daten der Familienküche, keine automatisch angelegten Home-Assistant-To-do-Entitäten. Die Bring-Einkaufsliste bleibt getrennt. App-Daten einschließlich der Datenbank in Home-Assistant-Sicherungen einschließen. Deinstallation mit Datenlöschung entfernt auch diese Einträge.
+
+Auf dem aktiven Aufgaben-Reiter spätestens alle 30 Sekunden aktualisieren. Schreibaktionen werden erst nach bestätigter Speicherung sichtbar. Definition und Fortschritt haben eigene Revisionsprüfungen; Konflikte oder unklare Antworten erfordern Aktualisieren vor der nächsten Änderung. Anfragekennungen und lokale Mutationen werden in derselben SQLite-Transaktion gespeichert; doppelte bestätigte Anfragen werden nicht erneut ausgeführt. Bis zu 200 Aufgaben und Routinen insgesamt. Keine automatische Erinnerung, keine Belohnungspunkte und kein externer Nachrichtendienst in dieser Version.
+
+## Familienfotos und Bildschirmschoner (0.10.0)
+
+**Optionen → Speichern & Fotos verwalten** öffnet das private Album. Fotos können hier auch vom PC oder Handy innerhalb derselben Home-Assistant-Familienküche hochgeladen werden; sie stehen dann auf dem Küchentablet bereit. Keine Bilddateien oder Foto-URLs auf GitHub veröffentlichen. Es werden ausschließlich relative, durch den vorhandenen Home-Assistant-Ingress geschützte Bildadressen verwendet.
+
+Bis zu 20 Bilder, JPEG/PNG/WebP, keine Animationen. Im Browser zunächst auf maximal 1600 × 1000 Pixel verkleinern. Eingabedateien bis 20 MB und 24 Megapixel; ein Mobiltelefonfoto muss gegebenenfalls vorab verkleinert werden. Die API nimmt höchstens 2 MB Binärbild an, prüft das tatsächliche Format, berücksichtigt vorhandene Kameraorientierung und erzeugt ein JPEG bis maximal 1920 × 1080 Pixel. Kamerametadaten werden nicht gespeichert. Fotos liegen als BLOBs in derselben App-Datenbank. Gleiches normalisiertes Bild wird nicht doppelt gespeichert; Entfernen erfordert Bestätigung und lässt Originaldateien auf dem hochladenden Gerät unverändert. Die größte JSON-Anfrage darf 3 MB nicht überschreiten.
+
+Der Ruhemodus zeigt Fotos, Uhr, Datum, aktuelles Wetter, den nächsten laufenden/kommenden zeitgebundenen Termin und das heutige Abendessen. Ganztagstermine bleiben im Kalender. Ohne Fotos oder bei einem nicht ladbaren Bild bleibt eine ruhige gestaltete Ansicht. Rückkehr zum Kalender durch Antippen; Wetter kann weiterhin geöffnet werden. Das Fotoalbum wird im Ruhemodus etwa einmal pro Minute neu gelesen.
+
+Unter **Optionen**: Inaktivität Aus/1/2/5 Minuten, dunkle Ansicht, Foto-Wechsel nach 30/60/120/300 Sekunden, Bildschirm füllen oder ganzes Foto zeigen, optional nächtliches Abdunkeln mit Beginn/Ende (auch über Mitternacht). „Speichern & Vorschau“ aktiviert den Ruhemodus. Gleiches Beginn-/Ende-Zeitfeld bedeutet keine zusätzliche Zeitspanne. Diese Einstellungen bleiben lokal pro Browser/Gerät; das Album ist gemeinsam. Der Browser muss lokale Speicherung erlauben, sonst wird eine Meldung angezeigt.
+
+Das Abdunkeln betrifft die Oberfläche, nicht die physische Hintergrundbeleuchtung. Bildschirmhelligkeit, Display-Ausschalten und Aufwecken weiterhin am Fire-Tablet beziehungsweise einer vorhandenen Kiosk-App einstellen. Offene Dialoge sowie laufende Küchentimer verhindern den automatischen Wechsel in den Ruhemodus. Persönliche Fotos werden nur durch den Home-Assistant-Zugang geschützt; diese Version ergänzt keine eigene Kindersicherungs-PIN.
+
+## Prüfung 0.10.0
+
+Neue Backend-Tests prüfen Tageswiederholungen, einmalige Aufgaben, zukünftige Vorschauen, Konflikte zwischen Geräten, bearbeitete Schritte, Neustart-Persistenz, Dateigrenzen und normalisierte Fotos ohne Metadaten. DOM-Prüfungen decken Vorlagen, Schrittbearbeitung, sichere Textdarstellung, Mitternacht, Foto-Wechsel, nächtliches Abdunkeln und Upload ab.
+
+`python3 -m unittest discover -s tests -v` sowie alle `tests/*.cjs` mit jsdom ausführen. `tests/browser-family.js` benötigt Playwright, Chromium und die Python-Abhängigkeiten. Optional `FAMILY_PLAYWRIGHT_MODULE` / `FAMILY_CHROMIUM` setzen wie bei `tests/browser-kitchen.js`. Der Test startet ausschließlich auf Loopback einen Server mit temporärer Datenbank, deaktiviert dort die Ingress-Prüfung und simuliert die übrigen HA-Daten. Der Produktionsserver behält unverändert seinen Ingress-Schutz. Es werden keine echten HA-/Bring-/Mealie-Daten geschrieben.
+
+Abschlussprüfung: 50 Python-Tests und alle 13 DOM-/Timer-Prüfgruppen bestanden. Browserabläufe für Aufgaben/Routinen/Fotos und für die bestehende Kochansicht mit Wocheneinkauf bei 1280 × 800 und 960 × 600 Pixeln erfolgreich. Tatsächliche Darstellung, Fotoauswahl und Displayverhalten auf dem Fire HD 10 sind nach Installation noch am Gerät zu prüfen.

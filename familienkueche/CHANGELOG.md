@@ -1,3 +1,13 @@
+# 0.10.0
+
+- Eigener Aufgaben-Reiter mit Personenfiltern, Einzelaufgaben und wiederkehrenden Aufgaben nach Wochentag.
+- Gemeinsam gespeicherte Routinen mit bis zu zwölf großen Bildschritten; bearbeitbare Vorlagen „Guten Morgen“ und „Gute Nacht“ für Felix.
+- Häkchen je Wiederholungstag, Tagesvorschau, Verlauf und Verwaltung aller Aufgaben; Konfliktprüfung bei Änderungen von mehreren Geräten.
+- Aufgaben, Routinen und Fortschritt bleiben zentral im App-Datenverzeichnis auf dem NUC erhalten.
+- Familien-Bildschirmschoner mit bis zu 20 privaten Fotos, Wechselintervall, Füllen-/Ganzbildansicht, Uhr, Wetter und nächstem Termin.
+- Foto-Upload mit Verkleinerung, normalisierter JPEG-Ausgabe ohne Kamerametadaten; Entfernen erst nach Bestätigung.
+- Gerätespezifische dunkle Ansicht und zeitgesteuertes nächtliches Abdunkeln der Oberfläche.
+
 # 0.9.0
 
 - Gemeinsame Wochen-Zutatenvorschau für alle geplanten Abendessen mit Rezept, Portionszahl, Herkunft und Vorratsauswahl.
