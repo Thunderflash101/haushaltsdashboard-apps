@@ -1,3 +1,14 @@
+# 0.11.0
+
+- Zentrale Erinnerungs-Vorschau für die nächsten 14 Tage: Müllabfuhr am Vorabend um 18 Uhr und zeitgebundene Termine von Tina/Jörn mit 30 Minuten Vorlauf.
+- Einstellbare Regeln, Personen und Ruhezeiten; Berechnung in Europe/Berlin mit Zeitumstellungsbehandlung.
+- Glocke und kompakte fällige Hinweise im Kalender; Schließen und um 10/30 Minuten verschieben, ohne Kalendertermine zu ändern.
+- Vorschau als Standard: automatische Handy-Nachrichten bleiben ausgeschaltet.
+- Mobile Home-Assistant-Benachrichtigungsziele automatisch entdecken, Testversand mit vorheriger Übersicht und anschließend manueller Empfangsbestätigung.
+- Automatische Push-Erinnerungen erst nach bestätigtem Test und ausdrücklicher Aktivierung; kein nachträglicher Versand bereits vorher fälliger Hinweise.
+- Konfiguration, geschlossene/verschobene Hinweise und Versandversuche zentral speichern; unbestätigte Sendungen nicht automatisch wiederholen.
+- Nicht erreichbare Kalender und abgesagte/geänderte Termine berücksichtigen; abgelaufene Erinnerungen nicht nachsenden.
+
 # 0.10.2
 
 - Fotoauswahl im nativen Einzeldatei-Modus: umgeht die fehlerhafte Mehrfachauswahl-Rückgabe bestimmter Home-Assistant-Android-App-Versionen, die auch bei einem einzelnen Foto auftreten kann.

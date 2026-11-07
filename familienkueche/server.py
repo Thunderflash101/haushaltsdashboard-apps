@@ -244,11 +244,13 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     setup_family(app)
     from photos import setup as setup_photos
     setup_photos(app)
+    from reminders import setup as setup_reminders
+    setup_reminders(app)
     app.router.add_get('/', index)
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'meals.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'saver.js', 'style.css'):
+    for filename in ('app.js', 'meals.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'saver.js', 'reminders.js', 'style.css'):
         async def asset(request, filename=filename):
             return web.FileResponse(ROOT / 'www' / filename)
         app.router.add_get('/' + filename, asset)

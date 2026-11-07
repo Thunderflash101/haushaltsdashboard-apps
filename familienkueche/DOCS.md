@@ -193,3 +193,53 @@ Zusätzlich wird das Dateifeld beim Start der Verarbeitung nicht mehr geleert. D
 Prüfung: alle 14 DOM-/Timer-Suites erfolgreich. Regressionstests prüfen fehlendes `multiple`, den Bildfilter und das Erhalten des nativen Dateiwerts bis nach dem Upload; der alte Code scheitert an dieser Prüfung. Chromium prüfte zusätzlich bei 412 × 915 Pixeln mit Touch-/Mobilmodus den tatsächlichen FileChooser im Einzeldatei-Modus, einen echten lokalen Upload, den erhaltenen nativen Dateinamen und den Eintrag im Album. Es wurde keine echte Home-Assistant-Android-WebView und kein physisches Smartphone gesteuert; die Geräteabnahme bleibt nach dem Update erforderlich. Die übrigen Browserabläufe für Aufgaben/Routinen, Fotos und Tablet-Darstellung sind ebenfalls erfolgreich geblieben.
 
 Auch der Dialog wird jetzt – bei vorhandener VisualViewport-API – an Breite, Höhe und Position des tatsächlich sichtbaren Browserbereichs ausgerichtet. Die Tablet-Oberfläche darf weiterhin breiter als ein Telefon sein; der Foto-Dialog bleibt davon unabhängig im sichtbaren Bereich und erhält bei Platzmangel einen eigenen Scrollbereich. Die Smartphone-Browserprüfung kontrolliert dafür zusätzlich die tatsächlichen Dialoggrenzen gegen den sichtbaren Viewport.
+
+
+## Erinnerungen und Vorschau (0.11.0)
+
+Die **Glocke** in der Kopfzeile und **Optionen → Erinnerungen einstellen** öffnen drei Bereiche: Vorschau, Regeln und Smartphones. Auf dem Handy den Optionen-Einstieg verwenden; das Hauptlayout bleibt auf das Küchentablet ausgelegt. Die Vorschau zeigt die nächsten 14 Tage, unabhängig davon, welche Kalenderwoche gerade geöffnet ist.
+
+Beim ersten Start ist **automatischer Handy-Versand ausgeschaltet**. Es werden keine Testnachrichten oder automatischen Push-Nachrichten allein durch Öffnen der Seite oder Aktualisieren verschickt. Die Hintergrundprüfung liest bereits die konfigurierten Kalender und berechnet Hinweise; fällige Hinweise erscheinen auch als kompakte Karte über dem Kalender.
+
+Standardregeln:
+
+- Müllabfuhr aus dem bereits konfigurierten Müllkalender: Vorabend um 18:00 Uhr. Die Uhrzeit ist änderbar. Es gibt keinen Push mehr ab Beginn des Abholtages, da die tatsächliche Abholzeit bei Ganztagseinträgen nicht bekannt ist.
+- Zeitgebundene Termine von Tina und Jörn: 30 Minuten vorher, wählbar 5/10/15/30/60/120 Minuten. Personen einzeln abschaltbar.
+- Ganztagstermine aus den Personenkalendern, Geburtstage, Feiertage und eigene Aufgaben/Routinen lösen in dieser ersten Version keine Erinnerungen aus.
+- Ruhezeit zunächst 22:00–07:00 Uhr. Fälligkeiten innerhalb dieses Fensters verschieben sich auf dessen Ende. Ist dann der Termin bereits gestartet bzw. der Abholtag begonnen, entfällt der Hinweis. Die Vorschau kennzeichnet solche Fälle. Gleiche Start-/Endzeit bedeutet keine Ruhezeit.
+
+**Schließen** gilt gemeinsam für die Familie und blendet nur den Hinweis aus. Kein Kalendertermin wird gelöscht. **10/30 Minuten später** verschiebt die Fälligkeit um diesen Zeitraum ab dem späteren Zeitpunkt aus jetzt oder bisheriger Fälligkeit; eine zukünftige Erinnerung wird dadurch niemals vorgezogen. Eine Verschiebung über ihre Ablaufgrenze ist nicht möglich. Wenn automatischer Versand später aktiviert ist, kann eine ausdrücklich verschobene Erinnerung erneut einen Push erzeugen. Geschlossene Hinweise stehen im Vorschau-Bereich unter „Geschlossen“, solange der zugehörige Termin noch nicht begonnen hat.
+
+### Handy-Ziele einrichten und gezielt testen
+
+Es werden nur vorhandene `notify.mobile_app_*`-Aktionen zur Auswahl angeboten, keine Lautsprecher, Gruppen oder allgemeinen Notify-Ziele. Die Ziele werden über die Home-Assistant-Dienste entdeckt; es stehen keine privaten Gerätenamen oder Zugangsdaten im öffentlichen Quellcode.
+
+1. Unter **Smartphones** beim gewünschten Gerät **Testnachricht senden** wählen. Das öffnet zuerst eine Übersicht, noch ohne Versand.
+2. **Jetzt Test senden** beauftragt genau eine Nachricht an dieses Gerät. Mindestens eine Minute Abstand zwischen zwei Tests pro Ziel. Ein Fehler oder eine unklare Antwort wird angezeigt, ohne automatischen Neuversuch.
+3. Erst auf dem Gerät nachsehen, dann **Ist angekommen** drücken. Eine erfolgreiche Home-Assistant-Antwort allein wird nicht als tatsächlicher Empfang gewertet.
+4. Das bestätigte Gerät anhaken und **Zielauswahl speichern**. Bis zu vier Ziele sind möglich; alle ausgewählten Geräte erhalten alle gewählten Müll-/Terminregeln. Es gibt noch keine automatische Zuordnung einer Person zu einem bestimmten Handy.
+5. Erst unter **Regeln** kann **Automatische Handy-Erinnerungen aktivieren** eingeschaltet werden. Ohne ausgewähltes und bestätigtes Gerät ist die Aktivierung nicht möglich.
+
+Aktivieren versendet keinen Rückstau vorher fälliger Erinnerungen. Nach einem Neustart bleibt die letzte Aktivierung bestehen; eine während des Ausfalls neu fällig gewordene Erinnerung kann noch gesendet werden, solange ihre Ablaufgrenze nicht erreicht ist. Wird eine Nachricht von HA angenommen, steht „An Home Assistant übergeben“. Dies ist keine technische Zustellbestätigung des Telefons. Benachrichtigungsrechte, Verbindung und Android-Energiespareinstellungen beeinflussen die tatsächliche Zustellung.
+
+### Zentrale Verarbeitung und Persistenz
+
+Ein Hintergrundprozess in der Familienküche auf dem NUC prüft ungefähr jede Minute und bei Regeländerungen. Dazu müssen Tablet und Browser nicht geöffnet sein. Der NUC und Home Assistant müssen laufen. Die tatsächliche Prüfung kann bei langsamen Kalenderantworten später erfolgen; Änderungen sind erst berücksichtigt, wenn Home Assistant sie über seine Kalender-API liefert.
+
+Neue Tabellen in `/data/submissions.sqlite` halten Regeln, Bestätigungen, geschlossene/verschobene Hinweise und Versandversuche. Keine zusätzlichen HA-Automationen oder Helfer werden angelegt. Die App verwendet für Push die native `notify.mobile_app_*`-Aktion, nicht die ähnlich benannte Notify-Entität. Vor jedem Versand wird der Versuch festgehalten. Nach unklarer Antwort oder einem Neustart mit offenem Versandversuch wird nicht automatisch erneut gesendet. Das vermeidet doppelte Nachrichten, kann bei unklaren Fehlern aber bedeuten, dass ein einzelner Hinweis ausbleibt; der Status bleibt sichtbar.
+
+Fällt ein Kalender aus, bleiben seine zuletzt berechneten Einträge als veraltet erkennbar; aus ihnen wird nicht gesendet. Erfolgreiche Aktualisierungen entfernen abgesagte Einträge aus der Vorschau. Geänderte Uhrzeiten erzeugen neue Vorkommen. Bei vorhandener Kalender-UID bleibt die Kennung trotz Titeländerung stabil, sodass eine bereits versandte Erinnerung nicht erneut ausgelöst wird. Ohne UID dient Titel plus Terminbeginn als Ersatzkennung; eine Titeländerung kann dann als neuer Eintrag gelten. Diese Identität hängt von den durch HA gelieferten Kalenderdaten ab.
+
+Regel- und Hinweisänderungen prüfen Revisionen, damit zwei Geräte nicht unbemerkt ältere Änderungen zurückschreiben. Bearbeitungsfelder bleiben während normaler Hintergrundaktualisierung erhalten. Datum/Uhrzeiten für Erinnerungen werden ausdrücklich in Berlin dargestellt. Nicht existierende Zeiten im Frühjahr werden zur ersten gültigen Minute verschoben; doppelte Uhrzeiten im Herbst erzeugen dank gespeicherter Kennungen keinen zweiten automatischen Versand. Verschiebungen um Minuten rechnen mit tatsächlich verstrichener Zeit über die Zeitumstellung hinweg.
+
+Aufbewahrung: nicht mehr gesehene Erinnerungen etwa sieben Tage, Versandversuche etwa 90 Tage. Die Vorschau zeigt höchstens 100 aktuelle Einträge, kennzeichnet eine Kürzung und zeigt die letzten 20 Versandversuche. Maximal 2000 gelieferte Ereignisse pro Kalender und Abruf; unlesbare Daten führen zu einem Hinweis, keinem Versand aus ungeprüften Datensätzen.
+
+APIs: `GET api/reminders` für Stand/Vorschau und `POST api/reminders/actions` für Regeln, Schließen, Verschieben, Aktualisieren, Test und Empfangsbestätigung. Alle Schreibanfragen behalten den bestehenden Ingress-, JSON- und Anfragekennungsschutz. Ein erfolgreicher Test aktiviert niemals selbst den automatischen Versand.
+
+### Prüfung 0.11.0
+
+Neue Backend-Prüfungen decken Vorschau ohne Versand, Test-Idempotenz, manuelle Empfangsbestätigung vor Aktivierung, fehlende Ziele, ruhige Zeiten, beide Zeitumstellungen, abgelaufene/abgesagte Termine, Kalenderverschiebungen, Einzelversand pro Ziel, unbestätigte Antworten, Neustart-Persistenz und Verschieben/Schließen ab. DOM-Prüfungen testen den vollständigen Aktivierungsablauf ohne tatsächlichen Versand und den Erhalt von Eingaben.
+
+`tests/browser-reminders.js` startet denselben ausschließlich lokalen Testserver wie die Foto-/Familienprüfung und verwendet einen vollständig nachgebildeten Handy-Dienst. Vor dem ausdrücklichen Test-Klick bleibt dessen Zähler null; nach Test/Empfangsbestätigung und Zielauswahl bei weiterhin deaktiviertem Automatikmodus genau eins. Echte Smartphones werden in diesen Tests nicht angesprochen. Playwright-/Chromium-Pfade können wie bei den vorhandenen Browserprüfungen über `FAMILY_PLAYWRIGHT_MODULE` und `FAMILY_CHROMIUM` angegeben werden.
+
+Abschlussstand 0.11.0: alle 62 Backend-Tests und 15 DOM-/Timer-Prüfgruppen erfolgreich. Erinnerungsablauf und bestehende Aufgaben-/Routinen-/Fotoabläufe in Chromium bei 1280×800, 960×600 und in der Smartphone-Ansicht bei 412×915 geprüft. Die echten vorhandenen Mobile-App-Aktionen wurden ausschließlich lesend ermittelt; es wurden keine realen Test- oder Kalendernachrichten versendet. Installation, Prüfung der echten Kalender-Vorschau und ein vom Nutzer ausgelöster Test auf dem tatsächlichen Smartphone stehen nach dem Update noch aus.

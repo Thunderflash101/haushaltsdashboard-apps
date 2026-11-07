@@ -1,7 +1,7 @@
 name: Familienküche
-version: "0.10.2"
+version: "0.11.0"
 slug: familienkueche
-description: Familienkalender, Aufgaben, Routinen und Mealie-Anbindung
+description: Familienkalender, Erinnerungen, Aufgaben und Mealie-Anbindung
 arch:
   - amd64
 startup: application
