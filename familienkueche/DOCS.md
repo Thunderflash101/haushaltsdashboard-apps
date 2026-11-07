@@ -79,3 +79,11 @@ Das Rezept wird vor dem Schreiben erneut geprüft. Bei einer inzwischen geänder
 Backend- und DOM-Prüfungen decken Portionsberechnung, manuell bearbeitete Auswahl, bereits vorhandene Einträge, Rezeptänderungen, Teilfehler und Wiederholungen ab. Ein echtes Mealie-Rezept wurde lesend geprüft; die erfassten Zutaten sind für die Vorschau verfügbar. Es wurden keine Testzutaten in die echte Einkaufsliste geschrieben. Darstellung und echter Schreibvorgang sind nach dem Update auf dem Tablet zu prüfen.
 
 Weitere DOM-Prüfungen: `node tests/calendar-overlap.cjs` und `node tests/ingredients-frontend.cjs` (mit verfügbarem jsdom).
+
+## Vergangene Termine und Geburtstage (ab 0.7.1)
+
+Die Listenansicht ist eine Vorschau auf laufende und kommende Termine **der ausgewählten Woche**. Bereits vergangene Tage erscheinen dort nicht mehr; heute endende Termine verschwinden nach ihrer Endzeit. Ganztägige Einträge wie Geburtstage bleiben am heutigen Tag bis Mitternacht sichtbar. Der Filter betrifft alle Kalenderquellen gleichermaßen und wird beim Minuten-/Tageswechsel aktualisiert.
+
+Die Wochen- und Monatsansicht enthalten weiterhin alle Termine ihres ausgewählten Zeitraums, einschließlich vergangener Geburtstage und abgeschlossener Termine. Ebenso bleiben die Tagesdetails vollständig. Die Daten werden weder in Home Assistant gelöscht noch pauschal beim Laden nach dem aktuellen Datum gefiltert. In einer vollständig vergangenen Woche ist die Liste daher leer und verweist auf die historischen Ansichten.
+
+Bei der Prüfung lieferte Home Assistant den beanstandeten Geburtstag korrekt als Ganztagstermin vom 3. November bis zum exklusiven Ende am 4. November. Ursache war die bisher ungekürzte Wochenliste, keine Verschiebung des Geburtstagsdatums. Die Regressionstests prüfen laufende, heutige, vergangene und zukünftige Einträge, den Ablauf exakt an der Endzeit und Mitternacht sowie den unveränderten Zugriff auf Woche, Monat und Tagesdetails.

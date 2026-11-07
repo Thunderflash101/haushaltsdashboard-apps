@@ -1,0 +1,31 @@
+const fs=require('fs'),path=require('path');
+function setup(w){
+ const OriginalDate=w.Date;let now=new OriginalDate(2026,10,7,12,0,0).getTime();
+ w.Date=class extends OriginalDate{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}};
+ w.__setTime=(day,hour,minute)=>{now=new OriginalDate(2026,10,day,hour,minute,0).getTime();};
+ w.__timers=[];w.setInterval=(fn,ms)=>{w.__timers.push({fn,ms});return w.__timers.length;};
+ const timed=(id,title,date,start,end)=>({id,title,date,start,end,person:'tina',source:'tina',sourceLabel:'Kalender',readOnly:true,kind:'tina'});
+ const birthday=(id,title,date)=>({id,title,date,allDay:true,person:'alle',source:'birthdays',sourceLabel:'Geburtstage',kind:'birthdays',readOnly:true});
+ const events=[birthday('birthday-past','Geburtstag vergangen','2026-11-03'),timed('past','Termin gestern','2026-11-06','14:00','15:00'),birthday('birthday-today','Geburtstag heute','2026-11-07'),timed('ended','Heute bereits beendet','2026-11-07','08:00','09:00'),timed('ongoing','Laufender Termin','2026-11-07','11:00','13:00'),timed('later','Späterer Termin','2026-11-07','15:00','16:00'),birthday('birthday-next','Geburtstag morgen','2026-11-08'),birthday('birthday-next-week','Geburtstag nächste Woche','2026-11-09')];
+ class XHR{open(method,url){this.url=url;}setRequestHeader(){}send(){const u=new w.URL(this.url,'https://ha.example');let status=200,data;if(u.pathname==='/api/calendar'){const selected=events.filter(e=>e.date>=u.searchParams.get('start')&&e.date<u.searchParams.get('end'));data={sources:[{key:'tina',ok:true,canCreate:false,events:selected}],fetchedAt:'2026-11-07T12:00:00+01:00'};}else if(u.pathname==='/api/meals')data={entries:[],revisions:{}};else if(u.pathname==='/api/shopping')data={items:[],label:'Liste',canAdd:true,canUpdate:true,canRemove:true};else{status=502;data={error:'offline'};}this.status=status;this.responseText=JSON.stringify(data);this.onload();}}
+ w.XMLHttpRequest=XHR;
+}
+function verify(w){
+ const d=w.document,has=t=>d.querySelector('main').textContent.includes(t),a=(cond,msg)=>{if(!cond)throw Error(msg);},click=s=>{const e=d.querySelector(s);a(e,'Missing '+s);e.click();};
+ a(has('Geburtstag vergangen'),'Past birthday stays in week');a(has('Termin gestern'),'Past appointment stays in week');
+ click('[data-mode="list"]');a(!has('Geburtstag vergangen'),'Past birthday removed from upcoming list');a(!has('Termin gestern'),'Yesterday removed from upcoming list');a(!has('Heute bereits beendet'),'Finished appointment removed');a(has('Geburtstag heute'),'Today birthday remains through today');a(has('Laufender Termin'),'Ongoing event stays');a(has('Späterer Termin'),'Future event stays');a(has('Geburtstag morgen'),'Future birthday stays');a(!has('Geburtstag nächste Woche'),'List respects selected week');
+ w.__setTime(7,13,0);w.__timers.find(t=>t.ms===15000).fn();a(!has('Laufender Termin'),'Event disappears exactly at end, without data refresh');
+ click('[data-mode="week"]');a(has('Geburtstag vergangen')&&has('Termin gestern'),'Week history retained after list filtering');a(has('Laufender Termin'),'Ended today remains in week');
+ click('[data-mode="month"]');a(has('Geburtstag vergangen')&&has('Termin gestern'),'Month history retained');click('[data-action="day-detail"][data-date="2026-11-03"]');a(d.getElementById('overlay').textContent.includes('Geburtstag vergangen'),'Past birthday details accessible');click('[data-action="close"]');click('[data-mode="list"]');
+ w.__setTime(8,0,0);w.__timers.find(t=>t.ms===15000).fn();a(!has('Geburtstag heute'),'Birthday expires at midnight');a(has('Geburtstag morgen'),'New-day birthday remains');
+ click('[data-action="prev"]');a(!d.querySelector('.agenda-event'),'Past week upcoming list empty');a(has('Vergangene Einträge'),'Empty state explains historical views');click('[data-action="next"]');click('[data-mode="week"]');click('[data-mode="month"]');a(has('Geburtstag vergangen'),'History persists after midnight and navigation');
+ return 'PASS: past birthday filtered only from upcoming list; ongoing/future/today retained, exact end/midnight updates, week/month/detail history intact.';
+}
+const files=['ingredients.js','shopping.js','weather.js','meals.js','app.js'];
+if(process.argv[2]==='--browser-fixture'){
+ const html='<!doctype html><html lang="de"><meta charset="utf-8"><link rel="stylesheet" href="file://'+path.resolve(__dirname,'../www/style.css')+'"><body><div id="app"></div><div id="overlay" class="overlay" hidden></div><div id="toast"></div><pre id="result"></pre><script>('+setup.toString()+')(window);</script>'+files.map(file=>'<script src="file://'+path.resolve(__dirname,'../www',file)+'"></script>').join('')+'<script>try{document.getElementById("result").textContent=('+verify.toString()+')(window);}catch(e){document.getElementById("result").textContent="FAIL: "+e.message;}</script></body></html>';
+ fs.writeFileSync(process.argv[3],html);console.log('Browser fixture ready');
+}else{
+ const {JSDOM}=require('jsdom'),dom=new JSDOM('<div id="app"></div><div id="overlay" hidden></div><div id="toast"></div>',{url:'https://ha.example/',runScripts:'outside-only',pretendToBeVisual:true});
+ setup(dom.window);for(const file of files)dom.window.eval(fs.readFileSync(path.resolve(__dirname,'../www',file),'utf8'));console.log(verify(dom.window));dom.window.close();
+}

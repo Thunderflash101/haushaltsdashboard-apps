@@ -1,3 +1,10 @@
+# 0.7.1
+
+- Listenansicht zeigt laufende und kommende Termine der ausgewählten Woche; vergangene Geburtstage und abgeschlossene Termine entfallen.
+- Heutige Ganztagstermine bleiben bis Mitternacht sichtbar, laufende Termine bis zur Endzeit.
+- Wochen-/Monatsraster und Tagesdetails behalten vergangene Termine und Geburtstage vollständig.
+- Zeitfilter wird beim Minuten- und Tageswechsel ohne manuelles Neuladen aktualisiert.
+
 # 0.7.0
 
 - Überlappende Termine als breite gemeinsame Karte mit lesbaren Titeln und Start-/Endzeiten; vollständige Liste durch Antippen.
