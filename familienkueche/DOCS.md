@@ -52,7 +52,7 @@ Die Kalender-Essenszeile bleibt ab 0.5.1 auf 60 Pixel Höhe begrenzt und zeigt h
 
 Die Option `shopping_entity` ist mit `todo.einkaufsliste` vorbelegt. Für eine andere vorhandene Liste deren vollständige `todo.*`-Entität in den App-Optionen eintragen und die App neu starten. Es wird genau eine Liste verwendet; andere Listen und Mealie-Einkaufslisten werden nicht zusammengeführt.
 
-Der Reiter Einkauf liest offene und erledigte Einträge direkt aus Home Assistant. Artikel können ergänzt, abgehakt, wieder geöffnet, umbenannt und nach einer Einzelbestätigung entfernt werden. Die Anzahl offener Einträge erscheint an der Navigation. Die verfügbaren Schaltflächen richten sich nach den Fähigkeiten der gewählten Liste. Mengen können vorerst im Artikelnamen stehen; eine separate Portions- und Zutatenübernahme folgt später.
+Der Reiter Einkauf liest offene und erledigte Einträge direkt aus Home Assistant. Artikel können ergänzt, abgehakt, wieder geöffnet, umbenannt und nach einer Einzelbestätigung entfernt werden. Die Anzahl offener Einträge erscheint an der Navigation. Die verfügbaren Schaltflächen richten sich nach den Fähigkeiten der gewählten Liste. Mengen stehen im Artikelnamen; ab 0.7.0 ist eine Portions- und Zutatenübernahme aus Rezepten möglich.
 
 Die Liste wird beim Öffnen, über Aktualisieren und im geöffneten Reiter spätestens alle 30 Sekunden nachgeladen. Außerhalb des Reiters wird der Zähler mit der allgemeinen Aktualisierung erneuert. Es gibt keinen Push-Kanal; Änderungen anderer Geräte erscheinen nach dem nächsten Abruf. Textentwürfe und die Scrollposition bleiben beim Nachladen erhalten.
 
@@ -61,3 +61,21 @@ Schreibvorgänge beziehen sich auf die eindeutige Eintrags-ID. Vorher wird gepr�
 Echte Lesetests mit der vorhandenen Liste waren erfolgreich. Automatisierte Backend- und DOM-Prüfungen decken Hinzufügen, Statuswechsel, Wiederherstellen, Umbenennen, Entfernen, Konflikte, Doppelklicks und Verbindungsfehler ab. Es wurden keine Testartikel in die echte Liste geschrieben. Nach dem App-Update die Synchronisierung auf dem Tablet und in Home Assistant mit einem selbst gewählten Artikel prüfen.
 
 Zusätzliche DOM-Prüfung: `NODE_PATH=<node_modules> node tests/shopping-frontend.cjs`.
+
+## Lesbare Zeitüberschneidungen (ab 0.7.0)
+
+Überlappende Termine teilen sich eine breite gemeinsame Karte über die volle Tagesspalte. Ihre Zeitspanne reicht vom Beginn des ersten bis zum Ende des letzten beteiligten Termins. Die einzelnen Start- und Endzeiten stehen als Text darin; ihre Zeilen sind keine maßstabsgetreuen Einzelbalken. Wenn ausreichend Platz vorhanden ist, erscheinen die Titel und Zeiten untereinander. Bei sehr kurzen Gruppen erscheint ein kompakter Hinweis. Antippen öffnet alle Termine mit vollständigen Titeln und Zeiten. Anschließende Termine ohne Überschneidung bleiben getrennt. Einzeltermine beginnen oben im Block; nur bei ausreichender Höhe werden Titel mehrzeilig dargestellt.
+
+## Rezeptzutaten einkaufen (ab 0.7.0)
+
+Im Essensplan oder im geöffneten Rezept **Zutaten einkaufen** wählen. Die Vorschau zeigt die tatsächlich konfigurierte Zielliste und startet mit drei Portionen. Soll es die Bring-Liste sein, muss `shopping_entity` weiterhin auf deren `todo.*`-Entität gesetzt sein. Ein Update überschreibt vorhandene App-Optionen nicht.
+
+Portionszahl ändern und Mengen anpassen. Erfasste numerische Zutatenmengen mit eindeutigem Lebensmittel werden anhand der Original-Portionszahl umgerechnet. Einheiten werden nicht ineinander umgerechnet. Freitext, fehlende Original-Portionszahlen und unklare Mengen bleiben unverändert und sind zur Prüfung markiert. Die Mengen sind gerundet auf bis zu drei Nachkommastellen; sehr kleine Werte werden nicht auf null gerundet. Jede Zutat kann vor der Übernahme bearbeitet und abgewählt werden. Änderungen am Text werden beim erneuten Anpassen der Portionszahl zurückgesetzt.
+
+Bereits identisch vorhandene offene Artikel sind standardmäßig abgewählt. Nur identische Texte nach Bereinigung von Groß-/Kleinschreibung und Leerzeichen werden erkannt: „Milch“ und „200 ml Milch“ bleiben verschiedene Artikel. Auch während der Übernahme werden identische offene Einträge übersprungen. Mengen werden nicht automatisch addiert. Erst **Auswahl übernehmen** schreibt die ausgewählten, gegebenenfalls bearbeiteten Texte auf die konfigurierte Liste.
+
+Das Rezept wird vor dem Schreiben erneut geprüft. Bei einer inzwischen geänderten Zutatenliste muss die Vorschau neu geöffnet werden. Ein Vorgang umfasst höchstens 80 Zutaten mit je 200 Zeichen. Home Assistants To-do-Schnittstelle unterstützt keine atomare Mehrfachanlage: Nach jedem bestätigten Artikel wird der Fortschritt gespeichert. Ein Abbruch nennt die bestätigten und übersprungenen Artikel, sperrt eine automatische Wiederholung und lässt übrige Zutaten ungesendet. In diesem Fall erst die Liste prüfen. Es wird nichts automatisch rückgängig gemacht. Das Übernahmeprotokoll enthält Zähler und Zielbezeichnung, keine vollständige Rezeptkopie.
+
+Backend- und DOM-Prüfungen decken Portionsberechnung, manuell bearbeitete Auswahl, bereits vorhandene Einträge, Rezeptänderungen, Teilfehler und Wiederholungen ab. Ein echtes Mealie-Rezept wurde lesend geprüft; die erfassten Zutaten sind für die Vorschau verfügbar. Es wurden keine Testzutaten in die echte Einkaufsliste geschrieben. Darstellung und echter Schreibvorgang sind nach dem Update auf dem Tablet zu prüfen.
+
+Weitere DOM-Prüfungen: `node tests/calendar-overlap.cjs` und `node tests/ingredients-frontend.cjs` (mit verfügbarem jsdom).

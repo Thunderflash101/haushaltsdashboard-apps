@@ -216,7 +216,7 @@ async def index(request):
 
 
 def make_app(ha, db_path='/data/submissions.sqlite', options=None):
-    app = web.Application(middlewares=[ingress_only], client_max_size=8192)
+    app = web.Application(middlewares=[ingress_only], client_max_size=32768)
     app['ha'], app['write_lock'] = ha, asyncio.Lock()
     options = options or {}
     app['sources'] = [dict(source, entity=options.get(field) or source['entity']) for source, field in zip(SOURCES, ('tina_calendar', 'joern_calendar', 'waste_calendar', 'birthdays_calendar', 'holidays_calendar'))]
@@ -234,11 +234,13 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     setup_weather(app, options)
     from shopping import setup as setup_shopping
     setup_shopping(app, options)
+    from ingredients import setup as setup_ingredients
+    setup_ingredients(app)
     app.router.add_get('/', index)
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'meals.js', 'weather.js', 'shopping.js', 'style.css'):
+    for filename in ('app.js', 'meals.js', 'weather.js', 'shopping.js', 'ingredients.js', 'style.css'):
         async def asset(request, filename=filename):
             return web.FileResponse(ROOT / 'www' / filename)
         app.router.add_get('/' + filename, asset)

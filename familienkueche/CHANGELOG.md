@@ -1,3 +1,11 @@
+# 0.7.0
+
+- Überlappende Termine als breite gemeinsame Karte mit lesbaren Titeln und Start-/Endzeiten; vollständige Liste durch Antippen.
+- Einzeltermine oben ausgerichtet, mehrzeilige Titel nur bei ausreichendem Platz.
+- Rezeptzutaten mit Portionszahl, Auswahl und bearbeitbaren Mengen in die konfigurierte Einkaufsliste übernehmen.
+- Bereits vorhandene identische Einträge erkennen; unklare Mengen zur Prüfung kennzeichnen.
+- Fortschritt bei Teilübertragungen speichern und automatische Wiederholungen verhindern.
+
 # 0.6.0
 
 - Gemeinsame Einkaufsliste über die konfigurierbare Home-Assistant-To-do-Entität, Standard todo.einkaufsliste.
