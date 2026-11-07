@@ -1,12 +1,42 @@
 (function(){
 'use strict';
+// Preserve mounted photo nodes during clock/data refreshes. Load a different
+// photo offscreen and replace the old one only when its bitmap is ready.
+function saverAttributes(current,next){
+Array.prototype.slice.call(current.attributes).forEach(function(a){if(!next.hasAttribute(a.name))current.removeAttribute(a.name);});
+Array.prototype.slice.call(next.attributes).forEach(function(a){if(current.getAttribute(a.name)!==a.value)current.setAttribute(a.name,a.value);});
+current._familySource=next._familySource;
+}
+function saverPhoto(current,next){
+var url=next.src;
+if(current.tagName==='IMG'&&current.src===url){current._familyPhotoPending=null;saverAttributes(current,next);return;}
+var pending=current._familyPhotoPending;
+if(pending&&pending.src===url)return;
+if(current._familyPhotoFailed===url&&Date.now()-current._familyPhotoFailedAt<60000)return;
+current._familyPhotoPending=next;
+function ready(){if(current._familyPhotoPending!==next||!current.parentNode)return;current._familyPhotoPending=null;next.onload=next.onerror=null;current.parentNode.replaceChild(next,current);}
+next.onload=ready;
+next.onerror=function(){if(current._familyPhotoPending!==next)return;current._familyPhotoPending=null;current._familyPhotoFailed=url;current._familyPhotoFailedAt=Date.now();next.onload=next.onerror=null;};
+if(next.complete&&next.naturalWidth)ready();
+}
+function saverChildren(current,next){
+var desired=Array.prototype.slice.call(next.childNodes);
+desired.forEach(function(node,i){var old=current.childNodes[i];if(!old){current.appendChild(node);return;}
+if(node.nodeType===1&&node.hasAttribute('data-saver-photo')&&old.nodeType===1&&(old.hasAttribute('data-saver-photo')||old.classList.contains('saver-art'))){saverPhoto(old,node);return;}
+old._familyPhotoPending=null;
+if(old.nodeType!==node.nodeType||old.nodeName!==node.nodeName){current.replaceChild(node,old);return;}
+if(node.nodeType!==1){if(old.nodeValue!==node.nodeValue)old.nodeValue=node.nodeValue;return;}
+saverAttributes(old,node);saverChildren(old,node);
+});
+while(current.childNodes.length>desired.length)current.removeChild(current.lastChild);
+}
 // Keep the running app in its ingress iframe. Only the quiet view is mirrored
 // into an isolated, removable layer in the same-origin host document.
 window.createFamilySaverViewport=function(h){
 var host=null,root=null,target=null,frame=null,watch=null,poll=null,active=false,queued=false,route='',nativeKiosk=false;
 function absolute(url){var a=document.createElement('a');a.href=url;return a.href;}
 function copy(node){var clone=node.cloneNode(true),sources=[node].concat(Array.prototype.slice.call(node.querySelectorAll('*'))),copies=[clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*')));sources.forEach(function(source,i){copies[i]._familySource=source;if(source.tagName==='IMG')copies[i].src=absolute(source.getAttribute('src'));});return clone;}
-function sync(){queued=false;if(!root||!active)return;var stage=root.querySelector('[data-saver-stage]');while(stage.firstChild)stage.removeChild(stage.firstChild);stage.appendChild(copy(document.getElementById('app')));var dock=document.querySelector('.timer-dock'),toast=document.getElementById('toast');if(dock)stage.appendChild(copy(dock));if(toast)stage.appendChild(copy(toast));}
+function sync(){queued=false;if(!root||!active)return;var stage=root.querySelector('[data-saver-stage]'),next=target.document.createElement('div');next.appendChild(copy(document.getElementById('app')));var dock=document.querySelector('.timer-dock'),toast=document.getElementById('toast');if(dock)next.appendChild(copy(dock));if(toast)next.appendChild(copy(toast));saverChildren(stage,next);}
 function schedule(){if(queued||!active)return;queued=true;window.setTimeout(sync,0);}
 function clean(){active=false;queued=false;if(watch){watch.disconnect();watch=null;}if(target){target.clearInterval(poll);target.removeEventListener('keydown',key,true);target.removeEventListener('popstate',navigation);target.removeEventListener('hashchange',navigation);target.removeEventListener('location-changed',navigation);}if(host&&host.parentNode)host.parentNode.removeChild(host);host=root=target=frame=null;if(nativeKiosk){window.parent.postMessage({type:'home-assistant/unsubscribe-properties'},'*');nativeKiosk=false;}}
 function leave(){clean();h.wake();}
@@ -72,6 +102,6 @@ function submit(f){if(f.id!=='saver-photo-remove-form')return false;if(state.bus
 function action(a,b){if(a==='saver-photos')openPhotos();else if(a==='saver-photos-refresh')load(true);else if(a==='saver-photo-remove')remove(b.dataset.id);else if(a==='saver-preview'){preview=true;h.showSaver();}else return false;return true;}
 setInterval(function(){if(h.screen()!=='saver')return;var p=prefs();if(state.photos.length>1&&Date.now()-changedAt>=p.photoInterval*1000){photoIndex=(photoIndex+1)%state.photos.length;changedAt=Date.now();}var frame=String(isNight(new Date(),p))+':'+photoIndex;if(lastFrame!==frame)h.repaint();lastFrame=frame;load(false);},5000);
 document.addEventListener('error',function(e){if(e.target.hasAttribute&&e.target.hasAttribute('data-saver-photo')){e.target.style.display='none';var parent=e.target.closest('.family-saver');if(parent)parent.classList.remove('saver-has-photo');}},true);
-return {view:view,settings:settings,applySettings:applySettings,action:action,change:change,submit:submit,ensure:function(){if(h.screen()==='saver')load(false);},wake:function(){var wasPreview=preview;preview=false;return wasPreview;},isNight:isNight};
+return {view:view,paint:function(container){var next=document.createElement('div');next.innerHTML=view();saverChildren(container,next);},settings:settings,applySettings:applySettings,action:action,change:change,submit:submit,ensure:function(){if(h.screen()==='saver')load(false);},wake:function(){var wasPreview=preview;preview=false;return wasPreview;},isNight:isNight};
 };
 })();

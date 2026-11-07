@@ -254,3 +254,10 @@ Abschlussstand 0.11.0: alle 62 Backend-Tests und 15 DOM-/Timer-Prüfgruppen erfo
 ### Prüfung 0.11.1
 
 `tests/browser-saver.js` prüft eine lokale HA-ähnliche Einbettung mit eigener Kopfzeile, Seitenleiste und iframe im Shadow DOM: vollständige Bildschirmabdeckung bei 1280×800, 960×600 und 412×915; Fotos aus dem richtigen Ingress-Pfad; Uhraktualisierung; Tippen, Escape und Wetterdialog; Bereinigung bei Navigation, iframe-Neuladen und Entfernen; automatischer Start nach Inaktivität; Timer-Hinweise und direkt geöffnete Ansicht. Kein echter HA-Schreibzugriff. Zusätzlich bestehende DOM-/Timer-Prüfungen und den Aufgaben-/Foto-Browsertest ausführen. Die abschließende Prüfung auf dem Fire-Gerät erfolgt nach Installation des Updates.
+
+
+### Flackerfreie Fotos (0.11.2)
+
+Aktualisierungen von Uhr, Wetter, Kalender und Album ändern nur die betroffenen Texte und Attribute. Das sichtbare Foto bleibt sowohl in der App als auch in der HA-Vollbildfläche als dasselbe Bildelement montiert. Ein neues Foto wird vor dem Wechsel geladen; bei langsamen oder fehlerhaften Anfragen bleibt das bisherige Bild sichtbar. Überholte Ladeantworten dürfen kein neueres Foto überschreiben.
+
+`tests/saver-render.cjs` prüft Bildbeständigkeit, Vorladen, Wiederverwendung einer laufenden Anfrage, Fehler, verspätete Antworten und Beenden während des Ladens. `tests/browser-saver.js` prüft zusätzlich die Identität der tatsächlich sichtbaren Bildelemente nach Uhr-, Kalender-, Album- und Größenaktualisierungen im eingebetteten Bereich und in der HA-Vollbildfläche. Alle 16 DOM-/Timer-Prüfgruppen und der Vollbild-Browsertest bestanden. Das Verhalten auf dem physischen Fire-Tablet ist nach dem Update zu prüfen.

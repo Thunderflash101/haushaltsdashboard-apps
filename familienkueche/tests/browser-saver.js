@@ -38,6 +38,13 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  await page.setViewportSize({width:1280,height:800});await page.waitForTimeout(250);
  await page.waitForFunction(()=>{const img=document.querySelector('[data-family-saver-fullscreen]').shadowRoot.querySelector('.saver-photo');return img&&img.complete&&img.naturalWidth>0;});
  assert((await page.locator('[data-family-saver-fullscreen] .saver-photo').getAttribute('src')).startsWith(base+'api/saver/photos/'),'Mirrored photos retain correct ingress URL');
+ // Keep both actual image elements mounted through clocks and full data repaints.
+ await source.evaluate(()=>{window.stableSaverPhoto=document.querySelector('[data-saver-photo]');window.stableSaverSection=document.querySelector('.family-saver');});
+ await page.evaluate(()=>{window.stableMirrorPhoto=document.querySelector('[data-family-saver-fullscreen]').shadowRoot.querySelector('[data-saver-photo]');});
+ await page.clock.install();await page.clock.fastForward(61000);await checkSize();
+ await source.evaluate(()=>window.dispatchEvent(new Event('resize')));await page.clock.runFor(250);
+ assert(await source.evaluate(()=>window.stableSaverPhoto===document.querySelector('[data-saver-photo]')&&window.stableSaverPhoto.complete&&window.stableSaverSection===document.querySelector('.family-saver')),'Clock, calendar and album refreshes keep source image mounted');
+ assert(await page.evaluate(()=>window.stableMirrorPhoto===document.querySelector('[data-family-saver-fullscreen]').shadowRoot.querySelector('[data-saver-photo]')&&window.stableMirrorPhoto.complete),'Clock, calendar and album refreshes keep fullscreen image mounted');
  await source.evaluate(()=>document.querySelector('[data-clock]').textContent='12:34');await page.waitForFunction(()=>document.querySelector('[data-family-saver-fullscreen]').shadowRoot.querySelector('[data-clock]').textContent==='12:34');
  await page.screenshot({path:'/tmp/familienkueche-ruhemodus-vollbild.png'});
  await page.locator('[data-family-saver-fullscreen] .family-saver').click({position:{x:30,y:30}});await iframe.locator('.calendar').waitFor();assert.equal(await page.locator('[data-family-saver-fullscreen]').count(),0,'Tap fully removes host layer');assert.equal(await page.locator('header').innerText(),'Familienküche');
@@ -47,11 +54,11 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  await enter();await Promise.all([source.waitForNavigation(),source.evaluate(()=>location.reload())]);await iframe.locator('.calendar').waitFor();assert.equal(await page.locator('[data-family-saver-fullscreen]').count(),0,'Iframe reload cleans overlay');
  await iframe.locator('[data-action="settings"]').click();await iframe.locator('[name="idle"]').selectOption('60');await iframe.locator('#settings-form [type="submit"]').click();
  // Chromium clock runs the actual idle timer without a real minute-long pause.
- await page.clock.install();await source.evaluate(()=>document.dispatchEvent(new Event('touchstart',{bubbles:true})));await page.clock.fastForward(61000);await page.locator('[data-family-saver-fullscreen] .family-saver').waitFor();await checkSize();
+ await source.evaluate(()=>document.dispatchEvent(new Event('touchstart',{bubbles:true})));await page.clock.fastForward(61000);await page.locator('[data-family-saver-fullscreen] .family-saver').waitFor();await checkSize();
  await source.evaluate(()=>{var dock=document.querySelector('.timer-dock');dock.hidden=false;dock.classList.add('has-alarm');dock.innerHTML='<button data-action="wake">Timer fertig</button>';});await page.locator('[data-family-saver-fullscreen] .timer-dock button').getByText('Timer fertig').waitFor();
  await page.locator('[data-family-saver-fullscreen] .timer-dock button').click();await iframe.locator('.calendar').waitFor();assert.equal(await page.locator('[data-family-saver-fullscreen]').count(),0);
  await enter();await page.evaluate(()=>document.querySelector('#panel').shadowRoot.querySelector('iframe').remove());await page.clock.fastForward(1200);assert.equal(await page.locator('[data-family-saver-fullscreen]').count(),0,'Removed iframe cannot leave an orphan overlay');
  await page.clock.resume();await page.goto(base);await page.locator('[data-screen="saver"]').click();await page.waitForFunction(()=>{const r=document.querySelector('.family-saver').getBoundingClientRect();return r.x===0&&r.y===0&&r.width===innerWidth&&r.height===innerHeight;});await page.keyboard.press('Escape');await page.locator('.calendar').waitFor();
- assert.deepEqual(errors,[]);console.log('PASS: fullscreen over same-origin HA shadow/iframe, 1280×800/960×600/phone, photos, clock updates, tap/Escape/weather, route/reload/removal cleanup, automatic idle, timer dock and standalone. No HA writes.');
+ assert.deepEqual(errors,[]);console.log('PASS: fullscreen over same-origin HA shadow/iframe, 1280×800/960×600/phone, photos, stable backgrounds across clock/data refreshes, tap/Escape/weather, route/reload/removal cleanup, automatic idle, timer dock and standalone. No HA writes.');
  }finally{if(browser)await browser.close();server.kill('SIGTERM');}
 })().catch(e=>{console.error(e.stack);process.exitCode=1;});

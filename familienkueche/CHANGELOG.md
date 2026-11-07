@@ -1,3 +1,10 @@
+# 0.11.2
+
+- Flackern der Hintergrundfotos im Ruhemodus behoben: Bild und Ansicht bei Uhr-, Wetter-, Kalender- und Fotoalbum-Aktualisierungen nicht mehr vollständig entfernen und neu einsetzen.
+- Auch die Vollbildfläche über Home Assistant gezielt aktualisieren und das sichtbare Bild im Dokument behalten.
+- Nächstes Foto vorladen und erst nach erfolgreichem Laden einsetzen; während langsamer oder fehlgeschlagener Anfragen das bisherige Foto weiter anzeigen.
+- Verspätete Rückmeldungen überholter Foto-Wechsel ignorieren. Vollbild, Wetterdialog und Aufwachen bleiben erhalten.
+
 # 0.11.1
 
 - Ruhemodus ohne Außenabstände und abgerundeten Rahmen über die gesamte verfügbare Bildschirmfläche anzeigen.
