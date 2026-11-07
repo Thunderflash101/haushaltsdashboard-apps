@@ -2,7 +2,7 @@
 'use strict';
 window.createFamilyMeals=function(h){
 var plan={key:'',seq:0,loading:false,error:'',entries:[],revisions:{}},book={loaded:false,loading:false,error:'',seq:0,query:'',recipes:[]};
-var recommendations=window.createFamilySuggestions({api:h.api,esc:h.esc,icon:h.icon,btn:h.btn,uid:h.uid,fmt:h.fmt,plus:h.plus,weekdays:h.weekdays,week:h.week,today:h.today,selected:h.selected,select:h.select,modal:h.modal,toast:h.toast,repaint:h.repaint,photo:photo,entries:entries,revision:function(day){return plan.revisions[day];},ready:function(){return !plan.loading&&!plan.error;},refreshPlan:function(){loadPlan(true);}});
+var recommendations=window.createFamilySuggestions({api:h.api,esc:h.esc,icon:h.icon,btn:h.btn,uid:h.uid,fmt:h.fmt,plus:h.plus,weekdays:h.weekdays,week:h.week,today:h.today,selected:h.selected,select:h.select,modal:h.modal,close:h.close,toast:h.toast,repaint:h.repaint,photo:photo,entries:entries,revision:function(day){return plan.revisions[day];},ready:function(){return !plan.loading&&!plan.error;},refreshPlan:function(){loadPlan(true);}});
 function entries(day){return plan.entries.filter(function(e){return e.date===day;});}
 function forDay(day){var list=entries(day);if(!list.length)return null;var r=list[0].recipe;return {id:r?r.id:null,name:list.map(function(e){return e.title;}).join(' + '),short:list.map(function(e){return e.title;}).join(' + '),image:r?r.image:null,tag:'Abendessen aus Mealie'};}
 function emptyLabel(){return plan.loading?'Wird geladen …':plan.error?'Nicht verfügbar':'Noch offen';}

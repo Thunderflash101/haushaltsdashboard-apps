@@ -98,10 +98,12 @@ Favoriten werden höher gewichtet. Ein vorhandenes Mealie-Kochdatum und Essenspl
 
 Pro Suche werden bis zu 100 Rezepte über Home Assistant geladen, davon bis zu zwölf passende Vorschläge angezeigt. Das ist die Grenze des verfügbaren HA-Dienstes, keine vollständige Durchsuchung beliebig großer Sammlungen. Bei größeren Sammlungen die Suche verwenden. „Andere Ideen“ mischt die Reihenfolge innerhalb der Gewichtungen neu; Tag und Kalenderwoche sorgen ebenfalls für Abwechslung. Bei neuen Chefkoch-Imports ist die Tag-Übernahme durch Mealie eingeschaltet; ob passende Merkmale vorhanden sind, hängt von der Quelle ab.
 
-### Mit einem Tipp planen
+### Rezept einplanen
 
-Jeder Vorschlag bietet die sieben Wochentage der angezeigten Woche. Ein freier heutiger oder zukünftiger Tag lässt sich direkt antippen; dieser Klick speichert das Gericht als Abendessen in Mealie. Es gibt keinen zusätzlichen Bestätigungsdialog. Vergangene und bereits belegte Tage sind deaktiviert. Vorhandene Gerichte über die bestehende Funktion „Tauschen“ bearbeiten. Vor dem Schreiben prüft der Server den geladenen Tagesstand erneut. Doppelklicks und unklare Bestätigungen lösen keine automatische Wiederholung aus; bei Unsicherheit zuerst aktualisieren und den Stand in Mealie prüfen.
+Ab 0.8.1 zeigt jede Rezeptkarte einen kompakten **Einplanen**-Button. Er öffnet ein Pop-up mit den sieben Tagen der angezeigten Woche. Das Öffnen des Pop-ups verändert den Plan nicht. Ein freier heutiger oder zukünftiger Tag lässt sich darin antippen; diese Auswahl speichert das Gericht als Abendessen in Mealie. Nach bestätigtem Speichern schließt sich das Pop-up. Vergangene und bereits belegte Tage sind deaktiviert. Vorhandene Gerichte über die bestehende Funktion „Tauschen“ bearbeiten. Vor dem Schreiben prüft der Server den geladenen Tagesstand erneut. Doppelklicks und unklare Bestätigungen lösen keine automatische Wiederholung aus; bei Unsicherheit zuerst aktualisieren und den Stand in Mealie prüfen.
 
 Tests decken Metadaten, Zeitformate, die genaue 30-Minuten-Grenze, kombinierte Filter, Gewichtung, unvollständige Historie, Tageswahl und die Schreibschutzfälle ab. Rezeptmerkmale und ein vergangener Essensplan wurden erfolgreich aus der echten Mealie-Installation gelesen. Es wurden keine willkürlichen Rezepte als Favorit markiert und keine Testgerichte eingeplant. Chromium wurde lokal versucht, konnte in dieser Laufzeit jedoch nicht erfolgreich starten; Browserdarstellung und echtes Planen sind auf dem Tablet nach dem Update zu prüfen.
 
 Zusätzliche Prüfung: `NODE_PATH=<node_modules> node tests/suggestions-frontend.cjs`.
+
+Version 0.8.1 wurde mit DOM-Funktionsprüfungen für kompakte Karten, Pop-up-Auswahl, Öffnen ohne Schreibvorgang, Schutz belegter/vergangener Tage und Fehler-/Doppelklickverhalten geprüft. Tablet-Darstellung nach dem Update kontrollieren.

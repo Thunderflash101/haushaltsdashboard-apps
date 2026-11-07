@@ -1,3 +1,10 @@
+# 0.8.1
+
+- Wochentags-Schaltflächen von den Rezeptkarten entfernt.
+- Kompakter Einplanen-Button öffnet die Tagesauswahl als Pop-up.
+- Vergangene und belegte Tage bleiben geschützt; Öffnen des Pop-ups schreibt noch keinen Plan.
+- Pop-up schließt erst nach bestätigtem Speichern; Fehler bleiben darin sichtbar.
+
 # 0.8.0
 
 - Gemeinsame Mealie-Familienfavoriten anhand des Tags Familienfavorit bevorzugen und kennzeichnen.
