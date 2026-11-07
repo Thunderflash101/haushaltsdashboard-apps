@@ -12,6 +12,19 @@ function setup(){
  return {dom,w,d,reads,writes,notices,saver,input:()=>d.getElementById('family-photo-input')};
 }
 {
+ const t=setup();t.reads.shift().done(null,{photos:[]});
+ assert(!t.input().multiple,'Companion-compatible picker must request a single photo, not multiple/ClipData mode');
+ assert.equal(t.input().accept,'image/*','Use a native image filter rather than mixed extension/MIME filters');
+ const file={name:'Mein Foto.jpg',type:'image/jpeg',size:900};let value='selected-photo';
+ Object.defineProperty(t.input(),'files',{configurable:true,get:()=>value?[file]:[]});
+ Object.defineProperty(t.input(),'value',{configurable:true,get:()=>value,set:x=>value=x});
+ t.w.FileReader=class{readAsDataURL(f){assert.equal(value,'selected-photo','File selection must stay intact while the provider reads it');assert.strictEqual(f,file);this.result='data:image/jpeg;base64,PHOTO';this.onload();}};
+ t.saver.change(t.input());assert.equal(t.writes.length,1);assert.equal(value,'selected-photo');
+ t.writes.shift().done(null,{success:true});t.reads.shift().done(null,{photos:[]});
+ assert.equal(value,'selected-photo','Native filename remains visible after success');
+ assert(t.d.body.textContent.includes('Mein Foto.jpg'),'Selected filename is also visible in app feedback');t.dom.window.close();
+}
+{
  const t=setup(),original=t.input();t.reads.shift().done(null,{photos:[]});
  assert.strictEqual(t.input(),original,'Album refresh must preserve the native file input while the picker is open');
  Object.defineProperty(original,'files',{configurable:true,value:[{name:'Familie.JPG',type:'',size:800}]});
@@ -47,4 +60,9 @@ function setup(){
  timeout();assert(!t.input().disabled);assert(t.d.body.textContent.includes('rechtzeitig gelesen'));
  late();assert.equal(t.writes.length,0,'A late reader callback cannot send after timeout');t.dom.window.close();
 }
-console.log('PASS: stable file input, legacy event/MIME, persistent upload errors, synchronous provider failure, pending album read and read timeout.');
+{
+ const t=setup();t.reads.shift().done(null,{photos:[]});t.input().dispatchEvent(new t.w.Event('cancel'));
+ assert(t.d.body.textContent.includes('Keine Fotodatei übernommen'),'A cancelled or failed native handoff has visible feedback');
+ assert.equal(t.writes.length,0);assert(!t.input().disabled);t.dom.window.close();
+}
+console.log('PASS: single-photo picker, retained filename, empty handoff feedback, stable file input, legacy event/MIME, persistent upload errors, synchronous provider failure, pending album read and read timeout.');

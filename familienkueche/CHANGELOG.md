@@ -1,3 +1,12 @@
+# 0.10.2
+
+- Fotoauswahl im nativen Einzeldatei-Modus: umgeht die fehlerhafte Mehrfachauswahl-Rückgabe bestimmter Home-Assistant-Android-App-Versionen, die auch bei einem einzelnen Foto auftreten kann.
+- Einheitlicher Bildfilter für den Smartphone-Picker; Fotos können nacheinander zum gemeinsamen Album hinzugefügt werden.
+- Dateifeld nach der Auswahl nicht mehr automatisch leeren; ausgewählter Dateiname bleibt beim Lesen und nach dem Upload sichtbar.
+- Gewählten Dateinamen zusätzlich im Albumdialog anzeigen und eine leere oder abgebrochene Dateirückgabe sichtbar melden.
+- Foto-Dialog am sichtbaren Smartphone-Bildschirm ausrichten, damit Meldungen trotz breiter Tablet-Oberfläche vollständig erreichbar bleiben.
+- Browserprüfung um Smartphone-Ansicht mit nativer Einzeldateiauswahl, erhaltenem Dateinamen und sichtbaren Dialoggrenzen erweitert.
+
 # 0.10.1
 
 - Dateiauswahl bleibt beim Nachladen des Fotoalbums bestehen; eine bereits geöffnete native Auswahl verliert ihr Zielfeld nicht mehr.

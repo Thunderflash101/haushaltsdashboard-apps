@@ -184,3 +184,10 @@
 .family-saver .saver-cards{padding-top:0}
 .family-saver .saver-hint{color:inherit}
 .family-saver .saver-inner{flex:1}
+
+.photo-selected{font-size:14px;margin:12px 0;overflow-wrap:break-word}
+
+/* Keep dialogs within the visible phone viewport even when the tablet canvas is wider. */
+.overlay.fit-viewport .modal:not(.cooking-modal){max-height:100%}
+.overlay.compact-dialog .family-photo-grid article{width:calc(50% - 6px)}
+.overlay.compact-dialog .photo-upload{align-items:stretch}
