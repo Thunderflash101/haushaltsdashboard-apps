@@ -1,3 +1,12 @@
+# 0.9.0
+
+- Gemeinsame Wochen-Zutatenvorschau für alle geplanten Abendessen mit Rezept, Portionszahl, Herkunft und Vorratsauswahl.
+- Kompatible Mengen gleicher Lebensmittel bündeln; g/kg und ml/l umrechnen, unterschiedliche Einheitenarten und Zubereitungsangaben getrennt halten.
+- Geprüfte Wochenübernahme in die konfigurierte Einkaufsliste mit bestehender Konflikt- und Wiederholungssicherung.
+- Große Kochansicht mit Zutatenhaken, einzelnen Schritten und lokal gespeichertem Fortschritt.
+- Bis zu sechs Küchentimer mit Pause, Fortsetzen, Zurücksetzen, Ablaufanzeige und Signalton.
+- Timer über feste Endzeiten nach Browserpausen wiederherstellen; dauerhaft erreichbare Timeranzeige.
+
 # 0.8.1
 
 - Wochentags-Schaltflächen von den Rezeptkarten entfernt.

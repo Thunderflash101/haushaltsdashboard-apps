@@ -107,3 +107,29 @@ Tests decken Metadaten, Zeitformate, die genaue 30-Minuten-Grenze, kombinierte F
 Zusätzliche Prüfung: `NODE_PATH=<node_modules> node tests/suggestions-frontend.cjs`.
 
 Version 0.8.1 wurde mit DOM-Funktionsprüfungen für kompakte Karten, Pop-up-Auswahl, Öffnen ohne Schreibvorgang, Schutz belegter/vergangener Tage und Fehler-/Doppelklickverhalten geprüft. Tablet-Darstellung nach dem Update kontrollieren.
+
+## Wocheneinkauf und Mengen bündeln (ab 0.9.0)
+
+Im Essensplan **Wocheneinkauf** öffnen. Die Vorschau lädt alle mit Rezepten verknüpften Abendessen der ausgewählten Woche. Auch mehrere Gerichte pro Tag und dasselbe Rezept an mehreren Tagen werden jeweils berücksichtigt. Notizen wie „Auswärts“ bleiben sichtbar, liefern aber keine Zutaten. Derzeit gilt eine gemeinsame Portionszahl je Gericht; zunächst einstellen, anschließend Vorräte abwählen und die fertigen Einkaufstexte prüfen oder bearbeiten.
+
+Die Vorschau fasst zuverlässig erfasste Mengen gleicher Lebensmittel mit gleicher Zubereitungsangabe zusammen. Verwendet werden die Mealie-Lebensmittel-ID beziehungsweise bei fehlender ID der gleiche Lebensmittelname und die Einheit. Beispiele: 200 g plus 300 g Tomaten ergeben 500 g; 750 g plus 0,5 kg ergeben 1,25 kg. Gramm/Kilogramm sowie Milliliter/Liter sind umrechenbar. Gewicht und Volumen werden nicht vermischt; EL und TL werden nicht in Milliliter umgerechnet. Andere Einheiten werden nur bei gleicher Bezeichnung zusammengefasst. Unterschiedliche Hinweise wie „ganz“ und „gewürfelt“ bleiben getrennt. Mengen ohne verlässliche Original-Portionszahl bleiben als Freitext erhalten.
+
+Mehrfach vorkommender unstrukturierter Text wird ausdrücklich als „2 × …“ angezeigt und zur Prüfung markiert. Die Herkunft jeder Zeile lässt sich aufklappen. „Alles auswählen“ und „Alles abwählen“ erleichtern die Vorratsauswahl. Die Abwahl gilt für die aktuelle Vorschau und ist keine automatische Lagerverwaltung. Bei erneutem Anpassen der Portionszahl werden Auswahl und Textänderungen zurückgesetzt. Die Zielliste wird vor dem Übernehmen angezeigt; bestehende identische offene Einträge werden wie bisher übersprungen. Die berechnete Wochenmenge wird nicht mit bereits vorhandenen Artikeln der Bring-Liste addiert.
+
+Vor dem Schreiben werden Wochenplan, Rezeptzutaten und Zielzuordnung erneut geprüft; erkannte Änderungen erfordern eine neue Vorschau. Die bestehende Fortschritts-/Wiederholungssicherung gilt auch für den Wochenvorgang. Quellenzugriffe sind auf 21 geplante Gerichte, 14 verschiedene Rezepte, 500 Quellzutaten und 100 zusammengefasste Einkaufszeilen begrenzt. Größere Wochen können über einzelne Rezepte übertragen werden.
+
+## Große Kochansicht (ab 0.9.0)
+
+Im geplanten Gericht oder in der Rezeptdetailansicht **Kochen** wählen. Zutaten stehen groß und abhakbar links, rechts wird ein Zubereitungsschritt mit Zurück/Weiter und „Schritt erledigt“ angezeigt. „Vollbild“ fordert die entsprechende Browserfunktion an, sofern die Home-Assistant-Einbettung sie erlaubt. Die Kochansicht nutzt andernfalls die verfügbare Fläche. Der Bildschirm-Ruhemodus der Familienküche pausiert während offener Dialoge und aktiver/unbestätigter Timer; die Geräteeinstellungen zum Ausschalten des Displays bleiben maßgeblich.
+
+Zutatenhaken und Schrittfortschritt bleiben im Browser dieses Tablets gespeichert. Bei geänderten Rezeptzutaten oder Schritten wird der Fortschritt neu begonnen. Angezeigt werden die Original-Rezeptmengen und deren Portionsangabe; die Kochansicht verändert das Rezept nicht. Schrittmarkierungen sind kein Eintrag in Mealies Kochhistorie.
+
+## Küchentimer (ab 0.9.0)
+
+Bis zu sechs Timer mit Namen und 0,5 bis 1440 Minuten, außerdem Direktstarts für 5/10/15 Minuten. Timer können pausiert, fortgesetzt, zurückgesetzt und entfernt werden. Aktive Timer bleiben über eine kleine Anzeige auch nach Schließen der Kochansicht erreichbar. Bei Ablauf erscheinen eine sichtbare Meldung und – soweit vom Browser zugelassen und nach Start per Benutzeraktion – ein Signalton.
+
+Timer speichern feste Endzeitpunkte im lokalen Browserspeicher. Nach einer Browserpause oder erneutem Öffnen wird die verbleibende Zeit daraus berechnet; abgelaufene Timer bleiben bis zur Bestätigung sichtbar. Die JavaScript-Seite muss für einen pünktlichen Signalton laufen. Bei geschlossenem Browser oder suspendiertem Tablet wird kein zuverlässiger Hintergrundalarm ausgelöst; ein überschrittener Timer wird beim Zurückkehren angezeigt. Die Lautstärke am Tablet prüfen. Browserdaten löschen entfernt Timer und Kochfortschritt. Es gibt keine geräteübergreifende Timersynchronisierung.
+
+Die neuen Berechnungen und Abläufe wurden mit Backend- und DOM-Prüfungen getestet. Zusätzlich wurden Kochansicht und Wocheneinkauf mit Chromium/Playwright bei 1280×800 und 960×600 Pixeln geprüft, einschließlich Haken, Schrittwechsel, Timerstart, Vorratsauswahl und bearbeiteter Übergabe. Der Test verwendet Beispieldaten. Es wurden keine Testartikel in die echte Bring-Liste geschrieben; nach dem Update die Quellen, den Signalton und die Übernahme auf dem Fire-Tablet prüfen.
+
+Zusätzliche Prüfungen: `node tests/timers.cjs`, `node tests/cooking-frontend.cjs`, `node tests/weekly-frontend.cjs` mit verfügbarem jsdom. Die Browserprüfung `node tests/browser-kitchen.js` benötigt Playwright und Chromium; optional `FAMILY_PLAYWRIGHT_MODULE` und `FAMILY_CHROMIUM` an die lokale Installation anpassen.

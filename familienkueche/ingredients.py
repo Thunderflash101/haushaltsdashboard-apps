@@ -73,6 +73,58 @@ async def preview(request):
         return web.json_response({'error': 'Zutaten oder Einkaufsliste konnten nicht geladen werden. Bitte die Verbindung und die Portionszahl prüfen.'}, status=502)
 
 
+def saved_transfer(app, key, digest):
+    db = app['db']
+    old = db.execute('SELECT digest,status FROM submissions WHERE key=?', (key,)).fetchone()
+    if old:
+        if old[0] != digest:
+            return web.json_response({'error': 'Anfragekennung bereits verwendet.'}, status=409)
+        saved = db.execute('SELECT result FROM ingredient_receipts WHERE key=?', (key,)).fetchone()
+        receipt = json.loads(saved[0]) if saved else {}
+        if old[1] == 'done':
+            return web.json_response(receipt)
+        return web.json_response({**receipt, 'success': False, 'uncertain': True,
+            'error': 'Vorgang nicht vollständig bestätigt. Bitte die Einkaufsliste prüfen. Es wird nichts automatisch wiederholt.'}, status=409)
+    return None
+
+
+async def perform_transfer(app, key, digest, rows, current):
+    db = app['db']
+    receipt = {'success': False, 'added': 0, 'skipped': 0, 'remaining': len(rows), 'shoppingLabel': current['label']}
+    opened = {' '.join(x['name'].casefold().split()) for x in current['items'] if not x['done']}
+    db.execute('INSERT INTO submissions VALUES (?,?,?)', (key, digest, 'pending'))
+    db.execute('INSERT INTO ingredient_receipts VALUES (?,?)', (key, json.dumps(receipt)))
+    db.commit()
+    deadline = asyncio.get_running_loop().time() + 45
+    for row in rows:
+        text = row['text'].strip()
+        normalized = ' '.join(text.casefold().split())
+        if normalized in opened:
+            receipt['skipped'] += 1
+        else:
+            if asyncio.get_running_loop().time() >= deadline:
+                receipt.update(error='Ein Teil wurde übernommen. Die verbleibenden Zutaten wurden wegen Zeitüberschreitung nicht gesendet.', uncertain=True)
+                db.execute('UPDATE ingredient_receipts SET result=? WHERE key=?', (json.dumps(receipt), key))
+                db.commit()
+                return web.json_response(receipt, status=502)
+            try:
+                await asyncio.wait_for(app['ha'].service('todo', 'add_item', {'entity_id': app['shopping_entity'], 'item': text}, response=False), timeout=max(.01, min(15, deadline - asyncio.get_running_loop().time())))
+            except Exception:
+                receipt.update(uncertain=True, error='Eine Zutat wurde nicht sicher bestätigt. Bitte die Liste prüfen; weitere Zutaten wurden nicht gesendet.')
+                db.execute('UPDATE ingredient_receipts SET result=? WHERE key=?', (json.dumps(receipt), key))
+                db.commit()
+                return web.json_response(receipt, status=502)
+            receipt['added'] += 1
+            opened.add(normalized)
+        receipt['remaining'] -= 1
+        db.execute('UPDATE ingredient_receipts SET result=? WHERE key=?', (json.dumps(receipt), key))
+        db.commit()
+    receipt['success'] = True
+    db.execute('UPDATE ingredient_receipts SET result=? WHERE key=?', (json.dumps(receipt), key))
+    db.execute('UPDATE submissions SET status=? WHERE key=?', ('done', key))
+    db.commit()
+    return web.json_response(receipt)
+
 async def transfer(request):
     try:
         data = await request.json()
@@ -101,17 +153,9 @@ async def transfer(request):
     key = 'ingredients:' + key
     app = request.app
     async with app['write_lock']:
-        db = app['db']
-        old = db.execute('SELECT digest,status FROM submissions WHERE key=?', (key,)).fetchone()
-        if old:
-            if old[0] != digest:
-                return web.json_response({'error': 'Anfragekennung bereits verwendet.'}, status=409)
-            saved = db.execute('SELECT result FROM ingredient_receipts WHERE key=?', (key,)).fetchone()
-            receipt = json.loads(saved[0]) if saved else {}
-            if old[1] == 'done':
-                return web.json_response(receipt)
-            return web.json_response({**receipt, 'success': False, 'uncertain': True,
-                'error': 'Vorgang nicht vollständig bestätigt. Bitte die Einkaufsliste prüfen. Es wird nichts automatisch wiederholt.'}, status=409)
+        saved = saved_transfer(app, key, digest)
+        if saved is not None:
+            return saved
         try:
             recipe, current = await asyncio.wait_for(asyncio.gather(load_recipe(app, rid), read_list(app)), timeout=25)
         except Exception:
@@ -120,40 +164,7 @@ async def transfer(request):
             return web.json_response({'error': 'Die gewählte Liste erlaubt keine neuen Artikel.'}, status=403)
         if recipe_revision(recipe) != revision or any(row['index'] >= len(recipe.get('ingredients') or []) for row in rows):
             return web.json_response({'error': 'Das Rezept wurde inzwischen geändert. Bitte die Zutatenvorschau neu öffnen.', 'conflict': True}, status=409)
-        receipt = {'success': False, 'added': 0, 'skipped': 0, 'remaining': len(rows), 'shoppingLabel': current['label']}
-        opened = {' '.join(x['name'].casefold().split()) for x in current['items'] if not x['done']}
-        db.execute('INSERT INTO submissions VALUES (?,?,?)', (key, digest, 'pending'))
-        db.execute('INSERT INTO ingredient_receipts VALUES (?,?)', (key, json.dumps(receipt)))
-        db.commit()
-        deadline = asyncio.get_running_loop().time() + 45
-        for row in rows:
-            text = row['text'].strip()
-            normalized = ' '.join(text.casefold().split())
-            if normalized in opened:
-                receipt['skipped'] += 1
-            else:
-                if asyncio.get_running_loop().time() >= deadline:
-                    receipt.update(error='Ein Teil wurde übernommen. Die verbleibenden Zutaten wurden wegen Zeitüberschreitung nicht gesendet.', uncertain=True)
-                    db.execute('UPDATE ingredient_receipts SET result=? WHERE key=?', (json.dumps(receipt), key))
-                    db.commit()
-                    return web.json_response(receipt, status=502)
-                try:
-                    await asyncio.wait_for(app['ha'].service('todo', 'add_item', {'entity_id': app['shopping_entity'], 'item': text}, response=False), timeout=max(.01, min(15, deadline - asyncio.get_running_loop().time())))
-                except Exception:
-                    receipt.update(uncertain=True, error='Eine Zutat wurde nicht sicher bestätigt. Bitte die Liste prüfen; weitere Zutaten wurden nicht gesendet.')
-                    db.execute('UPDATE ingredient_receipts SET result=? WHERE key=?', (json.dumps(receipt), key))
-                    db.commit()
-                    return web.json_response(receipt, status=502)
-                receipt['added'] += 1
-                opened.add(normalized)
-            receipt['remaining'] -= 1
-            db.execute('UPDATE ingredient_receipts SET result=? WHERE key=?', (json.dumps(receipt), key))
-            db.commit()
-        receipt['success'] = True
-        db.execute('UPDATE ingredient_receipts SET result=? WHERE key=?', (json.dumps(receipt), key))
-        db.execute('UPDATE submissions SET status=? WHERE key=?', ('done', key))
-        db.commit()
-    return web.json_response(receipt)
+        return await perform_transfer(app, key, digest, rows, current)
 
 
 def setup(app):
