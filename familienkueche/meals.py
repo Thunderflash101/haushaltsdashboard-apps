@@ -8,6 +8,7 @@ from urllib.parse import urlsplit, urlunsplit
 from uuid import UUID
 
 from aiohttp import ClientError, web
+from recipe_meta import metadata
 
 DEFAULT_ENTRY = ''
 DEFAULT_IMAGE_BASE = 'http://a0d7b954-mealie:9001'
@@ -23,7 +24,7 @@ def recipe_summary(raw):
             'description': str(raw.get('description') or ''),
             'time': str(raw.get('total_time') or raw.get('prep_time') or ''),
             'servings': raw.get('recipe_servings'),
-            'image': 'api/recipes/' + rid + '/image' if raw.get('image') else None}
+            'image': 'api/recipes/' + rid + '/image' if raw.get('image') else None, **metadata(raw)}
 
 
 def recipe_details(raw):
@@ -118,6 +119,7 @@ async def get_recipes(request):
     try:
         result = await service(request.app, 'get_recipes', {'search_terms': query, 'result_limit': 40})
         recipes = [recipe_summary(r) for r in result['recipes']['items']]
+        recipes.sort(key=lambda r: (not r['favorite'], r['name'].casefold()))
         remember(request.app, recipes)
         return web.json_response({'recipes': recipes, 'limit': 40})
     except Exception:
@@ -170,7 +172,7 @@ async def meal_write(request):
         if not re.fullmatch(r'[a-zA-Z0-9-]{16,100}', key):
             raise ValueError('Ungültige Anfragekennung.')
         if action == 'import':
-            payload = {'url': chefkoch_url(data['url']), 'include_tags': False}
+            payload = {'url': chefkoch_url(data['url']), 'include_tags': True}
         elif action in ('plan', 'remove'):
             stamp = date.fromisoformat(data['date'])
             payload = {'date': stamp.isoformat(), 'entry_type': 'dinner'}

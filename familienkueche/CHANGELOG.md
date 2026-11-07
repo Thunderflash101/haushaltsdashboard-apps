@@ -1,3 +1,12 @@
+# 0.8.0
+
+- Gemeinsame Mealie-Familienfavoriten anhand des Tags Familienfavorit bevorzugen und kennzeichnen.
+- Kombinierbare Vorschlagsfilter: Favoriten, vegetarisch und unter 30 Minuten; unbekannte Merkmale transparent anzeigen.
+- Kochdaten, letzte 28 Tage Essensplan und bereits geplante Gerichte für mehr Abwechslung berücksichtigen.
+- Vorschläge mit einem Tipp einem freien Wochentag als Abendessen zuordnen; belegte und vergangene Tage schützen.
+- Suche in bis zu 100 Rezepten, bis zu zwölf gewichtete Vorschläge und Andere-Ideen-Funktion.
+- Neue Chefkoch-Imports mit Tag-Übernahme durch Mealie.
+
 # 0.7.1
 
 - Listenansicht zeigt laufende und kommende Termine der ausgewählten Woche; vergangene Geburtstage und abgeschlossene Termine entfallen.
