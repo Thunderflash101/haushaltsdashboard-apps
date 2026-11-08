@@ -120,6 +120,49 @@ class FamilyTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(saved['id'], current['id'])
             self.assertTrue(saved['steps'][0]['done'])
 
+    async def test_multiple_assignees_shared_progress_and_legacy_edit(self):
+        data = self.task()
+        data['assignees'] = ['joern', 'tina']
+        self.assertEqual((await self.write(dict(action='create', item=data)))[0], 200)
+        item = (await self.items())[0]
+        self.assertEqual(item['assignees'], ['tina', 'joern'])
+        self.assertEqual(item['person'], 'alle')
+        self.assertEqual(len(await self.items()), 1)
+        self.assertEqual((await self.mark(item))[0], 200)
+        item = (await self.items())[0]
+        self.assertTrue(item['done'])
+        old_client = dict(item)
+        del old_client['assignees']
+        old_client['title'] = 'Gemeinsam ausräumen'
+        self.assertEqual((await self.write(dict(action='edit', id=item['id'], revision=item['revision'], item=old_client)))[0], 200)
+        saved = (await self.items())[0]
+        self.assertEqual(saved['assignees'], ['tina', 'joern'])
+        self.assertTrue(saved['done'])
+        self.app['ha'].request.assert_not_called()
+
+    async def test_legacy_records_and_reassignment_preserve_routine_steps(self):
+        old = definition(self.routine())
+        del old['assignees']
+        self.app['db'].execute('INSERT INTO family_items VALUES (?, ?, 1, ?)', ('legacy', json.dumps(old), '2026'))
+        self.app['db'].commit()
+        item = (await self.items())[0]
+        self.assertEqual(item['assignees'], ['felix'])
+        await self.mark(item, step=item['steps'][0]['id'])
+        item = (await self.items())[0]
+        edited = dict(item, assignees=['tina', 'felix'])
+        self.assertEqual((await self.write(dict(action='edit', id=item['id'], revision=item['revision'], item=edited)))[0], 200)
+        saved = (await self.items())[0]
+        self.assertEqual(saved['assignees'], ['tina', 'felix'])
+        self.assertTrue(saved['steps'][0]['done'])
+        self.assertEqual(saved['steps'][0]['id'], item['steps'][0]['id'])
+
+    async def test_assignee_validation(self):
+        for assigned in [[], 'tina', ['tina', 'tina'], ['alle', 'tina'], ['stranger'], [True], [{}], ['tina', 'joern', 'felix', 'alle']]:
+            with self.assertRaises(ValueError):
+                definition(dict(self.task(), assignees=assigned))
+        self.assertEqual(definition(dict(self.task(), assignees=['alle']))['assignees'], ['alle'])
+        self.assertEqual(definition(dict(self.task(), assignees=['tina', 'joern', 'felix']))['assignees'], ['tina', 'joern', 'felix'])
+
     async def test_validation_limits(self):
         for change in [dict(title=' '), dict(person='other'), dict(icon='javascript:bad'), dict(weekdays=[True]), dict(weekdays=[0, 0]), dict(startDate='2026-13-99')]:
             with self.assertRaises(ValueError):

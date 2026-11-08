@@ -1,3 +1,11 @@
+# 0.13.0
+
+- Mehrere Personen über ihre Bilder gleichzeitig als Verantwortliche für Aufgaben und Routinen auswählen; Familie weist den Eintrag allen zu.
+- Auch die Aufgaben-/Routinenansicht nach mehreren ausgewählten Personen filtern. Familie zeigt wieder alles.
+- Zugewiesene Bilder und Namen gemeinsam anzeigen. Ein Eintrag bleibt eine gemeinsame Aufgabe mit gemeinsamem Fortschritt, ohne Duplikate je Person.
+- Vorhandene Einzel-/Familienzuweisungen weiter unterstützen. Mehrfachzuweisungen beim Bearbeiten erhalten, auch wenn ein älterer geöffneter Client die neue Personenliste noch nicht kennt.
+- Jörns Termine erhalten „In Google Kalender bearbeiten“: öffnet Google Kalender am Tag des Termins zum Auswählen und Bearbeiten. Direktes Ändern in der Familienküche wird von der aktuellen Google-Anbindung in Home Assistant nicht unterstützt.
+
 # 0.12.2
 
 - Falsche Wettersymbole behoben: bisher wurden außer Sonne und klarer Nacht alle Zustände als einfache Wolke dargestellt.

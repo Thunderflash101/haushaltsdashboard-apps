@@ -304,3 +304,26 @@ Alle 17 DOM-/Timer-Prüfgruppen erfolgreich. Erweiterte Aufgaben- und Profilprü
 Alle 15 standardmäßigen Home-Assistant-Wetterzustände erhalten eine eigene SVG-Zeichnung. Regen zeigt Tropfen, Nebel horizontale Nebelstreifen, Schnee Schneeflocken, Gewitter einen Blitz und Wind Windlinien. Text und Symbol werden aus demselben Eintrag erzeugt. Kopfbereich, Wetterdialog und Tagesvorhersage sowie der Ruhemodus verwenden dieselbe Zuordnung. Unbekannte Zustände zeigen ein neutrales Fragezeichen mit „Wetterlage nicht angegeben“. Temperaturwerte, Wetterquelle und Aktualisierungsintervalle bleiben unverändert.
 
 Alle17 DOM-/Timer-Prüfgruppen erfolgreich. Der Wettertest prüft insbesondere die gemeldete Folge Bewölkt/Regen/Nebel/Nebel/Regen, übereinstimmende Symbole und Texte für alle15 Zustände sowie unbekannte und ungültige Angaben. `tests/browser-weather.js` prüft diese Vorhersage, Kopfbereich, aktuelle Wetteränderungen, Nebel im Ruhemodus und Gewitter mit Regen bei1280×800/960×600 mit lokal simulierten Wetterdaten. Keine realen HA-Daten verändert. Auf dem physischen Fire nach Update noch zu prüfen.
+
+
+## Mehrere Personen für Aufgaben und Routinen (0.13.0)
+
+Sowohl im Aufgaben-/Routinenfilter als auch unter **Für wen?** können mehrere Bilder markiert werden, zum Beispiel Tina und Jörn. Ein weiterer Tipp nimmt eine Person aus der Auswahl. Mindestens eine Auswahl bleibt bestehen. **Familie** setzt die Auswahl auf die ganze Familie; ein anschließender Tipp auf eine einzelne Person beginnt wieder mit dieser Person.
+
+Im Filter erscheinen Einträge für mindestens eine der gewählten Personen. An Familie zugewiesene Aufgaben erscheinen auch in den persönlichen Ansichten. Die neue Aufgabe übernimmt zunächst die gewählte Filtergruppe; Felix-Vorlagen bleiben zunächst Felix zugeordnet. Im Formular werden alle gewählten Verantwortlichen gespeichert. Die Einträge zeigen deren Bilder und Namen.
+
+Mehrere Verantwortliche erzeugen **einen gemeinsamen Eintrag mit einem gemeinsamen Häkchen beziehungsweise Routinefortschritt**. Es werden keine Kopien je Person und keine getrennten Erledigungsstände erzeugt. Beim Abhaken sehen alle ausgewählten Personen denselben Fortschritt. Alte Einzel-/Familienzuweisungen bleiben erhalten; unveränderte Routine-Schritte behalten ihre bisherigen Häkchen.
+
+Technisch wird neben dem bisherigen kompatiblen Einzelwert `person` eine validierte Liste `assignees` gespeichert. Alte Datensätze erhalten die Liste beim Lesen aus der bisherigen Zuordnung. Ein älterer geöffneter Client, der nur denselben bisherigen Einzelwert zurücksendet, entfernt eine bereits vorhandene Gruppe nicht versehentlich. Daten bleiben zentral in derselben App-Datenbank.
+
+## Jörns Kalender bearbeiten
+
+In Jörns Termindetails gibt es **In Google Kalender bearbeiten**. Der Link öffnet Google Kalender am Tag des angeklickten Termins. Dort den Termin auswählen und bearbeiten; eine Google-Anmeldung kann dafür notwendig sein. Der Link ist ein Tageszugang und öffnet nicht garantiert bereits den einzelnen Termin. Änderungen werden anschließend wie bisher aus Home Assistant nachgelesen.
+
+Bei der Prüfung der bestehenden Anbindung meldete Jörns Kalender die Funktionen Anlegen und Löschen, jedoch keine direkte Aktualisierung vorhandener Termine (`supported_features = 3`). Deshalb ist das Bearbeiten **innerhalb der Familienküche** mit dieser Anbindung nicht freigeschaltet. Ein echter eingebauter Editor würde eine zusätzliche Google-Anbindung mit gesonderter Anmeldung benötigen. Es wird kein Ändern durch Löschen und Neuanlegen simuliert. Tinas importierter Kalender und andere importierte Quellen bleiben hier lesbar.
+
+### Prüfung 0.13.0
+
+70 Python-Backendtests und17 DOM-/Timer-Prüfgruppen erfolgreich. Neue Backendfälle prüfen mehrere Verantwortliche, ungültige/duplizierte Auswahlen, alte Datensätze und Clients, gemeinsame Häkchen sowie unveränderten Routinefortschritt. Erweiterte DOM-Prüfungen prüfen Mehrfachzuweisung, Mehrfachfilter, Entwurfserhalt, Bilder, individuelle Ansichten und den auf Jörns Termine begrenzten Google-Bearbeitungslink.
+
+Der erweiterte lokale Browser-Test `tests/browser-family-pickers.js` prüft Aufgaben mit Tina/Jörn, gemeinsame bestätigte Erledigung, Bearbeiten und spätere Neuzuordnung, Filter mit mehreren Bildern, Routinen, Profilaktualisierung ohne Verlust der Auswahl, grafische Auswahl bei1280×800/960×600 und schmale Dialoge sowie Ziel und Sicherheitseigenschaften des Google-Links. Kein echter Google-Termin und keine produktive Aufgabe wurde zum Test verändert; die Browser-Prüfung verwendet eine temporäre lokale Datenbank. In echtem HA wurden ausschließlich Kalenderfähigkeiten und verfügbare Aktionen gelesen. Physisches Fire nach dem Update noch zu prüfen.

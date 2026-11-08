@@ -31,12 +31,26 @@ def text(value, limit):
     return value.strip()
 
 
+def assignees(data):
+    return data.get('assignees', [data.get('person', 'alle')])
+
+
 def definition(data, previous=None):
     if not isinstance(data, dict):
         raise ValueError('Ungültige Aufgabe.')
     kind = data.get('kind')
     if kind not in ('task', 'routine') or data.get('person') not in PEOPLE or data.get('icon') not in ICONS:
         raise ValueError('Bitte Art, Person und Symbol wählen.')
+    assigned = assignees(data)
+    # Older open clients do not know the list: preserve an existing group if
+    # they submit the same legacy person rather than silently dropping members.
+    if 'assignees' not in data and previous and data['person'] == previous['person']:
+        assigned = assignees(previous)
+    if (not isinstance(assigned, list) or not 1 <= len(assigned) <= 3
+            or any(not isinstance(p, str) or p not in PEOPLE for p in assigned)
+            or len(set(assigned)) != len(assigned) or ('alle' in assigned and len(assigned) != 1)):
+        raise ValueError('Bitte mindestens eine Person oder Familie wählen.')
+    assigned = [p for p in PEOPLE if p in assigned]
     if previous and previous['kind'] != kind:
         raise ValueError('Die Art kann nachträglich nicht geändert werden.')
     start_value = data.get('startDate')
@@ -50,7 +64,8 @@ def definition(data, previous=None):
         raise ValueError('Bitte gültige Wochentage wählen.')
     if kind == 'routine' and not days:
         raise ValueError('Für eine Routine mindestens einen Wochentag wählen.')
-    result = dict(kind=kind, title=text(data.get('title'), 100), person=data['person'],
+    result = dict(kind=kind, title=text(data.get('title'), 100),
+                  person=assigned[0] if len(assigned) == 1 else 'alle', assignees=assigned,
                   icon=data['icon'], startDate=start, weekdays=sorted(days), steps=[])
     if kind == 'routine':
         steps = data.get('steps')
@@ -96,7 +111,7 @@ def snapshot(app, day):
         active = scheduled(item, day)
         steps = [dict(s, done=s['id'] in checked) for s in item['steps']]
         done = all(s['done'] for s in steps) if steps else 'task' in checked
-        result.append(dict(item, id=ident, revision=revision, steps=steps, active=active,
+        result.append(dict(item, assignees=assignees(item), id=ident, revision=revision, steps=steps, active=active,
                            done=done, progressRevision=stamp))
     return dict(items=result, date=day.isoformat(), today=today().isoformat(), timezone='Europe/Berlin')
 
