@@ -54,7 +54,14 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  await page.locator('#overlay [data-action="close"]').first().click();await page.locator('[data-action="meal-ai-open"]').click();await page.locator('.ai-results').waitFor();assert.equal(paid,1);
  await page.locator('#overlay [data-action="close"]').first().click();await page.reload();await page.locator('[data-screen="meals"]').click();await page.locator('[data-action="meal-ai-open"]').click();await page.locator('.ai-recipe').waitFor();assert.equal(paid,1);
  fail=true;await page.locator('#ai-offers').fill('Andere Angebote Tomaten');await page.locator('#ai-image').setInputFiles({name:'prospekt.png',mimeType:'image/png',buffer:file});await page.getByText('prospekt.png · Bereit.',{exact:false}).waitFor();await page.locator('[name="confirm"]').check();await page.locator('#meal-ai-form [type="submit"]').click();await page.getByText('Keine vollständige KI-Antwort.',{exact:false}).waitFor();assert.equal(paid,2);assert(await page.locator('#meal-ai-form [type="submit"]').isDisabled());
- await page.locator('#overlay [data-action="meal-ai-open"]').click();await page.locator('.ai-recipe').waitFor();assert.equal(paid,2);assert.equal(imports,0);assert.deepEqual(errors,[]);
- console.log('PASS: disabled/missing-key states; free HA offers import including meat, failure preserves draft; no vegetarian restriction or automatic paid calls; native single-image picker; explicit consent; saved results; escaped model text; import preview; no uncertain retry; tablet layouts 1280×800 and 960×600. Only local mocked services.');
+ await page.locator('#overlay [data-action="meal-ai-open"]').click();await page.locator('.ai-recipe').waitFor();assert.equal(paid,2);assert.equal(imports,0);
+ status.result={...status.result,recipes:[],offers:['Brokkoli'],warnings:['Nur Produktnamen vorhanden; keine verifizierten Preise.','Keine Originalrezepte gefunden.']};
+ await page.locator('#overlay [data-action="close"]').first().click();await page.locator('[data-action="meal-ai-open"]').click();await page.locator('[data-action="meal-ai-searches"]').waitFor();
+ assert(await page.locator('.ai-results details').nth(1).evaluate(x=>!x.open));
+ await page.locator('[data-action="meal-ai-searches"]').click();await page.locator('[data-ai-searches] a').first().waitFor();
+ assert.equal(await page.locator('[data-ai-searches] a').count(),2);
+ assert.equal(await page.locator('[data-ai-searches] a').first().getAttribute('href'),'https://www.chefkoch.de/rs/s0/brokkoli/Rezepte.html');
+ assert.equal(await page.locator('[data-ai-searches] [data-action="meal-ai-import"]').count(),0);assert.equal(paid,2);assert.equal(imports,0);assert.deepEqual(errors,[]);
+ console.log('PASS: disabled/missing-key states; free HA offers import including meat, failure preserves draft; no vegetarian restriction or automatic paid calls; native single-image picker; explicit consent; saved results; escaped model text; import preview; no uncertain retry; empty-result warnings collapsed and free Chefkoch ingredient searches; tablet layouts 1280×800 and 960×600. Only local mocked services.');
  }finally{if(browser)await browser.close();server.kill('SIGTERM');}
 })().catch(e=>{console.error(e.stack);process.exitCode=1;});

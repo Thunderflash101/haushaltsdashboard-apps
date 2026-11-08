@@ -8,7 +8,8 @@ var r=data.result;if(!r)return '<p class="muted">Noch kein Probelauf gespeichert
 var expired=r.end<h.today(),html='<section class="ai-results"><h3>Zuletzt gefunden</h3><p class="source-label">'+h.esc(r.shop)+' · Angebote '+h.esc(h.fmt(r.start))+' – '+h.esc(h.fmt(r.end))+'</p>';
 if(expired)html+='<p class="notice">Dieser Angebotszeitraum ist vorbei. Die Rezepte bleiben verwendbar.</p>';
 html+='<details><summary>Erkannte Angebote prüfen</summary><ul>'+r.offers.map(function(x){return '<li>'+h.esc(x)+'</li>';}).join('')+'</ul></details><p class="source-label">KI-Auswertung: Preise, Mengen, Kochzeiten und Zutaten bitte am Original prüfen.</p>';
-(r.warnings||[]).forEach(function(x){html+='<p class="notice">'+h.esc(x)+'</p>';});
+if((r.warnings||[]).length){html+='<details><summary>Hinweise zur Suche ('+r.warnings.length+')</summary>';r.warnings.forEach(function(x){html+='<p class="notice">'+h.esc(x)+'</p>';});html+='</details>';}
+if(!r.recipes.length)html+='<p class="notice">Keine direkt importierbaren Rezepte gefunden. Ihr könnt zu den aktuellen Aldi-Lebensmitteln passende Chefkoch-Suchlisten öffnen. Dort die Gesamtzeit prüfen und einen Rezeptlink zum Import auswählen.</p><div data-ai-searches>'+h.btn('meal-ai-searches','Chefkoch-Suchen zu aktuellen Aldi-Zutaten anzeigen','sage')+'</div>';
 html+='<div class="ai-recipe-grid">';r.recipes.forEach(function(x){html+='<article class="ai-recipe"><h3>'+h.esc(x.title)+'</h3><span class="recipe-mark">'+h.esc(x.minutes)+' Min.</span><p>'+h.esc(x.reason)+'</p><p class="source-label">Passend: '+h.esc(x.matches.join(', '))+'</p><div class="row wrap"><a class="link" href="'+h.esc(x.url)+'" target="_blank" rel="noopener noreferrer">Originalrezept ↗</a>'+h.btn('meal-ai-import','In Mealie übernehmen','sage','data-url="'+h.esc(x.url)+'"')+'</div></article>';});
 html+='</div><p class="source-label">Das verfügbare Rezeptfoto erscheint nach dem Import in eurer Sammlung. Von dort könnt ihr einplanen und Zutaten nach Bring übernehmen.</p>';
 if(data.usage)html+='<p class="source-label">Letzter Lauf: '+h.esc(data.usage.input_tokens||0)+' Eingabetokens · '+h.esc(data.usage.output_tokens||0)+' Ausgabetokens · '+h.esc(data.usage.search_calls||0)+' Suchaufrufe. Verbindliche Kosten stehen im OpenAI-Projekt.</p>';
@@ -49,7 +50,16 @@ h.api('GET','api/meal-ai/offers?window='+encodeURIComponent(b.getAttribute('data
  var label=f.querySelector('[data-ai-image-status]');label.textContent='Aldi-Lebensmittel geladen. Es wird kein Bild gesendet.';
 });
 }
+function searches(b){
+var slot=b.parentNode;if(slot.getAttribute('data-loading'))return;slot.setAttribute('data-loading','true');b.disabled=true;
+h.api('GET','api/meal-ai/offers?window=current',null,null,function(err,data){
+ if(!document.contains(slot))return;slot.removeAttribute('data-loading');b.disabled=false;
+ if(err){slot.innerHTML='<p class="notice">'+h.esc(err.error)+'</p>'+h.btn('meal-ai-searches','Erneut laden');return;}
+ var names=(data.products||[]).slice(0,5);if(!names.length){slot.innerHTML='<p class="notice">Keine aktuellen Aldi-Lebensmittel verfügbar. Ihr könnt im Formular eigene Zutaten eintragen.</p>';return;}
+ slot.innerHTML='<p class="source-label">Chefkoch-Suchlisten · keine KI-Anfrage · noch keine geprüften Einzelrezepte</p><div class="stack">'+names.map(function(name){return '<a class="link" href="https://www.chefkoch.de/rs/s0/'+encodeURIComponent(name.toLowerCase().replace(/\s+/g,'+'))+'/Rezepte.html" target="_blank" rel="noopener noreferrer">Rezepte mit '+h.esc(name)+' suchen ↗</a>';}).join('')+'</div>';
+});
+}
 function submit(f){if(f.id!=='meal-ai-form')return false;if(busy||f._aiPreparing||f._aiOffersLoading)return true;var el=f.elements,payload={shop:el.shop.value,start:el.start.value,end:el.end.value,offers:el.offers.value.trim(),image:f._aiImage||'',vegetarian:false,confirm:el.confirm.checked};if(!payload.image&&payload.offers.length<10){f.querySelector('.error').textContent='Bitte eine Prospektseite oder mindestens 10 Zeichen Angebotstext hinzufügen.';return true;}busy=true;var key='ai-'+h.uid()+'-'+h.uid();Array.prototype.forEach.call(f.querySelectorAll('input,textarea,select,button'),function(x){x.disabled=true;});f.querySelector('.error').textContent='Neue Rezeptideen werden gesucht …';h.api('POST','api/meal-ai/trial',payload,key,function(err,data){busy=false;if(err){if(document.contains(f))f.querySelector('.error').textContent=err.error+' Bitte „Ergebnisse laden“ verwenden.';else h.toast(err.error);return;}state=data;if(document.contains(f)){var root=document.getElementById('meal-ai-dialog');root.innerHTML='<p class="notice">'+(data.cached?'Gespeicherte Ergebnisse geladen – keine neue KI-Anfrage.':'Probelauf abgeschlossen.')+'</p>'+results(data)+h.btn('meal-ai-open','Zurück zum Probelauf');root.parentNode.scrollTop=0;}else h.toast('Die neuen Rezeptideen sind gespeichert.');});return true;}
-return {open:open,submit:submit,action:function(a,b){if(a==='meal-ai-open')open();else if(a==='meal-ai-offers')loadOffers(b);else if(a==='meal-ai-import')h.importRecipe(b.getAttribute('data-url'));else return false;return true;}};
+return {open:open,submit:submit,action:function(a,b){if(a==='meal-ai-open')open();else if(a==='meal-ai-offers')loadOffers(b);else if(a==='meal-ai-searches')searches(b);else if(a==='meal-ai-import')h.importRecipe(b.getAttribute('data-url'));else return false;return true;}};
 };
 })();

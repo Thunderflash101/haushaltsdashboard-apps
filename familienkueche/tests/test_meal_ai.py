@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+import hashlib
 import json
 import tempfile
 import unittest
@@ -10,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 from aiohttp.test_utils import make_mocked_request
 from PIL import Image
-from meal_ai import get_offers, get_status, ingredient_offers, payload, read_key, result_from_response, trial, validate
+from meal_ai import get_offers, get_status, ingredient_offers, payload, read_key, recipe_url, result_from_response, trial, validate
 from server import TZ, make_app
 
 URL = 'https://www.chefkoch.de/rezepte/123456789/Brokkoli-Pasta.html'
@@ -32,6 +33,25 @@ def response():
 
 
 class MealAIValidation(unittest.TestCase):
+    def test_real_recipe_tracking_unicode_and_visited_pages(self):
+        tracked = URL+'?utm_source=search#zutaten'
+        self.assertEqual(recipe_url(tracked), URL)
+        self.assertEqual(recipe_url(URL.replace('https:', 'http:')), URL)
+        self.assertEqual(recipe_url('https://chefkoch.de/rezepte/123/Käse.html'),
+                         'https://www.chefkoch.de/rezepte/123/K%C3%A4se.html')
+        for bad in ['https://chefkoch.de.evil/rezepte/123/Pasta.html', 'https://user@chefkoch.de/rezepte/123/Pasta.html',
+                    'https://www.chefkoch.de/rs/s0/brokkoli/Rezepte.html', 'https://www.chefkoch.de/rezepte/123/%2Fprivate.html']:
+            self.assertIsNone(recipe_url(bad))
+        raw = response()
+        content = json.loads(raw['output'][1]['content'][0]['text'])
+        content['recipes'][0]['url'] = tracked
+        raw['output'][1]['content'][0]['text'] = json.dumps(content)
+        raw['output'][0]['action'] = {'type': 'open_page', 'url': URL+'?ref=search'}
+        result = result_from_response(raw, data())
+        self.assertEqual(result['recipes'][0]['url'], URL)
+        raw['output'][0]['action'] = {'type': 'search', 'sources': [{'url': URL+'?ref=search'}]}
+        self.assertEqual(result_from_response(raw, data())['recipes'][0]['url'], URL)
+
     def test_aldi_names_filter_and_unreliable_prices_not_forwarded(self):
         raw = {'state': '10', 'attributes': {'valid_until': '14.11.', 'discounts': [
             {'product': '', 'price': '9.11', 'category': 'Manual'},
@@ -94,6 +114,25 @@ class MealAIValidation(unittest.TestCase):
 
 
 class MealAIApi(unittest.IsolatedAsyncioTestCase):
+    async def test_names_only_and_legacy_empty_cache_can_be_researched(self):
+        body = {**data(), 'offers': 'Brokkoli\nRinderhackfleisch', 'vegetarian': False}
+        legacy_digest = hashlib.sha256(json.dumps([validate(body), self.app['meal_ai_model']], sort_keys=True).encode()).hexdigest()
+        self.app['db'].execute('INSERT INTO meal_ai_runs VALUES (?, ?, ?, ?, ?, ?, ?)',
+             ('ai-legacy-1234567890123456', legacy_digest, datetime.now(TZ).strftime('%Y-%m'), 'done',
+              datetime.now(TZ).isoformat(), json.dumps({'recipes': [], 'offers': [], 'warnings': []}), '{}'))
+        self.app['db'].commit()
+        out = await trial(self.request(body))
+        self.assertEqual(out.status, 200)
+        result = json.loads(out.text)
+        self.assertFalse(result['cached']); self.assertEqual(len(result['result']['recipes']), 1)
+        sent = self.app['meal_ai_call'].call_args.args[1]
+        self.assertEqual(sent['tool_choice'], 'required')
+        self.assertEqual(sent['tools'][0]['search_context_size'], 'medium')
+        self.assertEqual(json.loads(sent['input'][0]['content'][0]['text'])['offers'], body['offers'])
+        repeated = await trial(self.request(body, 'ai-new-key-1234567890123456'))
+        self.assertTrue(json.loads(repeated.text)['cached'])
+        self.app['meal_ai_call'].assert_awaited_once()
+
     async def test_offer_lookup_only_reads_ha_and_never_calls_ai(self):
         self.app['ha'].request.return_value = {'state': '3', 'attributes': {'discounts': [
             {'product': 'Lachs', 'price': '0.00'}, {'product': 'Tomaten'}, {'product': 'Batterien'}]}}

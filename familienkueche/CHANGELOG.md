@@ -1,3 +1,11 @@
+# 0.14.2
+
+- Widersprüchliche KI-Vorgaben korrigiert: Lebensmittel-Namen reichen für Rezeptideen. Fehlende Preise, Packungsgrößen oder verifizierte Angebotszeiträume dürfen die Rezeptsuche nicht verhindern.
+- Websuche ausdrücklich ausführen und bei Suchlisten gezielt nach einzelnen Rezeptseiten und Gesamtzeit weitersuchen; mehr Suchkontext bei unverändert maximal drei Werkzeugaufrufen.
+- Echte Chefkoch-Rezeptlinks mit Trackingparametern/Ankern und Unicode-Titeln normalisieren. Auch tatsächlich geöffnete Rezeptseiten als Quellen berücksichtigen; Suchlisten bleiben vom Direktimport ausgeschlossen.
+- Suchversion im Cache berücksichtigen, damit nach der Korrektur dieselben Zutaten erneut bewusst gesucht werden können. Keine automatische Wiederholung oder zusätzliche KI-Anfrage durch das Update.
+- Bei leeren Ergebnissen Hinweise einklappen und kostenlose Chefkoch-Suchlisten zu aktuellen Aldi-Zutaten anbieten. Als Suchlisten kennzeichnen, ohne Import- oder Kochzeitversprechen.
+
 # 0.14.1
 
 - Aldi-Angebote direkt aus Home Assistant im KI-Dialog laden: aktuelle und nächste Prospektquelle, kein Bild- oder PDF-Upload erforderlich.
