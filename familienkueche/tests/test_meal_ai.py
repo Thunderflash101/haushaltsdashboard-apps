@@ -1,6 +1,4 @@
 import asyncio
-import base64
-import io
 import hashlib
 import json
 import tempfile
@@ -10,8 +8,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from aiohttp.test_utils import make_mocked_request
-from PIL import Image
-from meal_ai import get_offers, get_status, ingredient_offers, payload, read_key, recipe_url, result_from_response, trial, validate
+from meal_ai import get_offers, get_status, ingredient_offers, payload, read_key, recipe_url, result_from_response, trial, validate, varied_recipes
 from server import TZ, make_app
 
 URL = 'https://www.chefkoch.de/rezepte/123456789/Brokkoli-Pasta.html'
@@ -21,7 +18,7 @@ FAKE_KEY = 'sk-not-a-real-credential-test-only'
 def data():
     today = datetime.now(TZ).date()
     return dict(confirm=True, shop='Aldi Nord', start=today.isoformat(), end=(today+timedelta(days=6)).isoformat(),
-                offers='Brokkoli 500 g 0,99 Euro', image='', vegetarian=True)
+                offers='Brokkoli 500 g 0,99 Euro', vegetarian=True)
 
 
 def response():
@@ -33,6 +30,40 @@ def response():
 
 
 class MealAIValidation(unittest.TestCase):
+    def test_reported_cream_variants_and_duplicate_recipe_ids(self):
+        def dish(title, ident, matches):
+            return dict(title=title, url=f'https://www.chefkoch.de/rezepte/{ident}/Rezept.html',
+                        minutes=30, reason='Test', matches=matches)
+        rows = [dish('Sahne-Rosenkohl', 100, ['Rosenkohl']),
+                dish('Rosenkohl in cremiger Soße', 101, ['Rosenkohl']),
+                dish('Rosenkohlgratin', 102, ['Rosenkohl']),
+                dish('Rosenkohlsalat', 103, ['Rosenkohl']),
+                dish('Brokkoli-Pasta', 104, ['Brokkoli']),
+                dish('Hähnchen-Curry', 105, ['Hähnchen'])]
+        rows.append({**rows[4], 'url': 'https://www.chefkoch.de/rezepte/104/Anderer-Titel.html'})
+        selected = varied_recipes(rows)
+        titles = [r['title'] for r in selected]
+        self.assertIn('Sahne-Rosenkohl', titles)
+        self.assertNotIn('Rosenkohl in cremiger Soße', titles)
+        self.assertEqual(sum('Rosenkohl' in t for t in titles), 2)
+        self.assertEqual(sum(t == 'Brokkoli-Pasta' for t in titles), 1)
+        self.assertIn('Hähnchen-Curry', titles)
+
+    def test_eight_varied_recipes_from_larger_sourced_pool(self):
+        titles = ['Rosenkohl in Sahnesauce', 'Rosenkohl in cremiger Soße', 'Brokkoli-Pasta',
+                  'Kartoffelpfanne', 'Hähnchen-Curry', 'Lachssalat', 'Möhrensuppe',
+                  'Linsen-Eintopf', 'Zucchini-Gratin', 'Paprika mit Reis', 'Tofu gebraten', 'Spinat-Pasta']
+        raw = response()
+        rows = [dict(title=title, url=f'https://www.chefkoch.de/rezepte/{i+10000}/Rezept.html',
+                     minutes=25, reason='Passend', matches=[title]) for i, title in enumerate(titles)]
+        raw['output'][0]['action']['sources'] = [{'url': r['url']} for r in rows]
+        raw['output'][1]['content'][0]['text'] = json.dumps(dict(offers=['Gemüse'], warnings=[], recipes=rows))
+        result = result_from_response(raw, data())
+        self.assertEqual(result['targetCount'], 8)
+        self.assertEqual(len(result['recipes']), 8)
+        self.assertFalse(any(r['title'] == 'Rosenkohl in cremiger Soße' for r in result['recipes']))
+        self.assertEqual(len({r['url'] for r in result['recipes']}), 8)
+
     def test_real_recipe_tracking_unicode_and_visited_pages(self):
         tracked = URL+'?utm_source=search#zutaten'
         self.assertEqual(recipe_url(tracked), URL)
@@ -89,7 +120,7 @@ class MealAIValidation(unittest.TestCase):
 
     def test_request_limits_and_current_dates(self):
         self.assertEqual(validate(data())['shop'], 'Aldi Nord')
-        for changes in [dict(confirm=False), dict(offers=''), dict(offers='x'*12001), dict(image='x'*2700001),
+        for changes in [dict(confirm=False), dict(offers=''), dict(offers='x'*12001), dict(image='old-upload'),
                         dict(vegetarian='true'), dict(end='2020-01-01'), dict(shop='other')]:
             with self.assertRaises(ValueError): validate({**data(), **changes})
 
@@ -107,8 +138,8 @@ class MealAIValidation(unittest.TestCase):
 
     def test_bounded_payload_without_personal_context(self):
         body = payload(validate(data()), 'gpt-6-luna')
-        self.assertFalse(body['store']); self.assertEqual(body['max_tool_calls'], 3)
-        self.assertEqual(body['max_output_tokens'], 4000)
+        self.assertFalse(body['store']); self.assertEqual(body['max_tool_calls'], 6)
+        self.assertEqual(body['max_output_tokens'], 8000)
         self.assertEqual(body['tools'][0]['filters']['allowed_domains'], ['chefkoch.de'])
         self.assertNotIn(FAKE_KEY, json.dumps(body)); self.assertNotIn('calendar', json.dumps(body))
 
@@ -223,14 +254,15 @@ class MealAIApi(unittest.IsolatedAsyncioTestCase):
         gate.set(); self.assertEqual((await task).status, 200)
         self.app['meal_ai_call'].assert_awaited_once()
 
-    async def test_image_validation_and_normalization(self):
-        bad = await trial(self.request({**data(), 'image': 'not base64!'}))
+    async def test_removed_upload_is_refused_without_provider_or_cost(self):
+        bad = await trial(self.request({**data(), 'image': 'old-image'}))
         self.assertEqual(bad.status, 400); self.app['meal_ai_call'].assert_not_called()
-        buf = io.BytesIO(); Image.new('RGB', (20, 20), 'green').save(buf, 'PNG')
-        good = await trial(self.request({**data(), 'image': base64.b64encode(buf.getvalue()).decode()}))
+        self.assertEqual(json.loads((await get_status(self.request())).text)['reservedCents'], 0)
+        good = await trial(self.request(data()))
         self.assertEqual(good.status, 200)
         body = self.app['meal_ai_call'].call_args.args[1]
-        self.assertTrue(body['input'][0]['content'][1]['image_url'].startswith('data:image/jpeg;base64,'))
+        self.assertEqual([c['type'] for c in body['input'][0]['content']], ['input_text'])
+        self.assertNotIn('image', json.loads(body['input'][0]['content'][0]['text']))
 
 
 if __name__ == '__main__': unittest.main()

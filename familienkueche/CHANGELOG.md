@@ -1,3 +1,11 @@
+# 0.14.3
+
+- Ziel auf acht unterschiedliche Rezeptvorschläge erhöhen. Größeren Kandidatenpool aus verschiedenen Hauptzutaten und Gerichtsarten suchen, statt Varianten einer einzelnen Zutat zu sammeln.
+- Ähnliche Titel, dieselben Rezept-IDs und erkennbare Saucenvarianten wie Sahne-Rosenkohl/Rosenkohl in cremiger Soße filtern. Verschiedene Hauptzutaten und Zubereitungen bevorzugen; höchstens zwei Gerichte je erkannter Hauptzutat.
+- Bis zu sechs Suchwerkzeugaufrufe und8.000 Ausgabetokens für einen größeren Kandidatenpool zulassen; bestehendes Kontingent und ausdrücklicher Start bleiben bestehen.
+- Tatsächliche Trefferzahl und Ziel anzeigen. Wenn belegte abwechslungsreiche Treffer fehlen, keine ähnlichen Kopien ergänzen. Neue Suchversion für bewusste erneute Suche mit denselben Zutaten.
+- Gesamte Prospekt-Dateiauswahl, Bildaufbereitung und Bildübertragung aus dem KI-Dialog entfernen; Upload-Verknüpfungen und PDF-Hinweise entfernen. Angebote direkt aus Aldi laden oder als Zutatenliste eingeben.
+
 # 0.14.2
 
 - Widersprüchliche KI-Vorgaben korrigiert: Lebensmittel-Namen reichen für Rezeptideen. Fehlende Preise, Packungsgrößen oder verifizierte Angebotszeiträume dürfen die Rezeptsuche nicht verhindern.
