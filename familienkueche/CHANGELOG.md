@@ -1,3 +1,10 @@
+# 0.12.2
+
+- Falsche Wettersymbole behoben: bisher wurden außer Sonne und klarer Nacht alle Zustände als einfache Wolke dargestellt.
+- Passende eigene SVG-Zeichnungen für alle 15 Home-Assistant-Wetterzustände einschließlich Regen, Starkregen, Nebel, Schnee, Schneeregen, Hagel, Gewitter, leichter Bewölkung und Wind.
+- Text und Symbol aus einer gemeinsamen Zustandszuordnung in Kopfbereich, Wetterdialog, Tagesvorhersage und Ruhemodus erzeugen.
+- Unbekannte oder fehlende Wetterzustände neutral mit Fragezeichen und entsprechendem Hinweis anzeigen.
+
 # 0.12.1
 
 - Dieselben Personenfotos, Farbringe und Familie-Schaltflächen wie im Kalender für Aufgaben und Routinen verwenden.

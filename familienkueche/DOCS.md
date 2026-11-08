@@ -297,3 +297,10 @@ Fotos und Farben können auch bei einem geöffneten Aufgabenentwurf von anderen 
 Alle 17 DOM-/Timer-Prüfgruppen erfolgreich. Erweiterte Aufgaben- und Profilprüfungen decken gemeinsame Bildkomponenten, unabhängige Filteraktionen, Zuordnung per Bild, grafische Haupt-/Schrittsymbole, Formularwerte, Auswahlmarkierung, Entwurfserhalt und bestehende Konflikt-/Fortschrittsabläufe ab.
 
 `tests/browser-family-pickers.js` verwendet ausschließlich einen lokalen Testserver mit temporärer Datenbank und generierten Testporträts. Geprüft: dieselben Bildadressen und Farben wie im Kalender, Aufgaben anlegen/neu zuordnen, Routinen-Schrittsymbole erstellen/bearbeiten, gespeicherte Werte und erhaltene Häkchen unveränderter Schritte, Live-Profilaktualisierung ohne Entwurfsverlust, Tabletgrößen 1280×800/960×600 und der grafische Editor in schmaler Smartphone-Ansicht. Bestehender Aufgaben-/Routinen-/Fotoalbum-Browsertest und Kalender-/Profil-Browsertest ebenfalls erfolgreich. Keine Backendänderung, daher Backendtests nicht erneut ausgeführt. Prüfung auf dem physischen Fire nach dem Update steht aus.
+
+
+### Passende Wettersymbole (0.12.2)
+
+Alle 15 standardmäßigen Home-Assistant-Wetterzustände erhalten eine eigene SVG-Zeichnung. Regen zeigt Tropfen, Nebel horizontale Nebelstreifen, Schnee Schneeflocken, Gewitter einen Blitz und Wind Windlinien. Text und Symbol werden aus demselben Eintrag erzeugt. Kopfbereich, Wetterdialog und Tagesvorhersage sowie der Ruhemodus verwenden dieselbe Zuordnung. Unbekannte Zustände zeigen ein neutrales Fragezeichen mit „Wetterlage nicht angegeben“. Temperaturwerte, Wetterquelle und Aktualisierungsintervalle bleiben unverändert.
+
+Alle17 DOM-/Timer-Prüfgruppen erfolgreich. Der Wettertest prüft insbesondere die gemeldete Folge Bewölkt/Regen/Nebel/Nebel/Regen, übereinstimmende Symbole und Texte für alle15 Zustände sowie unbekannte und ungültige Angaben. `tests/browser-weather.js` prüft diese Vorhersage, Kopfbereich, aktuelle Wetteränderungen, Nebel im Ruhemodus und Gewitter mit Regen bei1280×800/960×600 mit lokal simulierten Wetterdaten. Keine realen HA-Daten verändert. Auf dem physischen Fire nach Update noch zu prüfen.
