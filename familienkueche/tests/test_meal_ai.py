@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 from aiohttp.test_utils import make_mocked_request
 from PIL import Image
-from meal_ai import get_status, payload, read_key, result_from_response, trial, validate
+from meal_ai import get_offers, get_status, ingredient_offers, payload, read_key, result_from_response, trial, validate
 from server import TZ, make_app
 
 URL = 'https://www.chefkoch.de/rezepte/123456789/Brokkoli-Pasta.html'
@@ -32,6 +32,31 @@ def response():
 
 
 class MealAIValidation(unittest.TestCase):
+    def test_aldi_names_filter_and_unreliable_prices_not_forwarded(self):
+        raw = {'state': '10', 'attributes': {'valid_until': '14.11.', 'discounts': [
+            {'product': '', 'price': '9.11', 'category': 'Manual'},
+            {'product': '1,5%', 'price': '2.99'},
+            {'product': 'Speisemöhren', 'price': '1.69', 'base_price': 'WRONG'},
+            {'product': 'Rinderhackfleisch XXL', 'price': '0.00'},
+            {'product': 'Hähnchentasche', 'price': '0.00'},
+            {'product': '  Speisemöhren  ', 'price': '999.00'},
+            {'product': 'Hundefutter Hähnchen'}, {'product': 'LED-Weihnachtswichtel'},
+            {'product': 'Salatschüssel'}, {'product': 'Unbekannter Artikel'},
+        ]}}
+        result = ingredient_offers(raw)
+        self.assertEqual(result['products'], ['Hähnchentasche', 'Rinderhackfleisch XXL', 'Speisemöhren'])
+        self.assertEqual(result['total'], 10); self.assertEqual(result['incomplete'], 2)
+        self.assertNotIn('1.69', json.dumps(result)); self.assertNotIn('WRONG', json.dumps(result))
+        self.assertEqual(result['reportedValidity'], '14.11.')
+
+    def test_aldi_invalid_empty_and_bounded_data(self):
+        for raw in [None, {'state': 'unavailable'}, {'state': 'unknown'}, {'state': '0', 'attributes': {}}]:
+            with self.assertRaises(ValueError): ingredient_offers(raw)
+        self.assertEqual(ingredient_offers({'state': '0', 'attributes': {'discounts': []}})['products'], [])
+        many = {'state': '100', 'attributes': {'discounts': [{'product': 'Kartoffeln '+str(i)} for i in range(100)]}}
+        result = ingredient_offers(many)
+        self.assertEqual(result['count'], 80); self.assertEqual(result['omitted'], 20)
+
     def test_only_named_secret_and_never_parser_details(self):
         with tempfile.TemporaryDirectory() as root:
             p = Path(root)/'secrets.yaml'
@@ -69,6 +94,25 @@ class MealAIValidation(unittest.TestCase):
 
 
 class MealAIApi(unittest.IsolatedAsyncioTestCase):
+    async def test_offer_lookup_only_reads_ha_and_never_calls_ai(self):
+        self.app['ha'].request.return_value = {'state': '3', 'attributes': {'discounts': [
+            {'product': 'Lachs', 'price': '0.00'}, {'product': 'Tomaten'}, {'product': 'Batterien'}]}}
+        result = await get_offers(make_mocked_request('GET', '/api/meal-ai/offers?window=next', app=self.app))
+        self.assertEqual(result.status, 200)
+        self.assertEqual(json.loads(result.text)['products'], ['Lachs', 'Tomaten'])
+        self.app['ha'].request.assert_awaited_once_with('GET', 'states/sensor.aldi_nord_offers_next')
+        self.app['meal_ai_call'].assert_not_called(); self.app['ha'].service.assert_not_called()
+        self.assertEqual(json.loads((await get_status(self.request())).text)['reservedCents'], 0)
+
+    async def test_offer_failure_and_invalid_window_do_not_charge(self):
+        self.app['ha'].request.side_effect = RuntimeError('PRIVATE')
+        failed = await get_offers(make_mocked_request('GET', '/api/meal-ai/offers', app=self.app))
+        self.assertEqual(failed.status, 502); self.assertNotIn('PRIVATE', failed.text)
+        invalid = await get_offers(make_mocked_request('GET', '/api/meal-ai/offers?window=bad', app=self.app))
+        self.assertEqual(invalid.status, 400)
+        self.app['ha'].request.assert_awaited_once()
+        self.app['meal_ai_call'].assert_not_called()
+
     async def asyncSetUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.db_path = str(Path(self.tmp.name)/'test.sqlite')

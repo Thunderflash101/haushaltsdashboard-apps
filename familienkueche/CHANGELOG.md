@@ -1,3 +1,12 @@
+# 0.14.1
+
+- Aldi-Angebote direkt aus Home Assistant im KI-Dialog laden: aktuelle und nächste Prospektquelle, kein Bild- oder PDF-Upload erforderlich.
+- Aktuelle Aldi-Nord-Quelle und kommende Quelle als Standard vorbelegen; abweichende Sensoren und Aldi Süd über App-Optionen konfigurierbar.
+- Konservative Auswahl bekannter Lebensmittel, leere/duplizierte Einträge und erkennbare Haushalts-/Tierartikel ausfiltern. Vor dem KI-Start bleibt die Auswahl bearbeitbar.
+- Fehlerhafte Preise, Mengen und Angebotszeiträume aus der Integration nicht als gesicherte Daten weitergeben; zunächst nur Produktnamen für die Rezeptsuche verwenden. Prospektangabe zum Prüfen anzeigen.
+- Rezeptvorschläge ohne vegetarische Einschränkung, einschließlich Fleisch und Fisch. Auf Wunsch eigene Angebotstexte oder Bildausschnitte weiter verwenden.
+- Laden der Angebotsdaten löst keine OpenAI-Anfrage und keine Kontingentreservierung aus. Vorhandenen Entwurf bei Ladefehler erhalten.
+
 # 0.14.0
 
 - Manueller KI-Probelauf unter Essensplan → Neue Ideen · KI: eine Prospektseite als Bild oder Angebotstext, Anbieter und Gültigkeitszeitraum wählen; bis zu fünf schnelle Chefkoch-Rezepte suchen.

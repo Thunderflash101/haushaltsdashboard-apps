@@ -8,12 +8,16 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  browser=await chromium.launch({executablePath:process.env.FAMILY_CHROMIUM||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  const page=await browser.newPage({viewport:{width:1280,height:800}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  const day=new Date().toISOString().slice(0,10),url='https://www.chefkoch.de/rezepte/123456789/Brokkoli-Pasta.html';
- let paid=0,imports=0,fail=false,status={enabled:false,configured:false,model:'gpt-6-luna',budgetCents:500,reservedCents:0,perRunCents:25,running:false,result:null};
+ let paid=0,imports=0,fail=false,offersFail=false,status={enabled:false,configured:false,model:'gpt-6-luna',budgetCents:500,reservedCents:0,perRunCents:25,running:false,result:null};
  await page.route('**/api/**',async route=>{
   const p=new URL(route.request().url()).pathname;let data;
   if(p==='/api/meal-ai')data=status;
+  else if(p==='/api/meal-ai/offers'){
+   if(offersFail)return route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:'Aldi-Angebote konnten nicht geladen werden.'})});
+   data={products:['Brokkoli','Rinderhackfleisch XXL'],count:2,total:294,shop:'Aldi Nord',reportedValidity:'14.11.',warning:'Nur Namen; keine geprüften Preise.'};
+  }
   else if(p==='/api/meal-ai/trial'){
-   paid++;const input=route.request().postDataJSON();assert(input.confirm);assert(input.vegetarian);assert(input.image.startsWith('/9j/'));assert.equal(input.shop,'Aldi Nord');
+   paid++;const input=route.request().postDataJSON();assert(input.confirm);assert.equal(input.vegetarian,false);assert(input.image.startsWith('/9j/'));assert.equal(input.shop,'Aldi Nord');
    assert(!JSON.stringify(input).includes('sk-'));assert(route.request().headers()['idempotency-key'].startsWith('ai-'));
    await new Promise(r=>setTimeout(r,350));
    if(fail)return route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:'Keine vollständige KI-Antwort.',uncertain:true})});
@@ -35,7 +39,11 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  await page.getByText('Zuerst in der Familienküche-App-Konfiguration',{exact:false}).waitFor();assert.equal(paid,0);
  status.enabled=true;await page.locator('#overlay [data-action="meal-ai-open"]').click();await page.getByText('Der Schlüssel wurde noch nicht erkannt.',{exact:false}).waitFor();assert.equal(paid,0);
  status.configured=true;await page.locator('#overlay [data-action="meal-ai-open"]').click();await page.locator('#meal-ai-form').waitFor();
- await page.locator('#ai-offers').fill('Brokkoli 500 g 0,99 Euro');await page.locator('[name="vegetarian"]').check();
+ await page.locator('[data-action="meal-ai-offers"][data-window="current"]').click();
+ await page.getByText('2 Lebensmittel aus 294 Einträgen geladen.',{exact:false}).waitFor();
+ assert((await page.locator('#ai-offers').inputValue()).includes('Rinderhackfleisch XXL'));assert.equal(paid,0);
+ offersFail=true;page.once('dialog',dialog=>dialog.accept());await page.locator('[data-action="meal-ai-offers"][data-window="next"]').click();await page.getByText('Aldi-Angebote konnten nicht geladen werden.',{exact:false}).waitFor();assert((await page.locator('#ai-offers').inputValue()).includes('Rinderhackfleisch XXL'));assert.equal(paid,0);offersFail=false;
+ await page.locator('#ai-offers').fill('Brokkoli 500 g 0,99 Euro');
  for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);await page.waitForTimeout(200);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));assert(await page.locator('.modal').evaluate(x=>x.scrollWidth<=x.clientWidth+1));assert.equal(await page.locator('#ai-offers').inputValue(),'Brokkoli 500 g 0,99 Euro');}
  const file=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX7sAAAAASUVORK5CYII=','base64');
  await page.locator('#ai-image').setInputFiles({name:'prospekt.png',mimeType:'image/png',buffer:file});await page.getByText('prospekt.png · Bereit.',{exact:false}).waitFor();assert.equal(paid,0);assert.equal(await page.locator('#ai-image').getAttribute('multiple'),null);
@@ -45,8 +53,8 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  await page.locator('[data-action="meal-ai-import"]').click();assert.equal(await page.locator('#recipe-url').inputValue(),url);assert.equal(imports,0);
  await page.locator('#overlay [data-action="close"]').first().click();await page.locator('[data-action="meal-ai-open"]').click();await page.locator('.ai-results').waitFor();assert.equal(paid,1);
  await page.locator('#overlay [data-action="close"]').first().click();await page.reload();await page.locator('[data-screen="meals"]').click();await page.locator('[data-action="meal-ai-open"]').click();await page.locator('.ai-recipe').waitFor();assert.equal(paid,1);
- fail=true;await page.locator('#ai-offers').fill('Andere Angebote Tomaten');await page.locator('[name="vegetarian"]').check();await page.locator('#ai-image').setInputFiles({name:'prospekt.png',mimeType:'image/png',buffer:file});await page.getByText('prospekt.png · Bereit.',{exact:false}).waitFor();await page.locator('[name="confirm"]').check();await page.locator('#meal-ai-form [type="submit"]').click();await page.getByText('Keine vollständige KI-Antwort.',{exact:false}).waitFor();assert.equal(paid,2);assert(await page.locator('#meal-ai-form [type="submit"]').isDisabled());
+ fail=true;await page.locator('#ai-offers').fill('Andere Angebote Tomaten');await page.locator('#ai-image').setInputFiles({name:'prospekt.png',mimeType:'image/png',buffer:file});await page.getByText('prospekt.png · Bereit.',{exact:false}).waitFor();await page.locator('[name="confirm"]').check();await page.locator('#meal-ai-form [type="submit"]').click();await page.getByText('Keine vollständige KI-Antwort.',{exact:false}).waitFor();assert.equal(paid,2);assert(await page.locator('#meal-ai-form [type="submit"]').isDisabled());
  await page.locator('#overlay [data-action="meal-ai-open"]').click();await page.locator('.ai-recipe').waitFor();assert.equal(paid,2);assert.equal(imports,0);assert.deepEqual(errors,[]);
- console.log('PASS: disabled/missing-key states; no automatic paid calls; native single-image picker; explicit consent; saved results; escaped model text; import preview; no uncertain retry; tablet layouts 1280×800 and 960×600. Only local mocked services.');
+ console.log('PASS: disabled/missing-key states; free HA offers import including meat, failure preserves draft; no vegetarian restriction or automatic paid calls; native single-image picker; explicit consent; saved results; escaped model text; import preview; no uncertain retry; tablet layouts 1280×800 and 960×600. Only local mocked services.');
  }finally{if(browser)await browser.close();server.kill('SIGTERM');}
 })().catch(e=>{console.error(e.stack);process.exitCode=1;});

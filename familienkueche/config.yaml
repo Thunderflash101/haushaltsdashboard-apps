@@ -1,5 +1,5 @@
 name: Familienküche
-version: "0.14.0"
+version: "0.14.1"
 slug: familienkueche
 description: Familienkalender, Erinnerungen, Aufgaben und Mealie-Anbindung
 arch:
@@ -26,6 +26,9 @@ options:
   waste_calendar: "calendar.muell"
   mealie_entry_id: ""
   mealie_image_base_url: "http://a0d7b954-mealie:9001"
+  meal_ai_offers_entity: "sensor.aldi_nord_offers"
+  meal_ai_next_offers_entity: "sensor.aldi_nord_offers_next"
+  meal_ai_offers_shop: "Aldi Nord"
   meal_ai_enabled: false
   meal_ai_model: "gpt-6-luna"
   meal_ai_monthly_budget_usd: 5
@@ -39,6 +42,9 @@ schema:
   waste_calendar: str?
   mealie_entry_id: str?
   mealie_image_base_url: url?
+  meal_ai_offers_entity: str?
+  meal_ai_next_offers_entity: str?
+  meal_ai_offers_shop: list(Aldi Nord|Aldi Süd)?
   meal_ai_enabled: bool?
   meal_ai_model: list(gpt-6-luna|gpt-4.1-mini)?
   meal_ai_monthly_budget_usd: int(1,20)?
