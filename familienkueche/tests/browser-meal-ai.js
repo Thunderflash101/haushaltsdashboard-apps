@@ -1,0 +1,52 @@
+const path=require('path'),assert=require('assert'),{spawn}=require('child_process');
+const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
+(async()=>{
+ const server=spawn('python3',['-W','ignore',path.join(__dirname,'family_fixture.py')],{stdio:['ignore','pipe','pipe']});
+ let browser,log='';server.stderr.on('data',x=>log+=x);
+ try{
+ const port=await new Promise((resolve,reject)=>{let output='';let timeout=setTimeout(()=>reject(Error('Fixture timeout '+log)),12000);server.stdout.on('data',x=>{output+=x;try{const result=JSON.parse(output.trim().split('\n')[0]);clearTimeout(timeout);resolve(result.port);}catch(e){}});server.on('error',reject);});
+ browser=await chromium.launch({executablePath:process.env.FAMILY_CHROMIUM||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ const page=await browser.newPage({viewport:{width:1280,height:800}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const day=new Date().toISOString().slice(0,10),url='https://www.chefkoch.de/rezepte/123456789/Brokkoli-Pasta.html';
+ let paid=0,imports=0,fail=false,status={enabled:false,configured:false,model:'gpt-6-luna',budgetCents:500,reservedCents:0,perRunCents:25,running:false,result:null};
+ await page.route('**/api/**',async route=>{
+  const p=new URL(route.request().url()).pathname;let data;
+  if(p==='/api/meal-ai')data=status;
+  else if(p==='/api/meal-ai/trial'){
+   paid++;const input=route.request().postDataJSON();assert(input.confirm);assert(input.vegetarian);assert(input.image.startsWith('/9j/'));assert.equal(input.shop,'Aldi Nord');
+   assert(!JSON.stringify(input).includes('sk-'));assert(route.request().headers()['idempotency-key'].startsWith('ai-'));
+   await new Promise(r=>setTimeout(r,350));
+   if(fail)return route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:'Keine vollständige KI-Antwort.',uncertain:true})});
+   status={...status,reservedCents:25,result:{shop:'Aldi Nord',start:day,end:day,created:day,offers:['Brokkoli 500 g 0,99 €'],warnings:[],recipes:[{title:'Brokkoli-Pasta <img src=x onerror=alert(1)>',url,minutes:25,reason:'Passend zum Angebot',matches:['Brokkoli']}]},usage:{input_tokens:1200,output_tokens:500,search_calls:1}};
+   data={success:true,cached:false,...status};
+  }
+  else if(p==='/api/meals/actions'){imports++;data={success:true};}
+  else if(p.startsWith('/api/profiles')||p.startsWith('/api/family')||p.startsWith('/api/saver')||p.startsWith('/api/reminders'))return route.continue();
+  else if(p==='/api/calendar')data={fetchedAt:day+'T12:00:00+01:00',sources:[]};
+  else if(p==='/api/weather')data={condition:'cloudy',temperature:10,temperatureUnit:'°C',forecast:[],fetchedAt:new Date().toISOString()};
+  else if(p==='/api/shopping')data={items:[],label:'Test',canAdd:true,canUpdate:true,canRemove:true};
+  else if(p==='/api/meals')data={entries:[],revisions:{}};
+  else if(p==='/api/recipes')data={recipes:[]};
+  else if(p==='/api/suggestions')data={recipes:[],matches:0,poolSize:0,warnings:[],today:day};
+  else return route.fulfill({status:404,contentType:'application/json',body:'{}'});
+  return route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
+ });
+ const base='http://127.0.0.1:'+port+'/';await page.goto(base);await page.locator('[data-screen="meals"]').click();await page.locator('[data-action="meal-ai-open"]').click();
+ await page.getByText('Zuerst in der Familienküche-App-Konfiguration',{exact:false}).waitFor();assert.equal(paid,0);
+ status.enabled=true;await page.locator('#overlay [data-action="meal-ai-open"]').click();await page.getByText('Der Schlüssel wurde noch nicht erkannt.',{exact:false}).waitFor();assert.equal(paid,0);
+ status.configured=true;await page.locator('#overlay [data-action="meal-ai-open"]').click();await page.locator('#meal-ai-form').waitFor();
+ await page.locator('#ai-offers').fill('Brokkoli 500 g 0,99 Euro');await page.locator('[name="vegetarian"]').check();
+ for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);await page.waitForTimeout(200);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));assert(await page.locator('.modal').evaluate(x=>x.scrollWidth<=x.clientWidth+1));assert.equal(await page.locator('#ai-offers').inputValue(),'Brokkoli 500 g 0,99 Euro');}
+ const file=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX7sAAAAASUVORK5CYII=','base64');
+ await page.locator('#ai-image').setInputFiles({name:'prospekt.png',mimeType:'image/png',buffer:file});await page.getByText('prospekt.png · Bereit.',{exact:false}).waitFor();assert.equal(paid,0);assert.equal(await page.locator('#ai-image').getAttribute('multiple'),null);
+ await page.locator('#meal-ai-form [type="submit"]').click();assert.equal(paid,0);await page.locator('[name="confirm"]').check();await page.locator('#meal-ai-form [type="submit"]').click();
+ await page.getByText('Probelauf abgeschlossen.',{exact:false}).waitFor();assert.equal(paid,1);assert.equal(imports,0);assert.equal(await page.locator('.ai-results img').count(),0);assert.equal(await page.locator('.ai-recipe a').getAttribute('href'),url);
+ await page.screenshot({path:'/tmp/familienkueche-ki-probelauf.png'});
+ await page.locator('[data-action="meal-ai-import"]').click();assert.equal(await page.locator('#recipe-url').inputValue(),url);assert.equal(imports,0);
+ await page.locator('#overlay [data-action="close"]').first().click();await page.locator('[data-action="meal-ai-open"]').click();await page.locator('.ai-results').waitFor();assert.equal(paid,1);
+ await page.locator('#overlay [data-action="close"]').first().click();await page.reload();await page.locator('[data-screen="meals"]').click();await page.locator('[data-action="meal-ai-open"]').click();await page.locator('.ai-recipe').waitFor();assert.equal(paid,1);
+ fail=true;await page.locator('#ai-offers').fill('Andere Angebote Tomaten');await page.locator('[name="vegetarian"]').check();await page.locator('#ai-image').setInputFiles({name:'prospekt.png',mimeType:'image/png',buffer:file});await page.getByText('prospekt.png · Bereit.',{exact:false}).waitFor();await page.locator('[name="confirm"]').check();await page.locator('#meal-ai-form [type="submit"]').click();await page.getByText('Keine vollständige KI-Antwort.',{exact:false}).waitFor();assert.equal(paid,2);assert(await page.locator('#meal-ai-form [type="submit"]').isDisabled());
+ await page.locator('#overlay [data-action="meal-ai-open"]').click();await page.locator('.ai-recipe').waitFor();assert.equal(paid,2);assert.equal(imports,0);assert.deepEqual(errors,[]);
+ console.log('PASS: disabled/missing-key states; no automatic paid calls; native single-image picker; explicit consent; saved results; escaped model text; import preview; no uncertain retry; tablet layouts 1280×800 and 960×600. Only local mocked services.');
+ }finally{if(browser)await browser.close();server.kill('SIGTERM');}
+})().catch(e=>{console.error(e.stack);process.exitCode=1;});

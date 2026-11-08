@@ -248,11 +248,13 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     setup_profiles(app)
     from reminders import setup as setup_reminders
     setup_reminders(app)
+    from meal_ai import setup as setup_meal_ai
+    setup_meal_ai(app, options)
     app.router.add_get('/', index)
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'meals.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
+    for filename in ('app.js', 'meals.js', 'meal-ai.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
         async def asset(request, filename=filename):
             return web.FileResponse(ROOT / 'www' / filename)
         app.router.add_get('/' + filename, asset)

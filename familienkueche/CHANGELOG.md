@@ -1,3 +1,13 @@
+# 0.14.0
+
+- Manueller KI-Probelauf unter Essensplan → Neue Ideen · KI: eine Prospektseite als Bild oder Angebotstext, Anbieter und Gültigkeitszeitraum wählen; bis zu fünf schnelle Chefkoch-Rezepte suchen.
+- Wahlweise vegetarisch, belegte Rezeptquellen und maximal 30 Minuten; Vorschläge ohne passende Quellen-URL ausblenden. Erkannte Angebote und Hinweise zum Prüfen anzeigen.
+- Übernahme in den vorhandenen Mealie-Import mit vorausgefülltem Link; Rezeptfoto, Einplanung und Bring-Zutaten danach über die bestehende Sammlung.
+- Nur ausdrücklicher Start löst eine kostenpflichtige OpenAI-Anfrage aus. Ergebnisse zentral speichern und kostenlos neu laden; keine automatische Prospektabfrage und kein Wochenautomatismus.
+- Benannten OpenAI-Schlüssel aus der schreibgeschützt eingebundenen Home-Assistant-secrets.yaml lesen; nie an Browser oder Logs geben. KI standardmäßig aus.
+- Persistente Reservierung je Versuch, Monatskontingent, begrenzte Suchaufrufe/Ausgabe, Schutz vor Doppelstart und Wiederholung unklarer Anfragen. Verbrauchszähler für erfolgreiche Läufe anzeigen.
+- Standardmodell gpt-6-luna; gpt-4.1-mini als konfigurierbare Alternative. Tatsächliche Modellverfügbarkeit und Rezeptqualität werden erst beim eigenen Probelauf geprüft.
+
 # 0.13.0
 
 - Mehrere Personen über ihre Bilder gleichzeitig als Verantwortliche für Aufgaben und Routinen auswählen; Familie weist den Eintrag allen zu.
