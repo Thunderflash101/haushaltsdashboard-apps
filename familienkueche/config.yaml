@@ -1,5 +1,5 @@
 name: Familienküche
-version: "0.14.3"
+version: "0.15.0"
 slug: familienkueche
 description: Familienkalender, Erinnerungen, Aufgaben und Mealie-Anbindung
 arch:
@@ -29,6 +29,8 @@ options:
   meal_ai_offers_entity: "sensor.aldi_nord_offers"
   meal_ai_next_offers_entity: "sensor.aldi_nord_offers_next"
   meal_ai_offers_shop: "Aldi Nord"
+  meal_ai_preferred_dishes: "Nudeln, Eintöpfe, Pizza, Hähnchen"
+  meal_ai_avoid: "Nüsse, Erdnüsse"
   meal_ai_enabled: false
   meal_ai_model: "gpt-6-luna"
   meal_ai_monthly_budget_usd: 5
@@ -45,6 +47,8 @@ schema:
   meal_ai_offers_entity: str?
   meal_ai_next_offers_entity: str?
   meal_ai_offers_shop: list(Aldi Nord|Aldi Süd)?
+  meal_ai_preferred_dishes: str?
+  meal_ai_avoid: str?
   meal_ai_enabled: bool?
   meal_ai_model: list(gpt-6-luna|gpt-4.1-mini)?
   meal_ai_monthly_budget_usd: int(1,20)?

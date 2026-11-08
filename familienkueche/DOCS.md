@@ -342,7 +342,7 @@ Die App bindet hierfür das Home-Assistant-Konfigurationsverzeichnis über `home
 
 ### Rezeptvorschläge starten (aktueller Stand ab 0.14.3)
 
-Unter **Essensplan → Neue Ideen · KI** aktuelle oder kommende Aldi-Angebote laden. Die Lebensmittelnamen erscheinen als bearbeitbare Zutatenliste. Alternativ Zutaten direkt als Text eingeben. Anbieter und Zeitraum kontrollieren. Ziel sind acht unterschiedliche Rezepte bis30 Minuten; Fleisch und Fisch sind erlaubt. Erst Kostenbestätigung und **Vorschläge finden** starten die kostenpflichtige Suche.
+Unter **Essensplan → Neue Ideen · KI** aktuelle oder kommende Aldi-Angebote laden. Die Lebensmittelnamen erscheinen als bearbeitbare Zutatenliste. Alternativ Zutaten direkt als Text eingeben. Anbieter und Zeitraum kontrollieren. Ziel sind acht unterschiedliche Rezepte mit wählbarer Kochzeit: Gemischt, Schnell oder Wochenende. Fleisch und Fisch sind erlaubt. Erst Kostenbestätigung und **Vorschläge finden** starten die kostenpflichtige Suche.
 
 Die Suche sammelt möglichst12 bis16 Kandidaten über verschiedene Hauptzutaten und Gerichtsarten. Die App wählt biszuacht davon aus. Erkennbare nahezu identische Gerichte werden entfernt, unterschiedliche Hauptzutaten und Gerichtsarten bevorzugt. Die Prüfung verwendet Titel, Zutatenzuordnung, Rezept-ID und erkennbare Gerichtsarten, keine vollständige semantische Rezeptanalyse. Weniger belegte Treffer sind weiterhin möglich; die App zeigt deren tatsächliche Anzahl und ergänzt keine erfundenen Rezepte. Die KI-Karten zeigen weiterhin Text; verfügbare Originalfotos erscheinen nach dem Import in Mealie.
 
@@ -412,3 +412,36 @@ Alle Eingabefelder, Hinweise, Aufbereitungsfunktionen und Übertragungswege für
 ### Prüfung 0.14.3
 
 Alle88 Python-Tests, alle17 DOM-/Timer-Prüfgruppen und der erweiterte KI-Browsertest bestanden. Neue Tests prüfen ausdrücklich die gemeldeten Rosenkohlvarianten, Rezept-ID-Duplikate, maximalzwei Hauptzutatenwiederholungen und acht ausgewählte Rezepte aus einem größeren belegten Kandidatenpool. Der entfernte Upload wird vor Provideraufruf abgewiesen; neue Requests enthalten ausschließlich Text. Browserprüfung zeigt acht Karten mit Zähler bei1280×800/960×600 und prüft, dass Dateifeld und PDF-Hinweise fehlen; kostenlose Aldi-Daten, Startbestätigung, gespeicherte Ergebnisse, Fehlerzustand und Importvorschau bleiben geprüft. Personen-/Album-Uploadprüfungen ebenfalls erfolgreich. Alle Testprovider simuliert; kein echter kostenpflichtiger KI-Lauf ausgeführt. Die Zahl tatsächlich verfügbarer Quellen im nächsten Nutzerlauf ist dadurch nicht garantiert.
+
+
+## Geschmack und Kochzeit wählen (0.15.0)
+
+Unter **Essensplan → Neue Ideen · KI** stehen drei Schalter zur Verfügung:
+
+- **Gemischt:** Startwert bei erster Nutzung. Kurze und längere Gerichte bis180 Minuten Gesamtzeit; nach Möglichkeit vier schnelle und vier längere Vorschläge.
+- **Schnell:** ausschließlich Rezepte mit bekannter Gesamtzeit von höchstens30 Minuten. Kurze Vorbereitung allein reicht dafür nicht, wenn danach lange gekocht oder gebacken wird.
+- **Wochenende:** Rezepte bis180 Minuten Gesamtzeit; längere Gerichte werden bevorzugt, insbesondere Eintöpfe, Pizza und Ofengerichte. Auch schnelle Treffer bleiben möglich, wenn längere passende Quellen fehlen.
+
+Die Auswahl ist unabhängig vom aktuellen Wochentag. Sie bleibt als lokale Gerätepräferenz `familienkueche-meal-ai-mode-v1` erhalten. Ein Wechsel verändert nur die Auswahl und ihren Hinweis; eingegebene Zutaten und Datum bleiben erhalten. Weder Wechsel, Schließen/Öffnen noch Neuladen startet eine kostenpflichtige Anfrage. Erst Bestätigung und **Vorschläge finden** starten die Suche im gewählten Modus. Ältere gespeicherte Ergebnisse werden als bisheriger Suchstand angezeigt; für das neue Profil neu suchen.
+
+### Familiengeschmack
+
+Vorbelegt sind **Nudeln, Eintöpfe, Pizza und Hähnchen** als bevorzugte Gerichte/Zutaten sowie **Nüsse und Erdnüsse** als zu meidende Geschmacksrichtungen. Das aktive Profil erscheint oberhalb des Formulars. Die App-Optionen **`meal_ai_preferred_dishes`** und **`meal_ai_avoid`** enthalten durch Komma getrennte Begriffe. Diese Angaben können später in der App-Konfiguration verändert werden; danach die Familienküche neu starten. Eine leere Zeichenfolge entfernt die betreffende Vorgabe. Höchstens zwölf kurze Begriffe je Feld sind erlaubt. Fehlende Optionen bei einem Update erhalten automatisch die vorbelegten Werte.
+
+Der Server setzt das konfigurierte Profil für jede Suche durch; ein beliebiger vom Browser mitgesendeter Profilwert ersetzt es nicht. Das Profil wird zusammen mit Zutatenliste und Modus an OpenAI gesendet, ohne Kalender-, Personenfoto- oder Paperless-Daten. Die Suchanweisung priorisiert Geschmack, dann Abwechslung und passende Angebotszutaten. Ein biszwei passende Angebotszutaten pro Rezept reichen; gewöhnliche Grundzutaten dürfen hinzukommen. Fleisch und Fisch sind weiterhin erlaubt.
+
+Die KI soll Nusszutaten auch in der Original-Zutatenliste berücksichtigen. Der Server filtert zusätzlich erkennbare Angaben in Rezepttitel, Zutatenzuordnung und der zurückgelieferten Zutatenliste, darunter Mandeln, Wal-/Haselnüsse, Cashews, Pistazien, Pinienkerne und Erdnuss-/Sataysaucen. Eigene Begriffe aus der Meiden-Liste werden ebenfalls als Textfilter angewendet. Dies ist ein Geschmacksfilter auf Grundlage der lesbaren, zurückgelieferten Angaben, keine vollständige unabhängige Prüfung sämtlicher Rezeptzutaten. Rezeptangaben im Original prüfen.
+
+Die Auswahl bevorzugt passende Gerichtsarten und Zutaten und behält die bisherige Prüfung auf ähnliche Varianten, echte Quellen und abwechslungsreiche Hauptzutaten bei. Im gemischten Modus werden kurze und längere Kandidaten bei ausreichendem Pool abwechselnd gewählt. Eine Vier/Vier-Aufteilung oder acht Treffer sind abhängig von den verfügbaren passenden Quellen; fehlende Rezepte werden nicht erfunden.
+
+### Arbeitszeit und Gesamtzeit
+
+Rezeptkarten zeigen **Gesamtzeit** und separat **aktive Arbeitszeit**, sofern die Quelle diese angibt. Beispielsweise „90Min. gesamt“ und „20Min. aktiv“. Die Gesamtzeit umfasst Kochen, Backen und angegebene Wartezeiten. Wenn keine getrennte Arbeitszeit vorliegt oder sie widersprüchlich ist, steht **Arbeitszeit offen**. Sie wird nicht aus der Gesamtzeit geschätzt. Die Zeitgrenze des gewählten Modus bezieht sich stets auf die Gesamtzeit.
+
+Technisch enthalten KI-Kandidaten zusätzlich `activeMinutes` (Zahl odernull) und eine Liste lesbarer `ingredients`. Der Server akzeptiert Arbeitszeit nur als nichtnegative ganze Zahl höchstens gleich der Gesamtzeit. Alte gespeicherte Rezepte ohne dieses Feld bleiben lesbar. Ergebnisse speichern den verwendeten Modus und das Profil; beide gehören neben Suchversion4 zum Eingabe-Hash. Verschiedene Modi mit denselben Zutaten erzeugen getrennte bewusste Suchläufe und können jeweils API-Kosten verursachen. Wiederholung derselben erfolgreichen Anfrage im selben Modus und Profil nutzt den Cache.
+
+### Prüfung 0.15.0
+
+Alle92 Python-Backendtests erfolgreich, davon22 zur KI-/Aldi-Anbindung. Neue Fälle prüfen Schnell-/Wochenend-Grenzen, lange Köchelzeit trotz kurzer Vorbereitung, unbekannte/widersprüchliche Arbeitszeit, gemischte Vier/Vier-Auswahl, Geschmackspriorisierung, Nusszutaten in einem sonst unauffälligen Gericht und unabhängig gecachte Modi. Ein vom Client eingeschleustes leeres Profil hebt die Servervorgaben nicht auf.
+
+Der erweiterte Browser-Test `tests/browser-meal-ai.js` prüft die drei Schalter, Startwert Gemischt, Eingabeerhalt und keine Gebühren beim Wechsel, gespeicherte Auswahl nach Neuladen, sichtbares Geschmacksprofil, getrennte Gesamt-/Arbeitszeit, unbekannte Arbeitszeit, acht Karten und vorhandene Import-/Fehlerabläufe bei1280×800/960×600. Alle Provider simuliert, keine produktiven HA-/Mealie-/Bring-Änderungen, kein echter API-Schlüssel gelesen und kein kostenpflichtiger Lauf ausgeführt. Echte Rezeptqualität und Quellenangaben im nächsten bewussten Nutzerlauf prüfen.

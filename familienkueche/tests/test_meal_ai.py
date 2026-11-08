@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from aiohttp.test_utils import make_mocked_request
-from meal_ai import get_offers, get_status, ingredient_offers, payload, read_key, recipe_url, result_from_response, trial, validate, varied_recipes
+from meal_ai import DEFAULT_PROFILE, get_offers, get_status, ingredient_offers, payload, read_key, recipe_url, result_from_response, taste_profile, trial, validate, varied_recipes
 from server import TZ, make_app
 
 URL = 'https://www.chefkoch.de/rezepte/123456789/Brokkoli-Pasta.html'
@@ -30,6 +30,54 @@ def response():
 
 
 class MealAIValidation(unittest.TestCase):
+    def test_modes_total_time_and_known_active_work(self):
+        raw = response()
+        rows = [dict(title=title, url=f'https://www.chefkoch.de/rezepte/{100+i}/Rezept.html',
+                     minutes=minutes, activeMinutes=active, reason='Passend', matches=[title], ingredients=[])
+                for i, (title, minutes, active) in enumerate([
+                    ('Hähnchen-Nudeln', 25, 15), ('Kartoffel-Eintopf', 90, 20),
+                    ('Pizza', 150, None), ('Längerer Braten', 181, 15), ('Gemüsesuppe', 60, 90)])]
+        raw['output'][0]['action']['sources'] = [{'url': r['url']} for r in rows]
+        raw['output'][1]['content'][0]['text'] = json.dumps(dict(offers=['Kartoffeln'], recipes=rows, warnings=[]))
+        quick = result_from_response(raw, {**data(), 'mode': 'quick'})
+        self.assertEqual([r['minutes'] for r in quick['recipes']], [25])
+        self.assertEqual(quick['recipes'][0]['activeMinutes'], 15)
+        weekend = result_from_response(raw, {**data(), 'mode': 'weekend'})
+        self.assertEqual(len(weekend['recipes']), 4)
+        self.assertTrue(any(r['minutes'] == 150 for r in weekend['recipes']))
+        self.assertFalse(any(r['minutes'] > 180 for r in weekend['recipes']))
+        self.assertIsNone(next(r for r in weekend['recipes'] if r['title'] == 'Gemüsesuppe')['activeMinutes'])
+        self.assertEqual(weekend['mode'], 'weekend')
+        self.assertEqual(validate(data())['mode'], 'mixed')
+        with self.assertRaises(ValueError): validate({**data(), 'mode': 'unknown'})
+
+    def test_taste_profile_and_hidden_nut_ingredients(self):
+        self.assertEqual(taste_profile({}), DEFAULT_PROFILE)
+        self.assertEqual(taste_profile({'meal_ai_preferred_dishes': 'Pizza, Pizza', 'meal_ai_avoid': ''}),
+                         {'preferred': ['Pizza'], 'avoid': []})
+        raw = response()
+        names = ['Hähnchen-Curry', 'Nudeln mit Pesto', 'Pizza mit Gemüse', 'Hähnchen-Pfanne']
+        ingredients = [['Cashewmus'], ['Basilikum', 'Pinienkerne'], ['Tomaten', 'Käse'], ['Hähnchen', 'Paprika']]
+        rows = [dict(title=title, url=f'https://www.chefkoch.de/rezepte/{200+i}/Rezept.html', minutes=25,
+                     reason='Passend', matches=['Gemüse'], ingredients=ingredients[i]) for i, title in enumerate(names)]
+        raw['output'][0]['action']['sources'] = [{'url': r['url']} for r in rows]
+        raw['output'][1]['content'][0]['text'] = json.dumps(dict(offers=['Gemüse'], recipes=rows, warnings=[]))
+        result = result_from_response(raw, data())
+        self.assertEqual({r['title'] for r in result['recipes']}, {'Pizza mit Gemüse', 'Hähnchen-Pfanne'})
+        self.assertEqual(result['profile'], DEFAULT_PROFILE)
+
+    def test_mixed_balances_short_and_long_favorite_dishes(self):
+        titles = ['Brokkoli-Pasta', 'Hähnchen-Pfanne', 'Tomaten-Nudeln', 'Lachs-Spaghetti',
+                  'Kartoffel-Eintopf', 'Pizza mit Paprika', 'Möhren-Eintopf', 'Hähnchen aus dem Ofen']
+        rows = [dict(title=title, url=f'https://www.chefkoch.de/rezepte/{300+i}/Rezept.html',
+                     minutes=25 if i < 4 else 90, matches=[title], reason='Passend') for i, title in enumerate(titles)]
+        result = varied_recipes(rows, 'mixed', DEFAULT_PROFILE['preferred'])
+        self.assertEqual(len(result), 8)
+        self.assertEqual([r['minutes'] <= 30 for r in result], [True, False]*4)
+        other = dict(title='Gurkensalat', url='https://www.chefkoch.de/rezepte/400/Rezept.html',
+                     minutes=15, matches=['Gurke'], reason='Passend')
+        self.assertNotEqual(varied_recipes([other, rows[0]], 'quick', DEFAULT_PROFILE['preferred'])[0], other)
+
     def test_reported_cream_variants_and_duplicate_recipe_ids(self):
         def dish(title, ident, matches):
             return dict(title=title, url=f'https://www.chefkoch.de/rezepte/{ident}/Rezept.html',
@@ -128,7 +176,7 @@ class MealAIValidation(unittest.TestCase):
         raw = response(); content = json.loads(raw['output'][1]['content'][0]['text'])
         content['recipes'] += [dict(content['recipes'][0], url='https://127.0.0.1/secret'),
                                dict(content['recipes'][0], url='https://www.chefkoch.de/rezepte/999999/Invented.html'),
-                               dict(content['recipes'][0], minutes=60)]
+                               dict(content['recipes'][0], minutes=181)]
         raw['output'][1]['content'][0]['text'] = json.dumps(content)
         result = result_from_response(raw, data())
         self.assertEqual(len(result['recipes']), 1)
@@ -145,6 +193,19 @@ class MealAIValidation(unittest.TestCase):
 
 
 class MealAIApi(unittest.IsolatedAsyncioTestCase):
+    async def test_mode_specific_cache_and_server_profile(self):
+        first = await trial(self.request({**data(), 'mode': 'quick', 'profile': {'preferred': [], 'avoid': []}}))
+        self.assertEqual(first.status, 200)
+        sent = self.app['meal_ai_call'].call_args.args[1]
+        user_data = json.loads(sent['input'][0]['content'][0]['text'])
+        self.assertEqual(user_data['profile'], DEFAULT_PROFILE)
+        second = await trial(self.request({**data(), 'mode': 'weekend'}, 'ai-weekend-1234567890123456'))
+        self.assertEqual(second.status, 200); self.assertFalse(json.loads(second.text)['cached'])
+        self.assertEqual(self.app['meal_ai_call'].await_count, 2)
+        again = await trial(self.request({**data(), 'mode': 'quick'}, 'ai-quick-1234567890123456'))
+        self.assertTrue(json.loads(again.text)['cached'])
+        self.assertEqual(self.app['meal_ai_call'].await_count, 2)
+
     async def test_names_only_and_legacy_empty_cache_can_be_researched(self):
         body = {**data(), 'offers': 'Brokkoli\nRinderhackfleisch', 'vegetarian': False}
         legacy_digest = hashlib.sha256(json.dumps([validate(body), self.app['meal_ai_model']], sort_keys=True).encode()).hexdigest()

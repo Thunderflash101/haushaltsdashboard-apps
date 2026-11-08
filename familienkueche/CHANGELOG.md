@@ -1,3 +1,12 @@
+# 0.15.0
+
+- Kochzeit-Auswahl im KI-Dialog: Gemischt als Startwert, Schnell bis30 Minuten Gesamtzeit und Wochenende mit bis180 Minuten Gesamtzeit. Letzte Auswahl auf dem jeweiligen Gerät merken; beim Wechsel Eingaben erhalten und keine KI-Anfrage starten.
+- Gemischte Suche soll kurze und längere Gerichte kombinieren. Wochenendsuche bevorzugt Eintöpfe, Ofengerichte und Pizza. Zeitgrenzen auch serverseitig prüfen.
+- Geschmacksprofil vorbelegen: Nudeln, Eintöpfe, Pizza und Hähnchen bevorzugen; Nüsse/Erdnüsse und erkennbare verwandte Nusszutaten meiden. Profil im Dialog anzeigen, über App-Optionen anpassbar.
+- Profil bei der KI-Suche und serverseitigen Auswahl berücksichtigen. Erkannte unerwünschte Zutaten aus Titel, Zutatenzuordnung oder gelieferter Zutatenliste ausschließen; unterschiedliche Gerichte weiterhin bevorzugen.
+- Gesamtzeit und aktive Arbeitszeit getrennt auf Rezeptkarten zeigen. Fehlende oder widersprüchliche Arbeitszeit offen lassen statt schätzen.
+- Suchversion, Modus und Profil im Cache berücksichtigen. Neue bewusste Suche nach Update möglich; keine kostenpflichtigen Anfragen durch das Update oder Umschalten.
+
 # 0.14.3
 
 - Ziel auf acht unterschiedliche Rezeptvorschläge erhöhen. Größeren Kandidatenpool aus verschiedenen Hauptzutaten und Gerichtsarten suchen, statt Varianten einer einzelnen Zutat zu sammeln.
