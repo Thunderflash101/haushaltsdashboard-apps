@@ -280,3 +280,20 @@ Die Profilverwaltung verändert beim Nachladen nur Status und Vorschaubereich; d
 67 Python-Backendtests und 17 DOM-/Timer-Prüfgruppen erfolgreich. Neue Backendprüfungen decken Farben, ungültige Eingaben, Revisionen, doppelte Anfragen, Avatar-Normalisierung, Kamerametadaten, getrenntes Fotoalbum, Austausch/Entfernen und Neustart-Persistenz ab. `tests/profiles-frontend.cjs` prüft bestätigte Schreibvorgänge, Konflikte, sichere Bildpfade, Initialen und erhaltene native Dateifelder.
 
 `tests/browser-profiles.js` prüft die drei Kalenderansichten einschließlich Monatsdetails, Personen-/Familienauswahl, Farben, Bild-Upload mit fehlendem Dateityp, Smartphone-Einzeldatei-Picker und Übernahme auf einem zweiten Gerät mit echtem lokalem temporärem Backend. Layout bei 1280×800 und 960×600 sowie Profilverwaltung bei 412×915 geprüft. Bestehende Aufgaben-/Routinen-/Fotoalbum-Abläufe und der flackerfreie Vollbild-Ruhemodus ebenfalls im Browser geprüft. Alle HA-Daten sind dabei simuliert; keine realen Kalender, Fotos, Benachrichtigungen oder Mealie-Daten verändert. Prüfung auf dem physischen Fire nach Installation steht aus.
+
+
+## Grafische Auswahl bei Aufgaben und Routinen (0.12.1)
+
+Aufgaben und Routinen verwenden dieselbe Personenleiste wie der Kalender: **Familie, Tina, Jörn und Felix**, mit den bereits gespeicherten Bildern und Farben. Eine Person zeigt die ihr zugewiesenen Einträge, Familie alle Einträge. Die Auswahl der Aufgaben-/Routinenansicht ist von der Kalenderauswahl unabhängig. Zugewiesene Personen erscheinen außerdem als kleine Bilder auf den Einträgen und Karten sowie im Kopf der geöffneten Routine.
+
+Beim **Anlegen und Bearbeiten** unter **Für wen?** auf das passende Bild tippen. Die aktuelle Person ist mit Ring und hervorgehobenem Namen markiert. Eine neue Aufgabe oder Routine übernimmt zunächst die gewählte Personenansicht; Vorlagen für Felix behalten ihre vorhandene Zuordnung. Ein zusätzliches Bildhochladen ist nicht notwendig: Die Profile bleiben zentral unter Optionen → Personen & Farben verwaltet.
+
+Unter **Symbol** eine der zwölf Kacheln mit Zeichnung und Beschriftung wählen. Die aktive Kachel ist hervorgehoben. Bei einem Routine-Schritt zeigt **Symbol ändern** bereits das aktuelle Symbol; Antippen öffnet die grafischen Kacheln direkt im Formular. Die Wahl wird übernommen und die Schrittauswahl schließt sich wieder. Texte und andere Angaben bleiben erhalten. Keine nativen Dropdowns mehr für Personen oder Symbole in diesen Formularen.
+
+Fotos und Farben können auch bei einem geöffneten Aufgabenentwurf von anderen Geräten übernommen werden. Dabei werden nur die Personenbilder erneuert; die Eingaben im Entwurf bleiben bestehen. Schreiben, Konfliktprüfung und die bisherigen Regeln zum Fortschritt geänderter beziehungsweise unveränderter Routine-Schritte bleiben erhalten. Profilfotos ohne erreichbares Bild verwenden weiterhin die Initialen.
+
+### Prüfung 0.12.1
+
+Alle 17 DOM-/Timer-Prüfgruppen erfolgreich. Erweiterte Aufgaben- und Profilprüfungen decken gemeinsame Bildkomponenten, unabhängige Filteraktionen, Zuordnung per Bild, grafische Haupt-/Schrittsymbole, Formularwerte, Auswahlmarkierung, Entwurfserhalt und bestehende Konflikt-/Fortschrittsabläufe ab.
+
+`tests/browser-family-pickers.js` verwendet ausschließlich einen lokalen Testserver mit temporärer Datenbank und generierten Testporträts. Geprüft: dieselben Bildadressen und Farben wie im Kalender, Aufgaben anlegen/neu zuordnen, Routinen-Schrittsymbole erstellen/bearbeiten, gespeicherte Werte und erhaltene Häkchen unveränderter Schritte, Live-Profilaktualisierung ohne Entwurfsverlust, Tabletgrößen 1280×800/960×600 und der grafische Editor in schmaler Smartphone-Ansicht. Bestehender Aufgaben-/Routinen-/Fotoalbum-Browsertest und Kalender-/Profil-Browsertest ebenfalls erfolgreich. Keine Backendänderung, daher Backendtests nicht erneut ausgeführt. Prüfung auf dem physischen Fire nach dem Update steht aus.

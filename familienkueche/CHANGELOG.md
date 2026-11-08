@@ -1,3 +1,12 @@
+# 0.12.1
+
+- Dieselben Personenfotos, Farbringe und Familie-Schaltflächen wie im Kalender für Aufgaben und Routinen verwenden.
+- Zugewiesene Personen auch auf Aufgabeneinträgen, Routinenkarten und in der Routine anzeigen.
+- Beim Anlegen und Bearbeiten die Person direkt über ihr Bild auswählen; Personen-Dropdown ersetzen.
+- Aufgaben- und Routinesymbol über zwölf beschriftete grafische Kacheln auswählen; Symbol-Dropdown ersetzen.
+- Auch die Symbole einzelner Routinen-Schritte über eine aufklappbare grafische Auswahl ändern.
+- Profilaktualisierungen in offenen Entwürfen übernehmen, ohne Titel, Zuweisung, Symbol oder andere Eingaben zu ersetzen. Bestehende Fortschritte unveränderter Schritte bleiben erhalten.
+
 # 0.12.0
 
 - Personenleiste mit runden Fotos für Tina, Jörn und Felix sowie eigener Familie-Schaltfläche.

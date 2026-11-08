@@ -240,7 +240,7 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 
 /* Family portraits stay compact so the week keeps its available height. */
 .profile-filters{gap:6px}
-.calendar-toolbar .profile-filter{display:flex;flex-direction:column;align-items:center;gap:5px;background:transparent;min-width:50px;min-height:60px;border:0;padding:4px 6px;border-radius:12px;font-size:11px;line-height:1.1}
+.profile-filters .profile-filter{display:flex;flex-direction:column;align-items:center;gap:5px;background:transparent;min-width:50px;min-height:60px;border:0;padding:4px 6px;border-radius:12px;font-size:11px;line-height:1.1}
 .profile-filter:hover{background:#ffffff66}
 .profile-avatar{display:inline-flex;position:relative;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0;border:3px solid;border-radius:50%;padding:2px;background:#f9f5ef;overflow:hidden}
 .profile-initials{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:18px;font-weight:bold;background:#eee6dc;color:#504a40}
@@ -268,6 +268,38 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .profile-swatch>span{display:block;width:28px;height:28px;border-radius:50%;border:1px solid #0001}
 .profile-swatch[aria-pressed="true"]{border-color:#4d5e41;background:#e5ebdb}
 #family-profile-manager [data-profile-status]{margin-top:14px}
-@media(max-width:1050px){.profile-filters{gap:3px}.calendar-toolbar .profile-filter{min-width:44px;padding:4px;font-size:10px}.profile-avatar{width:36px;height:36px}}
-@media(max-height:660px){.calendar-toolbar .profile-filter{min-height:50px;gap:3px}.profile-avatar{width:34px;height:34px}}
+@media(max-width:1050px){.profile-filters{gap:3px}.profile-filters .profile-filter{min-width:44px;padding:4px;font-size:10px}.profile-avatar{width:36px;height:36px}}
+@media(max-height:660px){.profile-filters .profile-filter{min-height:50px;gap:3px}.profile-avatar{width:34px;height:34px}}
 @media(max-width:600px){.profile-editor{gap:12px;align-items:flex-start}.profile-editor-avatar .profile-avatar{width:70px;height:70px}.profile-manager-people{gap:4px}.profile-manager-people button{padding:8px 12px}.profile-photo-picker input{width:100%}}
+
+
+/* Shared family portraits and graphic choices in task/routine editors. */
+.profile-person-chip{display:inline-flex;align-items:center;gap:9px;flex-shrink:0;border-radius:28px;padding:4px 10px 4px 4px;font-size:14px;font-weight:bold}
+.profile-person-chip.compact{padding:2px;background:transparent}
+.profile-person-chip.compact .profile-name{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.family-person-field,.family-icon-field{min-width:0;border:1px solid #ded2c4;border-radius:15px;padding:13px 16px;margin:0}
+.family-person-field legend,.family-icon-field legend{font-size:14px;font-weight:bold;padding:0 5px}
+.family-person-field .profile-filters{flex-wrap:wrap;gap:16px;padding:4px 2px}
+.family-person-field .profile-filters .profile-filter{min-width:65px;font-size:13px}
+.family-person-field .profile-avatar{width:48px;height:48px}
+.family-icon-grid{display:flex;flex-wrap:wrap;gap:8px}
+.family-icon-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:72px;width:calc(16.666% - 7px);min-width:70px;padding:9px 5px;font-size:12px;border:2px solid #e3d8ca;background:#fffaf4;border-radius:13px;line-height:1.2}
+.family-icon-choice svg{width:29px;height:29px}
+.family-icon-choice[aria-pressed="true"]{background:#e1e9cf;border-color:#6f894b;color:#365321;box-shadow:inset 0 0 0 1px #6f894b}
+.family-icon-choice:hover{background:#efe7da}
+.family-step-editor{flex-wrap:wrap;align-items:flex-start;padding:12px;border:1px solid #ded2c4;border-radius:15px;background:#fffaf455}
+.family-step-symbol{flex:0 0 180px;min-width:0}
+.family-step-symbol summary{display:flex;align-items:center;gap:10px;padding:8px 10px;min-height:48px;border:1px solid #dbcebd;border-radius:12px;background:#fffaf4;cursor:pointer;list-style:none}
+.family-step-symbol summary::-webkit-details-marker{display:none}
+.family-step-symbol summary:focus-visible{outline:3px solid #b36b49;outline-offset:2px}
+.family-step-symbol summary>svg{width:29px;height:29px}
+.family-step-symbol summary strong{display:block;font-size:13px}
+.family-step-symbol summary small{display:block;margin-top:4px;font-size:10px}
+.family-step-symbol details[open] summary{margin-bottom:9px;background:#e9eedf}
+.family-step-symbol .family-icon-grid{gap:5px}
+.family-step-symbol .family-icon-choice{width:calc(33.333% - 4px);min-width:0;min-height:56px;padding:5px 2px;font-size:9px;gap:4px}
+.family-step-symbol .family-icon-choice svg{width:24px;height:24px}
+.family-step-editor>.family-step-title{min-height:48px;flex:1;min-width:80px}
+.family-step-editor>[data-action="family-remove-step"]{min-width:44px;min-height:48px}
+@media(max-width:1050px){.family-person-field .profile-filters .profile-filter{min-width:58px}.family-icon-choice{width:calc(25% - 6px)}}
+@media(max-width:600px){.family-person-field{padding:12px 8px}.family-person-field .profile-filters{gap:9px}.family-person-field .profile-filters .profile-filter{min-width:52px;font-size:11px;padding:5px}.family-person-field .profile-avatar{width:42px;height:42px}.family-icon-choice{min-width:0;width:calc(33.333% - 6px);font-size:11px}.family-step-symbol{flex-basis:100%;order:2}.family-step-symbol .family-icon-choice{width:calc(25% - 4px);min-height:60px;font-size:10px}}

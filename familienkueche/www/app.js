@@ -30,9 +30,9 @@ var ingredients=window.createFamilyIngredients({api:api,esc:esc,btn:btn,uid:uid,
 var cooking=window.createFamilyCooking({api:api,esc:esc,btn:btn,modal:modal,toast:toast});
 var weather=window.createFamilyWeather({api:api,esc:esc,icon:icon,modal:modal,repaint:baseRender});
 var meals=window.createFamilyMeals({api:api,esc:esc,icon:icon,btn:btn,plus:plus,date:date,pad:pad,fmt:fmt,uid:uid,weekdays:weekdays,weekControls:weekControls,modal:modal,close:closeModal,toast:toast,repaint:baseRender,ingredients:function(id){ingredients.open(id);},weekIngredients:function(){ingredients.openWeek(week);},range:requestedRange,week:function(){return week;},selected:function(){return selectedMeal;},select:function(d){selectedMeal=d;},today:function(){return today;},screen:function(){return screen;}});
-var tasks=window.createFamilyTasks({api:api,esc:esc,icon:icon,btn:btn,uid:uid,modal:modal,close:closeModal,toast:toast,repaint:baseRender,today:function(){return today;},screen:function(){return screen;},plus:plus,fmt:fmt});
+var tasks=window.createFamilyTasks({profiles:function(){return profiles;},api:api,esc:esc,icon:icon,btn:btn,uid:uid,modal:modal,close:closeModal,toast:toast,repaint:baseRender,today:function(){return today;},screen:function(){return screen;},plus:plus,fmt:fmt});
 var saver=window.createFamilySaver({api:api,esc:esc,icon:icon,btn:btn,uid:uid,modal:modal,toast:toast,repaint:baseRender,preferences:function(){return state;},screen:function(){return screen;},timeNow:timeNow,showSaver:function(){closeModal();screen='saver';render();},context:function(){var n=nextEvent(),r=meals.forDay(today);return {date:fmt(today,{weekday:'long',day:'numeric',month:'long'}),weather:weather.compact(),nextTitle:n?n.title:'Zeit für euch',nextDetail:n?n.start+' - '+n.end+' · '+names[n.person]+(n.date!==today?' · '+fmt(n.date):''):'Gerade steht nichts an.',mealTitle:r?(r.short||r.name):meals.emptyLabel(),mealDetail:r?r.tag||'':'Gemeinsam etwas aussuchen',warning:!!live.error||live.sources.some(function(x){return !x.ok;})};}});
-var profiles=window.createFamilyProfiles({api:api,esc:esc,icon:icon,btn:btn,uid:uid,modal:modal,repaint:baseRender,upload:saver.uploadPhoto});
+var profiles=window.createFamilyProfiles({api:api,esc:esc,icon:icon,btn:btn,uid:uid,modal:modal,repaint:function(){baseRender();tasks.refreshProfiles();},upload:saver.uploadPhoto});
 var saverViewport=window.createFamilySaverViewport({wake:wakeSaver});
 function wakeSaver(){if(screen!=='saver')return;saver.wake();screen='calendar';render();resetIdle();}
 var reminders=window.createFamilyReminders({api:api,esc:esc,icon:icon,btn:btn,uid:uid,modal:modal,close:closeModal,toast:toast,repaint:baseRender});
@@ -111,6 +111,6 @@ function updateNowLine(){var line=document.querySelector('[data-now-line]');if(l
 var agendaMinute=timeNow();
 setInterval(function(){updateNowLine();var minute=timeNow();if(screen==='calendar'&&mode==='list'&&minute!==agendaMinute)baseRender();agendaMinute=minute;var fresh=iso(new Date());if(fresh!==today){today=fresh;tasks.dayChanged();render();}var nodes=document.querySelectorAll('[data-clock]');for(var i=0;i<nodes.length;i++)nodes[i].textContent=timeNow();},15000);
 setInterval(function(){if(overlay.hidden&&!live.loading){syncCalendar(true);meals.refresh();weather.ensure();shopping.ensure();}},60000);
-setInterval(function(){if(overlay.hidden){if(screen==='shopping')shopping.ensure();tasks.ensure();profiles.ensure();reminders.ensure();}},30000);
+setInterval(function(){profiles.ensure();if(overlay.hidden){if(screen==='shopping')shopping.ensure();tasks.ensure();reminders.ensure();}},30000);
 render();resetIdle();
 })();
