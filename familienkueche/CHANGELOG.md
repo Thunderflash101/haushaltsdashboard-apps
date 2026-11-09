@@ -1,3 +1,14 @@
+# 0.16.0
+
+- Original-Rezeptbilder schon vor dem Mealie-Import anzeigen, auch bei bereits gespeicherten Vorschlägen. Bilder ausschließlich aus Metadaten der passenden Chefkoch-Rezeptseite laden, verkleinern und auf dem NUC zwischenspeichern; fehlende Bilder erhalten einen neutralen Platzhalter.
+- „Gefällt uns“, „Heute nicht“ und „Nicht unser Geschmack“ für KI- und Mealie-Rezepte ergänzen. Rückmeldungen zentral speichern und beim nächsten Vorschlagen berücksichtigen; gespeicherte Ersatzideen nach Möglichkeit kostenlos nachrücken lassen.
+- Familiengeschmack direkt im Dashboard bearbeiten und Bewertungen zurücksetzen. Mealie-Familienfavoriten und ausdrückliche Rückmeldungen als Kontext für neue KI-Ideen nutzen, ohne Mealie-Tags automatisch zu verändern.
+- „Heute gekocht“ mit Rückgängig-Funktion und dauerhafter Kochhistorie ergänzen. Tatsächlich gekochte Gerichte bei der Auswahl berücksichtigen, unabhängig von bloßen Planeinträgen.
+- Möglichst vier vertraute Ideen und vier neue Ideen anbieten; Grenzen durch verfügbare passende Quellen bleiben bestehen.
+- Drei-Tage-Entwurf aus vorhandenen Mealie-Rezepten: freie Tage finden, Abendtermine lokal berücksichtigen, gemeinsame Zutaten bevorzugen, Gerichte tauschen und erst nach Prüfung in Mealie übernehmen.
+- Planübernahme gegen zwischenzeitlich belegte Tage, Profiländerungen und doppelte/unklare Versuche absichern. Teilweise bestätigte Übernahmen klar anzeigen; nicht automatisch wiederholen.
+- Rezeptbilder und Ergebnisse zuerst zeigen; neue Suche und technische Kosten-/Verbrauchsdetails einklappen. Bewertungen aktualisieren die Bedienung, ohne das bestehende Bild beim Liken oder Abhaken zu ersetzen.
+
 # 0.15.0
 
 - Kochzeit-Auswahl im KI-Dialog: Gemischt als Startwert, Schnell bis30 Minuten Gesamtzeit und Wochenende mit bis180 Minuten Gesamtzeit. Letzte Auswahl auf dem jeweiligen Gerät merken; beim Wechsel Eingaben erhalten und keine KI-Anfrage starten.

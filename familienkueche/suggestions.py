@@ -42,7 +42,7 @@ def rank_recipes(recipes, history, planned, today, week, shuffle=0, vegetarian=F
         days = (today - date.fromisoformat(last)).days if last else None
         penalty = 90 if days is not None and days <= 7 else max(0, 29 - days) * 2 if days is not None else 0
         dates = sorted(set(plans.get(rid, [])))
-        score = (40 if recipe['favorite'] else 0) - penalty - (110 if dates else 0)
+        score = (40 if recipe['favorite'] or recipe.get('feedback', {}).get('rating') == 'like' else 0) - penalty - (110 if dates else 0)
         noise = int(hashlib.sha256((rid + today.isoformat() + week + str(shuffle)).encode()).hexdigest()[:8], 16) / 0xffffffff
         output.append({**recipe, 'lastSeen': last, 'lastSeenSource': source, 'plannedDates': dates, '_rank': score + noise * 15})
     output.sort(key=lambda x: (-x['_rank'], x['name'].casefold(), x['id']))
@@ -82,6 +82,15 @@ async def get_suggestions(request):
     warnings = []
     try:
         recipes = [recipe_summary(raw) for raw in results[0]['recipes']['items']]
+        remember(app, recipes)
+        from meal_experience import settings
+        from meal_ai import avoided
+        profile, _ = settings(app)
+        recipes = [r for r in recipes if r['feedback']['rating'] != 'dislike' and not r['feedback']['skipped'] and
+                   not avoided({'title': r['name'], 'matches': [], 'ingredients': []}, profile)]
+        for recipe in recipes:
+            cooked = recipe['feedback']['lastCooked']
+            if cooked and (not recipe.get('lastMade') or cooked > recipe['lastMade']): recipe['lastMade'] = cooked
         history = plan_recipes(results[1]['mealplan']) if not isinstance(results[1], Exception) else []
         planned = plan_recipes(results[2]['mealplan']) if not isinstance(results[2], Exception) else []
         if isinstance(results[1], Exception):

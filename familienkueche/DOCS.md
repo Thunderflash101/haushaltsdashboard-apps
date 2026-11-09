@@ -445,3 +445,59 @@ Technisch enthalten KI-Kandidaten zusätzlich `activeMinutes` (Zahl odernull) un
 Alle92 Python-Backendtests erfolgreich, davon22 zur KI-/Aldi-Anbindung. Neue Fälle prüfen Schnell-/Wochenend-Grenzen, lange Köchelzeit trotz kurzer Vorbereitung, unbekannte/widersprüchliche Arbeitszeit, gemischte Vier/Vier-Auswahl, Geschmackspriorisierung, Nusszutaten in einem sonst unauffälligen Gericht und unabhängig gecachte Modi. Ein vom Client eingeschleustes leeres Profil hebt die Servervorgaben nicht auf.
 
 Der erweiterte Browser-Test `tests/browser-meal-ai.js` prüft die drei Schalter, Startwert Gemischt, Eingabeerhalt und keine Gebühren beim Wechsel, gespeicherte Auswahl nach Neuladen, sichtbares Geschmacksprofil, getrennte Gesamt-/Arbeitszeit, unbekannte Arbeitszeit, acht Karten und vorhandene Import-/Fehlerabläufe bei1280×800/960×600. Alle Provider simuliert, keine produktiven HA-/Mealie-/Bring-Änderungen, kein echter API-Schlüssel gelesen und kein kostenpflichtiger Lauf ausgeführt. Echte Rezeptqualität und Quellenangaben im nächsten bewussten Nutzerlauf prüfen.
+
+
+## Bilder, Rückmeldungen und drei Abendessen planen (0.16.0)
+
+Nach dem Update die Familienküche-App neu starten und das Dashboard neu laden. Die bisherige OpenAI-/Aldi-/Mealie-Konfiguration bleibt verwendbar. Unter **Essensplan → Neue Ideen · KI** erscheinen gespeicherte Vorschläge jetzt mit Originalfoto, soweit die Rezeptquelle eines bereitstellt. Bei vorhandenen Ergebnissen ist **Neue Vorschläge suchen** zunächst eingeklappt, damit die Bilder schnell sichtbar sind. Eine neue kostenpflichtige Suche wird weiterhin erst nach ausdrücklicher Startbestätigung ausgeführt.
+
+### Originalfotos vor dem Import
+
+Für einen bereits bekannten, belegten Chefkoch-Rezeptlink liest der Server das Originalbild aus den Bildmetadaten der Rezeptseite. Keine KI-Bilderzeugung und kein vorheriger Import erforderlich. Auch alte gespeicherte Vorschläge erhalten Bilder, ohne einen neuen KI-Lauf zu starten. Der Browser lädt nur die lokale Bildadresse der Familienküche. Auf dem NUC werden normalisierte JPEG-Vorschaubilder bis800×500 gespeichert; bis zu160 ältere Bilder plus die aktuelle Auswahl bleiben im Cache. Erfolgreiche Bilder werden biszu7Tage wiederverwendet, fehlgeschlagene Abrufe frühestens nach einer Stunde erneut versucht. Gleichzeitige Abrufe desselben Bilds werden zusammengeführt.
+
+Es werden nur HTTPS-Bildadressen des Chefkoch-Bildservers akzeptiert, deren Pfad zur identischen Rezept-ID gehört. Beliebige vom Browser oder Modell genannte Bildadressen werden nicht abgerufen. Der Server überträgt keine Home-Assistant-/OpenAI-Schlüssel an Chefkoch. Rezeptseiten, Bildantworten, Dateiformate und Bildabmessungen sind begrenzt; aktive SVG-Inhalte werden nicht ausgeliefert. Fehlt das Originalfoto oder ist es nicht erreichbar, bleibt ein neutraler Platzhalter mit entsprechender Beschriftung sichtbar. Eine öffentliche Chefkoch-Seite inklusive Originalfoto wurde mit dem tatsächlichen Abrufpfad erfolgreich geprüft. Die verschiedenen Rezeptquellen können trotzdem unterschiedlich erreichbar sein.
+
+### Rückmeldungen und Familiengeschmack
+
+Auf KI-Karten und Mealie-Vorschlägen gibt es **Gefällt uns** sowie unter **Weitere**:
+
+- **Heute nicht:** blendet das Rezept für den laufenden Tag in Europe/Berlin aus. Am nächsten Tag ist diese vorübergehende Ablehnung abgelaufen.
+- **Nicht unser Geschmack:** bleibt bestehen, bis die Bewertung zurückgesetzt wird.
+- **Heute gekocht:** merkt das tatsächlich gegessene Gericht mit heutigem Datum. Über denselben Knopf kann die heutige Markierung zurückgenommen werden; ältere Kochdaten bleiben erhalten.
+- **Bewertung zurücksetzen:** entfernt die dauerhafte Bewertung beziehungsweise heutige Ausblendung, ohne die Kochhistorie zu löschen.
+
+**Unser Geschmack** im Essensplan öffnet ein gemeinsames Profil mit bearbeitbaren, durch Komma getrennten Vorlieben und zu meidenden Zutaten. Darunter lassen sich frühere Rückmeldungen einsehen und zurücksetzen. Diese Dashboard-Einstellungen werden zentral in der App-Datenbank gespeichert und haben anschließend Vorrang vor den vorbelegten App-Optionen. Ein App-Neustart oder Update setzt sie nicht zurück. Gleichzeitige Änderungen werden anhand von Revisionen geprüft; veraltete Änderungen überschreiben nicht unbemerkt den neueren Stand.
+
+Die vorhandenen Mealie-Familienfavoriten, ausdrückliche Likes, dauerhafte Ablehnungen, heutige Ausblendungen und Kochdaten bilden Kontext für die nächste bewusst gestartete KI-Suche. Es werden nur bekannte Rezeptnamen übermittelt, keine Kalendertermine oder Dokumente. Die KI soll verwandte neue Gerichte finden und kürzlich gegessene Gerichte möglichst vermeiden. Preise werden weiterhin nicht geraten. Mealie-Tags werden durch lokale Likes nicht verändert; die vorhandene Mealie-Favoritenkennzeichnung bleibt eine zusätzliche Quelle.
+
+Bei ausreichendem Kandidatenpool werden etwa vier Ideen passend zum vertrauten Geschmack und vier andere Ideen bevorzugt. **Passt zu euch** bedeutet, dass die bekannte Vorliebe oder ein ausdrückliches Like passt; **Mal was Neues** kennzeichnet weitere Ideen. Dies ist eine nachvollziehbare, heuristische Auswahl, keine Garantie auf eine feste Aufteilung oder acht Treffer. Nuss-/Geschmacksfilter und Zeitmodus gelten weiterhin. Bereits zurückgelieferte, belegte Alternativen können bei Ablehnung eines Gerichts aus dem lokalen Ergebnis nachrücken. Dazu wird nur der gespeicherte Stand neu gelesen, keine zusätzliche KI-Anfrage ausgelöst. Sind keine passenden Alternativen gespeichert, bleibt die Anzahl entsprechend kleiner.
+
+Rückmeldungen, Profiländerungen, Kochmarkierungen, Bildabrufe und das Lesen gespeicherter Vorschläge verursachen keine OpenAI-Aufrufe. Die separate API-Startbestätigung betrifft weiterhin nur **Vorschläge finden**. Kosten-/Verbindungsangaben und Verbrauchszähler sind unter aufklappbaren Details erreichbar.
+
+### Kochhistorie und vorhandene Sammlung
+
+**Heute gekocht** lässt sich auch auf eingeplanten Gerichten und in geöffneten Mealie-Rezepten setzen. Die Markierung speichert einen tatsächlichen Kochvorgang, nicht bloß eine Planung. Bei den Vorschlägen aus der eigenen Sammlung werden Likes bevorzugt und kürzlich gekochte Gerichte seltener ausgewählt. Die KI erhält biszu14Tage jüngere Kochdaten als Kontext. Es wird kein nicht unterstützter Mealie-Schreibdienst zum Ändern von `lastMade` simuliert; die zusätzliche Historie bleibt lokal in der Familienküche.
+
+Mealie-Rezepte und KI-Rezeptlinks verwenden dieselbe Bewertung, sobald der Original-Link bekannt ist. Wenn eine zuvor nur über Mealie-ID bekannte Zuordnung später aufgelöst wird, werden vorhandene Bewertungen und Kochdaten übernommen. Bei bereits vorhandener kanonischer Bewertung bleibt diese erhalten. Ein älterer geöffneter Client mit veralteter Zuordnung muss sein Rezept neu laden. Lokale Bewertungs-/Bilddaten fließen nicht in die Revisionsprüfung des externen Mealie-Plans ein und verursachen daher keine falschen Planungskonflikte.
+
+### Drei-Tage-Entwurf
+
+**3 Tage planen** verwendet ausschließlich bereits in Mealie vorhandene Rezepte. Neue KI-Rezepte deshalb zuerst über den bestehenden Import übernehmen. Einen kommenden Starttag wählen; aus den nächsten sieben Tagen werden biszu drei freie Abendessen vorgeschlagen. Schon belegte Tage werden ausgelassen. Die App liest eine begrenzte Auswahl der Sammlung, prüft bei biszu16 Kandidaten nach Möglichkeit Zutaten und berücksichtigt Favoriten, Geschmack, Rückmeldungen sowie jüngere Kochdaten.
+
+Tinas und Jörns Kalender werden dafür ausschließlich lokal gelesen. Viele Termine zwischen16und21Uhr beziehungsweise mindestens zwei Stunden belegte Abendzeit bevorzugen ein bekannt schnelles Gericht. Es werden keine Termintitel oder Kalenderdetails an eine KI gesendet. Schlägt die Kalenderprüfung fehl, zeigt der Entwurf dies an. Er ist eine Auswahlhilfe, keine verbindliche Verfügbarkeitsgarantie. Falls nicht genug passende Rezepte oder freie Tage vorliegen, wird die kleinere Auswahl offen angezeigt.
+
+Bei gemeinsamen Zutaten steht im Entwurf **Zutaten gemeinsam nutzen**. Diese Vorschläge vergleichen die vorhandenen Zutatenbezeichnungen und berücksichtigen weder unbestätigte Aldi-Packungsgrößen noch erfundene Preise. Die Hinweise sollen den gemeinsamen Einkauf erleichtern; sie garantieren nicht, dass eine konkrete Packung restlos aufgebraucht wird. Vorhandene Mengen-/Portionsprüfung und die gemeinsame Einkaufsliste bleiben wie gewohnt nutzbar.
+
+**Gericht tauschen** wechselt innerhalb des geladenen Rezeptpools, ohne schon etwas in Mealie zu ändern. **Anderer Entwurf** erstellt einen neuen Vorschlag. Erst **Geprüften Plan in Mealie speichern** übernimmt die ausgewählten Tage. Vor dem Schreiben und erneut vor jedem einzelnen Tag wird der aktuelle Plan geprüft. Eine inzwischen belegte Auswahl, ein geändertes Profil oder eine neue ablehnende Bewertung verlangt eine neue Prüfung. Vorhandene Gerichte werden nicht ersetzt.
+
+Eine unklar oder teilweise bestätigte Übernahme stoppt sofort und nennt die bereits bestätigten Tage. Dann den aktuellen Plan prüfen und einen frischen Entwurf erstellen; derselbe Entwurf wird auch mit einer neuen Client-Anfragekennung nicht noch einmal abgeschickt. Ein bereits erfolgreich übernommener identischer Entwurf wird nur bestätigt, nicht dupliziert. Eine automatische Rücknahme bereits bestätigter Tage findet nicht statt. Entwürfe bleiben vorübergehend biszu2Tage lokal gespeichert; Bewertungen, Profile und Kochdaten bleiben dauerhaft in derselben App-Datenbank.
+
+Der Entwurf, Tauschen und die Mealie-Übernahme benötigen keinen OpenAI-Aufruf. Ein Preisvergleich oder Budgetoptimierung ist weiterhin zurückgestellt, bis belastbare Angebotsdaten vorliegen.
+
+### Prüfung 0.16.0
+
+Alle110 Python-Backendtests und alle17 bestehenden DOM-/Timer-Prüfgruppen erfolgreich. Neue Tests prüfen sichere Originalbild-Metadaten, passende Rezept-/Bild-ID, Größen-/Formatgrenzen, parallelen Cachezugriff, negative Cacheeinträge, persistente Bilder und Rückmeldungen nach Neustart, heutige versus dauerhafte Ablehnung, tatsächliche Kochmarkierung mit Rückgängig, Profiländerungen mit Revisionen, Übernahme von Mealie-ID-Bewertungen zum Original-Link, gespeicherte Ersatzideen und vertraute/neue Auswahl.
+
+Planprüfungen decken Entwurf ohne Schreibvorgang, volle Abende, gemeinsame Zutaten, Nussfilter, inzwischen belegte Tage, Profiländerungen, stabile externe Planrevisionen trotz lokaler Likes, bestätigte Übernahme, teilweise/unklare Antworten und Wiederholschutz auch mit neuer Anfragekennung ab. `tests/browser-meal-experience.js` prüft Bilder aus dem lokalen Proxy, Bildidentität beim Liken, Menüs/Bewertungen/Kochhistorie, Profil und Ausblendungen nach Reload, Planentwurf/Tausch ohne Schreiben und erst bestätigte Übernahme bei1280×800/960×600. Der bestehende KI-Browserablauf bleibt ebenfalls erfolgreich.
+
+Alle Automatiktests verwenden temporäre Datenbanken und simulierte HA-/Mealie-/OpenAI-Dienste. Ergänzend wurde eine öffentliche Chefkoch-Seite mit ihrem Originalbild erfolgreich abgerufen und normalisiert. Kein echter API-Schlüssel wurde gelesen, keine kostenpflichtige KI-Anfrage gestartet und kein produktiver Kalender, Mealie-Plan oder Bring-Eintrag verändert. Physisches Fire und individuelle Rezeptquellen nach Update beim Nutzer prüfen.

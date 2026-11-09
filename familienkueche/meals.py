@@ -20,7 +20,8 @@ def recipe_id(value):
 
 def recipe_summary(raw):
     rid = recipe_id(raw['recipe_id'])
-    return {'id': rid, 'name': str(raw.get('name') or 'Ohne Titel'),
+    from meal_ai import recipe_url
+    return {'id': rid, 'sourceUrl': recipe_url(raw.get('original_url')), 'name': str(raw.get('name') or 'Ohne Titel'),
             'description': str(raw.get('description') or ''),
             'time': str(raw.get('total_time') or raw.get('prep_time') or ''),
             'servings': raw.get('recipe_servings'),
@@ -84,6 +85,10 @@ async def service(app, name, data, response=True):
 def remember(app, recipes):
     for r in recipes:
         app['recipe_ids'].add(r['id'])
+    from meal_experience import remember as remember_experience, feedback
+    remember_experience(app, recipes)
+    for recipe in recipes:
+        recipe['feedback'] = feedback(app, recipe['recipeKey'])
 
 
 async def plan_read(app, start, end):
@@ -100,13 +105,14 @@ async def get_plan(request):
         return web.json_response({'error': 'Ungültiger Zeitraum.'}, status=400)
     try:
         entries = await plan_read(request.app, start, end)
-        remember(request.app, [e['recipe'] for e in entries if e['recipe']])
         revisions = {}
         day = start
         while day < end:
             stamp = day.isoformat()
             revisions[stamp] = revision([e for e in entries if e['date'] == stamp])
             day += timedelta(days=1)
+        # Local ratings/photos are presentation data, never Mealie preconditions.
+        remember(request.app, [e['recipe'] for e in entries if e['recipe']])
         return web.json_response({'entries': entries, 'revisions': revisions})
     except Exception:
         return web.json_response({'error': 'Der Essensplan konnte nicht aus Mealie geladen werden.'}, status=502)
