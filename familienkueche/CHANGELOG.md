@@ -1,3 +1,13 @@
+# 0.18.0
+
+- Vorhandene Termine aus Jörns Google-Kalender direkt im Dashboard bearbeiten und verschieben: Titel, Start-/Enddatum, Uhrzeiten, ganztägig, Ort und Beschreibung; Tasten für einen Tag früher/später, eine Woche später und 30 Minuten später.
+- Optionale direkte Google-Anbindung mit eigenen OAuth-Zugangsdaten und Offline-Refresh-Token in secrets.yaml; standardmäßig ausgeschaltet. Einrichtung und rein lesende Verbindungsprüfung unter Optionen, vollständige Anleitung in GOOGLE_CALENDAR.md.
+- Einzelne Google-Termine eindeutig über HA-Quellkalender, iCalUID, Originalzeitraum und gegebenenfalls Serienvorkommens-ID zuordnen. Nur eigene, selbst organisierte Standardtermine; importierte und andere Quellen bleiben lesbar.
+- Vorher/Nachher prüfen und Überschneidungen in Jörns Kalender anzeigen; erst ausdrücklich speichern. Serienänderungen gelten zunächst nur für das einzelne Vorkommen.
+- Bestehenden Google-Termin mit PATCH und If-Match aktualisieren, statt Löschen/Neuanlegen. Unveränderte Zeitfelder behalten Sekunden; Gäste, Erinnerungen und Konferenzdaten bleiben erhalten. Keine Einladungs-E-Mails durch die App.
+- Vor und während des Schreibens Versionskonflikte erkennen. Persistente semantische Anfragekennungen verhindern Wiederholungen auch mit neuer Client-Anfragekennung; unklare Schreibbestätigungen bleiben gesperrt. Nach bestätigtem Speichern HA-Kalender aktualisieren.
+- Geheimnisse bleiben serverseitig; eigene Google-HTTP-Sitzung ohne Supervisor-/OpenAI-Token und ohne Weiterleitungen. Im Produktionseinstieg ein gemeinsames Servermodul für Hilfsfunktionen und Fehlerklassen verwenden.
+
 # 0.17.0
 
 - Kalendersuche nach Titel, Ort und Beschreibung mit Personenfotos, frei wählbarem Zeitraum bis 366 Tage und vergangenen sowie zukünftigen Terminen aus den konfigurierten Quellen.

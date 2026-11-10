@@ -348,6 +348,24 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .calendar-conflict-time{font-size:14px;color:#805031;margin:6px 0 12px}
 .calendar-detail-nav{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:17px;padding-top:15px;border-top:1px solid #ddcdbb}
 .calendar-detail-nav button{font-size:13px}
+.calendar-shift-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:18px}
+.calendar-shift-buttons button{font-size:13px;padding:9px 12px;min-height:44px}
+.calendar-editor-actions{flex-wrap:wrap}
+.calendar-edit-comparison{display:flex;gap:12px;margin:18px 0}
+.calendar-edit-comparison>div{flex:1;min-width:0;padding:16px;border-radius:14px;background:#eee4d6}
+.calendar-edit-comparison>div:last-child{background:#e0e8ce}
+.calendar-edit-comparison small{display:block;margin-bottom:10px;color:#726454}
+.calendar-edit-comparison strong{display:block;font-size:20px;overflow-wrap:break-word}
+.calendar-edit-comparison p{line-height:1.5;margin-top:9px}
+.calendar-edit-conflicts{border:1px solid #c69267;background:#f3dfcb}
+.calendar-edit-conflicts p{margin-top:12px;line-height:1.5}
+.calendar-edit-description{padding:12px;background:#eee4d6;border-radius:12px;margin-top:12px}
+.calendar-edit-description summary{cursor:pointer}
+.calendar-edit-description p{white-space:pre-wrap;overflow-wrap:break-word;margin-top:12px}
+#calendar-edit-form textarea{resize:vertical;min-height:85px}
+#calendar-edit-form>.source-label{margin-bottom:15px}
+#calendar-google-setup>p{line-height:1.5;margin-bottom:12px}
+.overlay.compact-dialog .calendar-edit-comparison{flex-direction:column}
 @media(max-width:1050px){.calendar-toolbar .calendar-search-button{padding:7px 9px;font-size:14px}}
 
 .ai-results [data-ai-searches] a{display:flex;align-items:center;min-height:44px;padding:6px 0;overflow-wrap:anywhere}

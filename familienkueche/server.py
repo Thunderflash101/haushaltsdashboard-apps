@@ -256,11 +256,13 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     setup_meal_experience(app)
     from calendar_search import setup as setup_calendar_search
     setup_calendar_search(app)
+    from calendar_edit import setup as setup_calendar_edit
+    setup_calendar_edit(app, options)
     app.router.add_get('/', index)
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'calendar-tools.js', 'meals.js', 'meal-ai.js', 'meal-tools.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
+    for filename in ('app.js', 'calendar-tools.js', 'calendar-editor.js', 'meals.js', 'meal-ai.js', 'meal-tools.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
         async def asset(request, filename=filename):
             return web.FileResponse(ROOT / 'www' / filename)
         app.router.add_get('/' + filename, asset)
@@ -281,4 +283,8 @@ async def start_app():
 
 
 if __name__ == '__main__':
+    # Shared helpers imported by feature modules must use this running module,
+    # including its exception classes, rather than a second copy named server.
+    import sys
+    sys.modules.setdefault('server', sys.modules[__name__])
     web.run_app(start_app(), host='0.0.0.0', port=8099, access_log=None)

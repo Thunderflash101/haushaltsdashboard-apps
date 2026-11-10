@@ -1,5 +1,5 @@
 name: Familienküche
-version: "0.17.0"
+version: "0.18.0"
 slug: familienkueche
 description: Familienkalender, Erinnerungen, Aufgaben und Mealie-Anbindung
 arch:
@@ -17,6 +17,8 @@ map:
   - type: homeassistant_config
     read_only: true
 options:
+  google_calendar_edit_enabled: false
+  google_calendar_edit_id: "primary"
   shopping_entity: "todo.einkaufsliste"
   birthdays_calendar: "calendar.geburtstage_2"
   holidays_calendar: "calendar.feiertage_in_deutschland"
@@ -35,6 +37,8 @@ options:
   meal_ai_model: "gpt-6-luna"
   meal_ai_monthly_budget_usd: 5
 schema:
+  google_calendar_edit_enabled: bool?
+  google_calendar_edit_id: str?
   shopping_entity: str?
   birthdays_calendar: str?
   holidays_calendar: str?
