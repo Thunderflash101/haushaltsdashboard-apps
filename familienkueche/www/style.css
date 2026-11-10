@@ -323,6 +323,33 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 
 .meal-toolbar{flex-wrap:wrap}.meal-toolbar .period-controls{flex-shrink:0}
 
+/* Calendar search stays in a dialog; conflict hints only take space when needed. */
+.calendar-toolbar{flex-wrap:wrap}
+.calendar-search-button,.calendar-conflict-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;white-space:nowrap}
+.calendar-search-button svg,.calendar-conflict-button svg{width:19px;height:19px;flex-shrink:0}
+.calendar-conflict-strip:empty{display:none}
+.calendar-conflict-strip{flex-shrink:0;margin:-3px 0 7px}
+.calendar-conflict-button{background:#f1dcc8;border-color:#dbc0a4;color:#805031;font-size:13px;padding:6px 12px}
+#calendar-search>form>label{font-size:14px;font-weight:bold}
+.calendar-search-input{display:flex;gap:8px;margin:8px 0 14px}
+.calendar-search-input input{flex:1;min-width:0;font-size:17px}
+.calendar-search-dates .form-field{flex:1;min-width:0}
+.calendar-search-dates input{width:100%;min-width:0}
+.calendar-search-presets{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.calendar-search-presets button{font-size:13px;padding:8px 12px}
+#calendar-search .profile-filters{margin:8px 0}
+[data-calendar-search-results]{margin-top:20px}
+.calendar-result-count{font-weight:bold;margin:12px 0}
+.calendar-result{width:100%;align-items:center;margin:7px 0;gap:12px}
+.calendar-result>span:nth-child(2){flex:1;min-width:0}
+.calendar-result small{white-space:normal;overflow-wrap:break-word}
+.calendar-conflict-group{padding-top:17px;margin-top:17px;border-top:1px solid #ddcdbb}
+.calendar-conflict-group h3{font-size:18px}
+.calendar-conflict-time{font-size:14px;color:#805031;margin:6px 0 12px}
+.calendar-detail-nav{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:17px;padding-top:15px;border-top:1px solid #ddcdbb}
+.calendar-detail-nav button{font-size:13px}
+@media(max-width:1050px){.calendar-toolbar .calendar-search-button{padding:7px 9px;font-size:14px}}
+
 .ai-results [data-ai-searches] a{display:flex;align-items:center;min-height:44px;padding:6px 0;overflow-wrap:anywhere}
 
 .ai-mode-picker{margin:14px 0 8px;flex-wrap:wrap}.ai-mode-picker button{min-height:44px;flex:1}.ai-recipe .recipe-mark{margin:0 5px 6px 0}

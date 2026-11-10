@@ -1,3 +1,11 @@
+# 0.17.0
+
+- Kalendersuche nach Titel, Ort und Beschreibung mit Personenfotos, frei wählbarem Zeitraum bis 366 Tage und vergangenen sowie zukünftigen Terminen aus den konfigurierten Quellen.
+- Suchtreffer öffnen vollständige Details, behalten die Trefferliste beim Zurückgehen und führen zur passenden Kalenderwoche. Wenn ein anderer Personenfilter den Treffer ausblenden würde, bietet der Sprung ausdrücklich die Woche mit der gefundenen Person an.
+- Kompakter Hinweis auf Überschneidungen derselben Person im angezeigten Wochen-/Monatszeitraum, mit genauer gleichzeitiger Zeit und vollständigen Einzelterminen. Unterschiedliche Personen, ganztägige Einträge und direkt aneinandergrenzende Termine gelten nicht als Doppelbelegung.
+- Mehrtägige Termine nur einmal je Vorkommen finden, wiederkehrende Vorkommen getrennt erhalten. Umlaute auch als ae/oe/ue suchen, höchstens 100 Treffer anzeigen und unvollständige Kalenderantworten sichtbar kennzeichnen.
+- Suche ausschließlich lesend und erst nach Absenden; begrenzte Home-Assistant-Anfragen ohne KI-Aufruf und ohne lokales Terminarchiv.
+
 # 0.16.0
 
 - Original-Rezeptbilder schon vor dem Mealie-Import anzeigen, auch bei bereits gespeicherten Vorschlägen. Bilder ausschließlich aus Metadaten der passenden Chefkoch-Rezeptseite laden, verkleinern und auf dem NUC zwischenspeichern; fehlende Bilder erhalten einen neutralen Platzhalter.
