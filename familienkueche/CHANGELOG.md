@@ -1,3 +1,12 @@
+# 0.19.0
+
+- Vorhandene Google-Anmeldung aus Home Assistant über die kleine Erweiterung „Familienküche Kalender“ nutzen. Keine zusätzlichen Google-Secrets, kein neues Google-Projekt und keine manuell kopierten Tokens für diesen Weg.
+- Erweiterung mit UI-Einrichtung: bestehenden Google-Kalender auswählen und dessen Eigentümerrecht prüfen. Native HA-OAuth-Verwaltung einschließlich Token-Erneuerung verwenden; Tokens bleiben in HA. Native Google-Integration bleibt erhalten.
+- Dashboard-Einrichtung auf Installieren, Kalender auswählen und Verbindung prüfen reduzieren. Installationspaket direkt herunterladen, Erkennung aktualisieren und HA-Einrichtungsdialog öffnen. Paket und überprüfbarer Terminal-Installationsblock beigefügt; einmaliger HA-Neustart erforderlich.
+- Enge HA-Aktion für den ausdrücklich verbundenen Kalender, Prüfung der Benutzerrechte, Zuordnung und geladener Terminversion. Weiterhin einzelne selbst organisierte Standardtermine mit PATCH/If-Match ändern, ohne Gäste-/Konferenz-/Erinnerungsfelder zu ersetzen.
+- App erkennt eingerichtete HA-Erweiterung automatisch und bevorzugt sie. Bereits ausdrücklich konfigurierte separate Google-Verbindungen aus 0.18.0 funktionieren weiter. Keine Erweiterung von App-Dateirechten und kein Lesen/Exportieren von HA-Google-Secrets.
+- Gegen HA 2026.10.4 und dessen echte OAuth-/Konfigurations-/Entitäts-/Aktionsschnittstellen getestet. Bei unbekannten Kalenderkennungen oder Protokollen Änderungen verweigern. Temporär noch nicht geladene Google-Integration beim Start erneut versuchen.
+
 # 0.18.0
 
 - Vorhandene Termine aus Jörns Google-Kalender direkt im Dashboard bearbeiten und verschieben: Titel, Start-/Enddatum, Uhrzeiten, ganztägig, Ort und Beschreibung; Tasten für einen Tag früher/später, eine Woche später und 30 Minuten später.

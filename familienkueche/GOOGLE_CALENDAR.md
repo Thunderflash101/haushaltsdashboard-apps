@@ -1,95 +1,81 @@
-# Termine direkt bearbeiten und verschieben
+# Vorhandenen Google-Kalender einfach verbinden
 
-Ab Familienküche 0.18.0 lassen sich vorhandene Termine aus **Jörns zugeordnetem Google-Kalender** im Dashboard ändern: Titel, Beginn/Ende, ganztägig, Ort und Beschreibung. Ein Kalendertermin bleibt derselbe Termin; er wird nicht gelöscht und neu angelegt. Serien werden zunächst **nur für das angeklickte einzelne Vorkommen** bearbeitet. Ganze Serien und fremd organisierte Einladungen bleiben in Google Kalender bearbeitbar. Tinas importierter iCal-Kalender bleibt hier lesbar.
+Ab Familienküche **0.19.0** kann die bestehende Google-Anmeldung aus Home Assistant verwendet werden. **Kein neues Google-Projekt, keine neue Client-ID und kein manuell kopierter Refresh-Token sind nötig.**
 
-Home Assistants Google-Kalender bietet derzeit keine direkte Aktualisierung vorhandener Termine. Die Familienküche verwendet dafür nach einmaliger Einrichtung die offizielle Google Calendar API. Die bestehende HA-Anbindung bleibt erhalten; Anlegen und Lesen funktionieren auch ohne diese Einrichtung wie bisher.
+Dafür wird einmalig die kleine Erweiterung **Familienküche Kalender** installiert. Sie läuft innerhalb von Home Assistant und nutzt dessen öffentliche OAuth-Verwaltung. Die Google-Zugangsdaten bleiben in HA. In der Familienküche bleibt die bekannte Bearbeitungsoberfläche erhalten.
 
-## 1. Google-Projekt und OAuth-Client
+## 1. Familienküche aktualisieren
 
-Das vorhandene Google-Cloud-Projekt der Google-Kalender-Integration kann weiterverwendet werden. Es ist kein OpenAI-Projekt. In der [Google Cloud Console](https://console.cloud.google.com/) das passende Projekt auswählen und prüfen, dass die **Google Calendar API** aktiviert ist.
+Das angebotene App-Update auf mindestens **0.19.0** installieren und die Dashboardseite neu laden. Die bestehende Google-Integration und die bisherigen Kalenderzuordnungen beibehalten. Die früheren Optionen `google_calendar_edit_enabled` und `google_calendar_edit_id` werden für diesen Weg nicht benötigt.
 
-Unter **Google Auth Platform → Clients** einen zusätzlichen OAuth-Client vom Typ **Web application / Webanwendung**, zum Beispiel „Familienküche“, anlegen. Bei älterer Oberfläche heißt der Bereich **APIs & Dienste → Anmeldedaten → Anmeldedaten erstellen → OAuth-Client-ID**.
+## 2. Erweiterung einmalig installieren
 
-Als **Authorized redirect URI / Autorisierte Weiterleitungs-URI** genau eintragen:
+Wenn eine Terminal-App wie **Terminal & SSH** oder ein Terminal in **Studio Code Server** vorhanden ist, dort den folgenden vollständigen Block einmal einfügen. Er lädt ausschließlich das veröffentlichte Installationspaket, prüft seine SHA-256-Prüfsumme und legt den neuen Ordner unter `/config/custom_components/familienkueche_calendar` an. Vorhandene Ordner werden nicht überschrieben. Andere Integrationen und Einstellungen bleiben erhalten; der Block startet HA nicht selbst neu.
 
-```text
-https://developers.google.com/oauthplayground
+```sh
+(
+  set -eu
+  family_config="${FAMILY_CONFIG_DIR:-/config}"
+  family_target="$family_config/custom_components/familienkueche_calendar"
+  if [ ! -d "$family_config" ]; then
+    echo "Home-Assistant-Konfigurationsordner nicht gefunden: $family_config" >&2
+    exit 1
+  fi
+  if [ -e "$family_target" ]; then
+    echo "Die Erweiterung ist bereits vorhanden. Es wird nichts überschrieben." >&2
+    exit 1
+  fi
+  family_tmp=$(mktemp -d)
+  trap 'rm -rf "$family_tmp"' EXIT
+  wget -q -O "$family_tmp/calendar.zip" 'https://raw.githubusercontent.com/Thunderflash101/haushaltsdashboard-apps/main/familienkueche/familienkueche-calendar.zip'
+  printf '%s  %s\n' '56aece849ffa9cc43f89406a5082806e1344993b29b9b6263be9adb3e439498f' "$family_tmp/calendar.zip" | sha256sum -c -
+  unzip -q "$family_tmp/calendar.zip" -d "$family_tmp"
+  mkdir -p "$family_config/custom_components"
+  # Check again before moving the complete directory into place.
+  if [ -e "$family_target" ]; then
+    echo "Ziel wurde inzwischen angelegt. Es wird nichts überschrieben." >&2
+    exit 1
+  fi
+  mv "$family_tmp/custom_components/familienkueche_calendar" "$family_target"
+  echo "Familienküche Kalender installiert. Home Assistant jetzt einmal neu starten."
+)
 ```
 
-Client-ID und Client-Secret privat aufbewahren. Den bisherigen HA-Client und dessen Weiterleitungsadressen unverändert lassen. Für diese Einrichtung wird kein öffentlich erreichbarer NUC und kein eigener OAuth-Rückrufserver benötigt.
+Der Block ist außerdem als [bridge-install.sh](bridge-install.sh) einsehbar. Bei abweichendem Konfigurationspfad kann `FAMILY_CONFIG_DIR` gesetzt werden. Die Prüfsumme muss stimmen; bei Abweichung die aktuelle Anleitung öffnen und nicht ungeprüft entpacken.
 
-Im Einwilligungsbildschirm beziehungsweise unter **Audience / Zielgruppe** den eigenen Google-Nutzer zulassen. Bei externen Apps im Status **Testing** laufen Google-Freigaben mit Kalenderrechten typischerweise nach sieben Tagen ab. Für dauerhaften privaten Betrieb ist der Status **In production / In Produktion** erforderlich; Google kann weiterhin Hinweise oder Freigabeschritte anzeigen. Widerrufene Zugriffe und geänderte Google-Richtlinien können eine erneute Freigabe erfordern.
+**Alternativ ohne Terminal-Download:** In der Familienküche unter **Optionen → Kalender direkt bearbeiten einrichten → Installationspaket herunterladen** das ZIP speichern, auf einem Rechner entpacken und den enthaltenen Ordner `custom_components/familienkueche_calendar` in den HA-Konfigurationsordner kopieren. Danach muss zum Beispiel `/config/custom_components/familienkueche_calendar/manifest.json` existieren. Dasselbe Paket liegt [hier im Repository](familienkueche-calendar.zip).
 
-## 2. Einmalig bei Google freigeben
+Anschließend **Home Assistant einmal neu starten**. Während des Neustarts sind Automationen und die Oberfläche kurz nicht verfügbar. Erst danach kann HA die neue Integration laden.
 
-Den offiziellen [Google OAuth Playground](https://developers.google.com/oauthplayground/) öffnen. Im Zahnrad:
+## 3. Den vorhandenen Kalender auswählen
 
-- **OAuth flow:** Server-side
-- **OAuth endpoints:** Google
-- **Access type:** Offline
-- **Force prompt:** Consent Screen
-- **Use your own OAuth credentials:** aktivieren; die eben angelegte eigene Client-ID und das Client-Secret eintragen.
+Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach **Familienküche Kalender** suchen. Alternativ führt [dieser Link zum Einrichtungsdialog](https://my.home-assistant.io/redirect/config_flow_start/?domain=familienkueche_calendar).
 
-Eigene OAuth-Zugangsdaten sind hier wichtig: Mit den Standard-Zugangsdaten des Playgrounds werden Refresh-Tokens nach 24 Stunden widerrufen. Ein Playground-Freigabelink mit eingebetteten Zugangsdaten oder Tokens darf nicht geteilt werden.
+Jörns **bereits vorhandenen Google-Kalender** auswählen und bestätigen. Ein neuer Google-Kalender wird dabei nicht angelegt. Der Dialog zeigt nur Google-Kalender aus der vorhandenen HA-Integration. Das gewählte Konto muss Eigentümer sein; der Kalender muss in HA Schreibzugriff erlauben. Tinas importierter iCal-Kalender bleibt lesbar.
 
-Unter **Step 1 / Select & authorize APIs** genau diese beiden Berechtigungen auswählen beziehungsweise als eigene Scopes eintragen:
+## 4. Im Dashboard prüfen
 
-```text
-https://www.googleapis.com/auth/calendar.events.owned
-https://www.googleapis.com/auth/calendar.calendarlist.readonly
-```
+Zur Familienküche zurückkehren: **Optionen → Kalender direkt bearbeiten einrichten → Erneut erkennen → Verbindung prüfen**. Angezeigten Kalendernamen und Kalender-ID prüfen. Diese Verbindungskontrolle liest nur Daten und verändert keinen Termin.
 
-**Authorize APIs** wählen und mit dem Google-Konto anmelden, dem Jörns Kalender gehört. Die erste Berechtigung ermöglicht Terminänderungen in eigenen Kalendern; die zweite liest Kalendernamen und die Zugehörigkeit. Die Familienküche bearbeitet ausschließlich den eingestellten Kalender und einen zuvor eindeutig zugeordneten Termin.
+Danach einen Termin von Jörn öffnen und **Bearbeiten / Verschieben** wählen. Vor dem Speichern erscheinen weiterhin Vorher/Nachher und mögliche Überschneidungen. Serien werden zunächst nur für das angeklickte einzelne Vorkommen geändert. Versionsprüfung, Schutz vor mehrfacher Speicherung und Erhalt von Gästen, Erinnerungen und Konferenzdaten gelten weiter.
 
-In **Step 2 / Exchange authorization code for tokens** auf **Exchange authorization code for tokens** klicken. Benötigt wird das Feld **Refresh token**, nicht der kurzlebige **Access token**. Falls kein Refresh-Token erscheint, die Offline-/Consent-Einstellungen prüfen und erneut freigeben.
+## Was geändert wird
 
-Die Google-Anmeldung erfolgt nur für diese Freigabe. Im normalen Betrieb erneuert die App kurzlebige Zugriffstokens serverseitig anhand dieses Refresh-Tokens.
+- Die App bekommt keinen Google-Token. Sie ruft eine eng begrenzte HA-Aktion für den ausdrücklich verbundenen Kalender auf.
+- Die Erweiterung nutzt Home Assistants `OAuth2Session` und die vorhandene Google-Konfiguration. HA verwaltet und erneuert die Anmeldung wie bisher.
+- Die native Google-Integration wird nicht ersetzt oder verändert. Ihre fehlende Update-Funktion wird nicht durch manipulierte Funktionsflags freigeschaltet.
+- Google-Termine werden mit `PATCH` und `If-Match` am bestehenden Termin geändert. Es gibt kein Löschen und Neuanlegen.
+- Änderungen sind auf Titel, Ort, Beschreibung und den Zeitraum einzelner selbst organisierter Standardtermine begrenzt. Keine Einladungs-E-Mails, Serienmaster-Änderungen oder freien HTTP-Anfragen.
+- Die Verbindung ist über die HA-Integration wieder entfernbar; die Google-Anmeldung und Kalender bleiben bestehen.
 
-## 3. In Home Assistant hinterlegen
+## Wenn etwas nicht erkannt wird
 
-In Home Assistants vorhandener `secrets.yaml` diese drei zusätzlichen Einträge setzen. Die Werte unten sind nur Platzhalter; vorhandene Einträge beibehalten. Die echte Datei und echte Tokens niemals in Chat, Screenshots oder GitHub veröffentlichen.
+- **Erweiterung nicht erreichbar:** Paketpfad prüfen, HA nach der Installation neu starten und den Browser neu laden.
+- **Kalender noch nicht verbunden:** Die Integration **Familienküche Kalender** unter Geräte & Dienste hinzufügen und den Kalender auswählen. Eine Installation allein wählt keinen Kalender aus.
+- **Google-Anmeldung abgelaufen:** Die vorhandene Google-Integration in HA erneut authentifizieren. Die Familienküche verlangt dafür keine eigenen Secrets.
+- **Nur lesbar / fremder Organisator / spezieller Termin:** In Google Kalender bearbeiten. Die Erweiterung erweitert keine Kontoberechtigungen.
+- **Kalenderzuordnung geändert oder unbekannt:** HA- und App-Zuordnung prüfen. Bei unbekannten Kennungen wird die Bearbeitung gesperrt, statt einen anderen Termin zu ändern.
 
-```yaml
-familienkueche_google_client_id: "DEINE-CLIENT-ID.apps.googleusercontent.com"
-familienkueche_google_client_secret: "DEIN-CLIENT-SECRET"
-familienkueche_google_refresh_token: "DEIN-REFRESH-TOKEN"
-```
+Die HA-Schnittstellen und Token-Erneuerung wurden gegen **Home Assistant 2026.10.4** geprüft. Die Zuordnung berücksichtigt das seit HA 2022.7 verwendete Google-Format der Entitätskennung. Sollte dieses Format in einer künftigen HA-Version geändert werden, meldet die Erweiterung dies und verweigert Änderungen. Sie greift nicht auf private Google-Objektattribute oder `.storage`-Dateien zu.
 
-In **Einstellungen → Apps → Familienküche → Konfiguration** zusätzlich einstellen:
-
-```yaml
-google_calendar_edit_enabled: true
-google_calendar_edit_id: "primary"
-```
-
-`primary` bedeutet den Hauptkalender des gerade freigegebenen Google-Kontos. Wenn Jörns HA-Kalender stattdessen einen weiteren eigenen Google-Kalender anzeigt, dessen Kalender-ID eintragen. Sie steht in Google Kalender unter **Einstellungen → Einstellungen für meine Kalender → gewünschter Kalender → Kalender integrieren → Kalender-ID**. Die ID ist keine Home-Assistant-Entitäts-ID. Unterstützt werden eigene Kalender mit Eigentümerrecht; fremde oder nur freigegebene Kalender bleiben hier ausgeschlossen.
-
-Die App besitzt bereits die schreibgeschützte Einbindung von Home Assistants Konfigurationsverzeichnis. Kein Home-Assistant-Core-Neustart und keine Änderung von `configuration.yaml` sind nötig. **Familienküche neu starten** und die Dashboardseite neu laden.
-
-## 4. Verbindung prüfen und benutzen
-
-In der Familienküche **Optionen → Kalender direkt bearbeiten einrichten → Verbindung prüfen** öffnen. Angezeigten Kalendernamen und Kalender-ID mit Jörns gewünschtem Kalender vergleichen. Diese Prüfung liest nur die Verbindung; sie verändert keine Termine.
-
-Einen Termin von Jörn öffnen und **Bearbeiten / Verschieben** wählen. Die App liest den aktuellen Google-Stand, statt alte Tablet-Daten zu überschreiben. Über Datum und Uhrzeit oder die Tasten **1 Tag früher**, **1 Tag später**, **1 Woche später** und **30 Min. später** verschieben.
-
-**Änderungen prüfen** zeigt Vorher/Nachher und mögliche Überschneidungen in Jörns gewähltem Kalender. Erst **In Google speichern** beziehungsweise **Trotz Überschneidung speichern** schreibt die Änderung. Bei ganztägigen Terminen zählt der im Formular gewählte Endtag mit. Gäste, bestehende Google-Erinnerungen und Konferenzdaten bleiben erhalten; die App verschickt keine Einladungs-E-Mails. Bei Änderungen an einem Termin mit Gästen sollten diese bei Bedarf gesondert informiert werden.
-
-Ändert ein anderer Client den Termin zwischen Laden und Speichern, verhindert die Google-Versionsprüfung ein Überschreiben. Bei unklarer Speicherbestätigung den Google-Kalender prüfen und den Termin neu öffnen; nicht mehrfach speichern. Die App wiederholt unklare Änderungen nicht automatisch. Nach erfolgreichem Speichern fordert sie Home Assistant zum Aktualisieren auf; dessen Kalendercache kann verzögert nachziehen.
-
-## Häufige Fälle
-
-- **Direkte Bearbeitung ausgeschaltet / Zugang fehlt:** App-Option und die drei exakt benannten Secret-Einträge prüfen, dann die Familienküche neu starten.
-- **Freigabe abgelaufen / Berechtigung fehlt:** eigenes OAuth-Konto, Offline-Freigabe und beide Scopes prüfen. Auch ein Google-Projekt im Teststatus kann die kurze Laufzeit verursachen.
-- **Kalender gehört nicht dem angemeldeten Nutzer:** Google-Konto oder Kalender-ID korrigieren. Ein freigegebener Kalender mit Schreibrecht reicht für diese erste Version nicht aus.
-- **Google und HA zeigen unterschiedliche Daten:** In Google und HA aktualisieren und den Termin neu öffnen. Es wird kein Termin nur anhand seines Titels verändert.
-- **Anderer Organisator / spezieller Termin:** über den weiterhin vorhandenen Google-Kalender-Link bearbeiten. Automatische Geburtstage, Abwesenheits-/Fokuszeitblöcke und ganze Serien werden hier nicht verändert.
-- **Anzeigen sehr langer Termine oder fehlende eindeutige Kennung:** in Google bearbeiten; Dashboard-Bearbeitung ist auf höchstens 366 Tage und eindeutige Zuordnung begrenzt.
-
-## Technische Quellen
-
-- [Home Assistant Google Calendar](https://www.home-assistant.io/integrations/google/)
-- [Google OAuth Playground](https://developers.google.com/oauthplayground/)
-- [Offline-Zugriff und Refresh-Tokens](https://developers.google.com/identity/protocols/oauth2/web-server)
-- [Google Calendar: Kalenderzuordnung](https://developers.google.com/workspace/calendar/api/v3/reference/calendarList/get)
-- [Google Calendar: Termin teilweise aktualisieren](https://developers.google.com/workspace/calendar/api/v3/reference/events/patch)
-- [Google Calendar: Versionsprüfung mit If-Match](https://developers.google.com/workspace/calendar/api/guides/version-resources)
+Eine bereits manuell eingerichtete direkte Google-Verbindung aus 0.18.0 funktioniert weiter. Die [bisherige separate Einrichtung](GOOGLE_CALENDAR_DIRECT.md) bleibt als Alternative dokumentiert; für den oben beschriebenen Weg wird sie nicht benötigt.

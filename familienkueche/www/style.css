@@ -365,6 +365,9 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 #calendar-edit-form textarea{resize:vertical;min-height:85px}
 #calendar-edit-form>.source-label{margin-bottom:15px}
 #calendar-google-setup>p{line-height:1.5;margin-bottom:12px}
+.calendar-setup-steps{padding-left:24px}
+.calendar-setup-steps li{padding:8px 0 14px 5px;line-height:1.5}
+.calendar-setup-steps li>p{margin:6px 0 10px}
 .overlay.compact-dialog .calendar-edit-comparison{flex-direction:column}
 @media(max-width:1050px){.calendar-toolbar .calendar-search-button{padding:7px 9px;font-size:14px}}
 
@@ -377,3 +380,5 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 @media(max-width:650px){.meal-draft-grid{grid-template-columns:1fr}.ai-recipe .ai-photo{height:170px}}
 
 .planned-dish>.row,.suggestion-actions{flex-wrap:wrap}.suggestion-actions .recipe-feedback{flex-basis:100%}
+
+#calendar-google-setup .calendar-editor-actions>a{color:#8a4e35;font-size:14px;text-decoration:underline}

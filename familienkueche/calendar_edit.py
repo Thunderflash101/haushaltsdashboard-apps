@@ -5,6 +5,7 @@ import json
 import re
 import secrets
 import time as monotime
+import inspect
 from datetime import date, datetime, time, timedelta
 
 from aiohttp import web
@@ -254,7 +255,8 @@ def error_response(err):
 
 
 async def status(request):
-    return web.json_response(request.app['google_calendar'].status())
+    result=request.app['google_calendar'].status()
+    return web.json_response(await result if inspect.isawaitable(result) else result)
 
 
 async def check(request):
@@ -305,7 +307,8 @@ async def action(request):
 
 
 def setup(app, options):
-    app['google_calendar'] = GoogleCalendar(options)
+    from calendar_connection import Connection, package
+    app['google_calendar'] = Connection(app,options)
     app['calendar_editor'] = Editor(app)
     async def close(app):
         await app['google_calendar'].close()
@@ -314,3 +317,4 @@ def setup(app, options):
     app.router.add_post('/api/calendar/google/check', check)
     app.router.add_get('/api/calendar/event', open_event)
     app.router.add_post('/api/calendar/event', action)
+    app.router.add_get('/api/calendar/bridge.zip',package)

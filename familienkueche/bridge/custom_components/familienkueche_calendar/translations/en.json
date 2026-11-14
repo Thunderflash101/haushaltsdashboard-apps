@@ -1,0 +1,22 @@
+{
+  "title": "Familienküche Calendar",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect an existing Google calendar",
+        "description": "Choose the Google calendar Familienküche may edit. Your existing Google login stays in Home Assistant; no new credentials or tokens are needed.",
+        "data": {
+          "calendar_entity": "Google calendar"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "The existing Google connection could not be checked. Check the Google integration and its login.",
+      "read_only": "Choose an available calendar you own with write access."
+    },
+    "abort": {
+      "no_google_calendar": "Set up a Google calendar in Home Assistant first.",
+      "already_configured": "This calendar is already connected."
+    }
+  }
+}

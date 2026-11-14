@@ -1,0 +1,20 @@
+{
+  "title": "Familienküche Kalender",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vorhandenen Google-Kalender verbinden",
+        "description": "Wähle den Google-Kalender, den die Familienküche bearbeiten darf. Deine vorhandene Google-Anmeldung bleibt in Home Assistant. Neue Zugangsdaten oder Tokens sind nicht nötig.",
+        "data": {"calendar_entity": "Google-Kalender"}
+      }
+    },
+    "error": {
+      "cannot_connect": "Die Google-Verbindung konnte nicht geprüft werden. Bitte die vorhandene Google-Integration und ihre Anmeldung prüfen.",
+      "read_only": "Bitte einen eigenen, verfügbaren Google-Kalender mit Schreibberechtigung auswählen."
+    },
+    "abort": {
+      "no_google_calendar": "Bitte zuerst einen Google-Kalender in Home Assistant einrichten.",
+      "already_configured": "Dieser Kalender ist bereits verbunden."
+    }
+  }
+}

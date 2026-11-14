@@ -25,6 +25,17 @@ class HA:
     async def features(self,entity):return 3
     async def service(self,domain,name,payload,**kwargs):
         if (domain,name)==('homeassistant','update_entity'):return []
+        if (domain,name)==('familienkueche_calendar','request'):
+            op=payload['operation']
+            if op=='status':return {'success':True,'protocol':1,'version':'0.19.0','configured':True,'calendarId':'joern@example.test','binding':'a'*64}
+            try:
+                if payload.get('binding')!='a'*64:raise GoogleError('Verbindung geändert',409)
+                if op=='info':result=await self.client.info()
+                elif op=='events':result=await self.client.events(payload['params'])
+                elif op=='get':result=await self.client.get(payload['event_id'])
+                else:result=await self.client.patch(payload['event_id'],payload['patch'],payload['etag'])
+                return {'success':True,'result':result}
+            except GoogleError as err:return {'success':False,'error':str(err),'status':err.status,'uncertain':err.uncertain}
         raise RuntimeError('No actual service calls in fixture')
     async def request(self,*args,**kwargs):raise RuntimeError('No actual external API in fixture')
 
@@ -37,7 +48,6 @@ async def main():
     client.extra=[google_event(id='overlap',summary='Zweiter Termin',start={'dateTime':future+'T16:45:00+01:00'},end={'dateTime':future+'T17:15:00+01:00'})]
     with tempfile.TemporaryDirectory(prefix='calendar-edit-browser-') as root:
         app=make_app(HA(client,day.isoformat()),str(Path(root)/'fixture.sqlite'))
-        app['google_calendar']=client
         async def state(request):return web.json_response({'patches':len(client.patches),'event':client.event})
         async def conflict(request):
             client.event['etag']='"external-change"'

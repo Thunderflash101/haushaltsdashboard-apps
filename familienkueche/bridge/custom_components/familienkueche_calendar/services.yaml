@@ -1,0 +1,36 @@
+request:
+  name: Kalenderzugriff
+  description: Verwendet die bestehende Google-Anmeldung für einen ausdrücklich verbundenen Kalender.
+  fields:
+    entity_id:
+      name: Kalender
+      required: true
+      selector:
+        entity:
+          domain: calendar
+    operation:
+      name: Vorgang
+      required: true
+      selector:
+        select:
+          options: [status, info, events, get, patch]
+    binding:
+      name: Verbindungskennung
+      selector:
+        text:
+    params:
+      name: Suchparameter
+      selector:
+        object:
+    event_id:
+      name: Google-Terminkennung
+      selector:
+        text:
+    patch:
+      name: Geänderte Felder
+      selector:
+        object:
+    etag:
+      name: Geladene Version
+      selector:
+        text:
