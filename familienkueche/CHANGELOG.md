@@ -1,3 +1,11 @@
+# 0.20.0
+
+- Aufgaben und Routinen wahlweise gemeinsam oder für jede zugewiesene Person einzeln abhaken. Eigene Häkchen und Routinefortschritte neben den vorhandenen Familienfotos anzeigen.
+- Bei „Familie“ im persönlichen Modus getrennte Häkchen für Tina, Jörn und Felix; ausgewählte Teilgruppen behalten ausschließlich ihre zugewiesenen Personen. Personenfilter zeigen deren eigenen Fortschritt und sortieren entsprechend unter „Geschafft“ ein.
+- Fortschrittsprüfung je Person: Änderungen unterschiedlicher Personen können unabhängig gespeichert werden. Alte Clients können persönliche Aufgaben nicht versehentlich gemeinsam abhaken; bestehende Datensätze behalten gemeinsame Häkchen.
+- Neue Personen beginnen offen, unverändert zugewiesene Personen und unveränderte Routine-Schritte behalten ihren Fortschritt. Entfernen von Personen sowie Wechsel der Erledigungsart sind sichtbar erklärt und gegen zwischenzeitlich geänderte Häkchen geschützt.
+- Beim ausdrücklich gewählten Wechsel der Erledigungsart alle bisherigen Häkchen dieser Aufgabe/Routine zurücksetzen. Zentrale Speicherung, Tageswechsel, Wiederholungen und bestätigte Speicherung bleiben erhalten.
+
 # 0.19.0
 
 - Vorhandene Google-Anmeldung aus Home Assistant über die kleine Erweiterung „Familienküche Kalender“ nutzen. Keine zusätzlichen Google-Secrets, kein neues Google-Projekt und keine manuell kopierten Tokens für diesen Weg.
