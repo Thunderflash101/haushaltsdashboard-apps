@@ -1,0 +1,7 @@
+const fs=require('fs'),assert=require('assert'),{JSDOM}=require('jsdom'),dom=new JSDOM('',{runScripts:'outside-only'}),w=dom.window;
+w.eval(fs.readFileSync(__dirname+'/../www/shopping.js','utf8'));let screen='calendar',requests=[],paints=0,now=100000;w.Date.now=()=>now;
+const shop=w.createFamilyShopping({screen:()=>screen,api:(method,path,data,key,done)=>requests.push({path,done}),repaint:()=>paints++});
+shop.ensure();assert.equal(requests[0].path,'api/shopping/count');assert.equal(shop.badge(),'—');requests.shift().done(null,{count:17});assert.equal(shop.badge(),'17');assert.equal(paints,1);shop.ensure();assert.equal(requests.length,0);
+now+=31000;shop.ensure();requests.shift().done({error:'Offline'});assert.equal(shop.badge(),'17','A failed count must not become zero');
+now+=31000;shop.ensure();const delayed=requests.shift();screen='shopping';shop.ensure();assert.equal(requests[0].path,'api/shopping');requests.shift().done(null,{items:[{done:false},{done:true}],canAdd:true});assert.equal(shop.badge(),'1');delayed.done(null,{count:99});assert.equal(shop.badge(),'1','An old count cannot overwrite a full-list snapshot');
+screen='meals';now+=31000;shop.refresh();assert.equal(requests[0].path,'api/shopping/count');requests.shift().done(null,{count:0});assert.equal(shop.badge(),'0');w.close();console.log('PASS: lightweight initial count, throttle, failed-count retention, full list on entry and late-response guard.');

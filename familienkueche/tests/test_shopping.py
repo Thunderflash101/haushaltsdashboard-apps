@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import AsyncMock
 from aiohttp.test_utils import make_mocked_request
 from server import make_app
-from shopping import normalize_items, validate_action, get_list, shopping_write
+from shopping import normalize_items, validate_action, get_list, get_count, shopping_write
 
 RAW=[{'uid':'uid-one','summary':'Milch','status':'needs_action','description':''},
      {'uid':'uid-two','summary':'Milch','status':'completed','description':'Andere Packung'}]
@@ -32,6 +32,22 @@ class ShoppingApiTests(unittest.IsolatedAsyncioTestCase):
     def req(self,data,key='shopping-request-12345'):
         req=make_mocked_request('POST','/api/shopping/actions',headers={'Idempotency-Key':key},app=self.app)
         req.json=AsyncMock(return_value=data);return req
+
+    async def test_fast_count_never_fetches_items(self):
+        req=make_mocked_request('GET','/api/shopping/count',app=self.app)
+        result=await get_count(req)
+        self.assertEqual(json.loads(result.text), {'count':1})
+        self.ha.service.assert_not_awaited()
+        self.ha.request.assert_awaited_once_with('GET','states/todo.einkaufsliste')
+
+    async def test_unavailable_or_invalid_count_is_not_zero(self):
+        req=make_mocked_request('GET','/api/shopping/count',app=self.app)
+        for raw in ['unavailable','unknown',None,'-1','1.5',False,'1e3']:
+            self.ha.request.return_value={'state':raw}
+            self.assertEqual((await get_count(req)).status,502)
+        self.ha.request.return_value={'state':'0'}
+        self.assertEqual(json.loads((await get_count(req)).text),{'count':0})
+        self.ha.service.assert_not_awaited()
 
     async def test_read_and_uid_status_restore(self):
         req=make_mocked_request('GET','/api/shopping',app=self.app)

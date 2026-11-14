@@ -45,6 +45,18 @@ async def get_list(request):
         return web.json_response({'error': 'Die Einkaufsliste konnte nicht aus Home Assistant geladen werden.'}, status=502)
 
 
+async def get_count(request):
+    """HA's to-do state already holds the open count; do not load completed items."""
+    try:
+        state = await request.app['ha'].request('GET', 'states/' + request.app['shopping_entity'])
+        raw = state.get('state')
+        if not isinstance(raw, str) or not re.fullmatch(r'[0-9]{1,9}', raw):
+            raise ValueError('No available count')
+        return web.json_response({'count': int(raw)})
+    except Exception:
+        return web.json_response({'error': 'Die Artikelzahl konnte nicht geladen werden.'}, status=502)
+
+
 def validate_action(data):
     action = data['action']
     payload = {}
@@ -129,4 +141,5 @@ def setup(app, options):
         raise ValueError('Ungültige Einkaufslisten-Entität in der App-Konfiguration.')
     app['shopping_entity'] = entity
     app.router.add_get('/api/shopping', get_list)
+    app.router.add_get('/api/shopping/count', get_count)
     app.router.add_post('/api/shopping/actions', shopping_write)

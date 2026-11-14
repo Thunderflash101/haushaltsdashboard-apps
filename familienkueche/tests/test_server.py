@@ -53,6 +53,23 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         req=make_mocked_request('GET','/',headers={'X-Forwarded-For':'172.30.32.2'})
         with self.assertRaises(web.HTTPForbidden):await ingress_only(req,AsyncMock())
 
+    async def test_private_image_cache_and_live_data_no_store(self):
+        from aiohttp import web
+        req=make_mocked_request('GET','/').clone(remote='172.30.32.2')
+        for kind,headers,expected in [
+            ('image/jpeg',{},'private, max-age=300'),
+            ('image/jpeg',{'Cache-Control':'private, max-age=86400'},'private, max-age=86400'),
+            ('application/json',{'Cache-Control':'private, max-age=86400'},'private, no-store'),
+            ('text/javascript',{},'private, no-store'),
+        ]:
+            response=await ingress_only(req,AsyncMock(return_value=web.Response(body=b'test',content_type=kind,headers=headers)))
+            self.assertEqual(response.headers['Cache-Control'],expected)
+            self.assertEqual(response.headers['X-Content-Type-Options'],'nosniff')
+        error=await ingress_only(req,AsyncMock(return_value=web.Response(status=404,content_type='image/jpeg')))
+        self.assertEqual(error.headers['Cache-Control'],'private, no-store')
+        denied=make_mocked_request('GET','/api/profiles/tina/photo/example.jpg',headers={'X-Forwarded-For':'172.30.32.2'})
+        with self.assertRaises(web.HTTPForbidden):await ingress_only(denied,AsyncMock())
+
     async def test_idempotency_and_ambiguous_write(self):
         ha=AsyncMock();ha.features.return_value=3
         app=make_app(ha,':memory:')

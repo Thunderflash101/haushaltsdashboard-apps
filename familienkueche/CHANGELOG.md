@@ -1,3 +1,11 @@
+# 0.20.1
+
+- Personen- und Rezeptbilder bei Hintergrundaktualisierungen im bestehenden DOM erhalten. Ladehinweise austauschen, ohne unveränderte Bildbereiche zu entfernen; Suchentwürfe, Fokus und Scrollpositionen erhalten.
+- Bilder privat im Browser zwischenspeichern: Profilbilder mit ihrer versionsabhängigen Adresse wie vorgesehen 24 Stunden, Rezept- und Ruhemodusbilder 5 Minuten. Live-Daten, Fehlermeldungen und Programmdateien bleiben ungecacht. Neue Profilfotos verwenden weiterhin eine neue Adresse.
+- Unveränderte Profilabfragen lösen keine Neuzeichnung und keinen Austausch der Farbstile mehr aus. Vorschau im Profil-Dialog nur bei Änderungen ersetzen; native Dateiauswahl erhalten.
+- Anzahl offener Einkaufsartikel separat aus dem Home-Assistant-Zustand laden. Die vollständige Liste einschließlich erledigter Einträge erst beim Öffnen der Einkaufsliste abrufen; keine alten Artikelzahlen über neuere Listenstände schreiben. Schreibprüfungen und bestätigte Speicherung unverändert.
+- Mit simulierten Diensten und gedrosselter Browser-CPU auf Bildbeständigkeit, ausbleibende doppelte Bildabrufe, Ladehinweise, Suchentwürfe und verzögerte Listenantworten geprüft.
+
 # 0.20.0
 
 - Aufgaben und Routinen wahlweise gemeinsam oder für jede zugewiesene Person einzeln abhaken. Eigene Häkchen und Routinefortschritte neben den vorhandenen Familienfotos anzeigen.

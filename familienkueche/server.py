@@ -143,8 +143,12 @@ async def ingress_only(request, handler):
         if request.headers.get('Sec-Fetch-Site') == 'cross-site':
             raise web.HTTPForbidden(text='Ungültiger Ursprung.')
     response = await handler(request)
-    response.headers.update({'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff',
-                             'Referrer-Policy': 'same-origin'})
+    # Keep image bytes in this browser only; live data and errors must stay fresh.
+    if request.method in ('GET', 'HEAD') and response.status == 200 and response.content_type in ('image/jpeg', 'image/png', 'image/webp'):
+        response.headers.setdefault('Cache-Control', 'private, max-age=300')
+    else:
+        response.headers['Cache-Control'] = 'private, no-store'
+    response.headers.update({'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin'})
     return response
 
 
