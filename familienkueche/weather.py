@@ -1,4 +1,4 @@
-"""Bounded current weather and daily forecast through Home Assistant."""
+"""Bounded current weather plus daily and hourly forecasts through Home Assistant."""
 import asyncio
 import math
 import re
@@ -44,6 +44,30 @@ def daily_forecast(raw, today):
     return sorted(result, key=lambda x: x['date'])[:5]
 
 
+def hourly_forecast(raw, now):
+    result = []
+    seen = set()
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=TZ)
+    now_timestamp = now.timestamp()
+    for entry in raw:
+        try:
+            stamp = datetime.fromisoformat(entry['datetime'].replace('Z', '+00:00'))
+            if stamp.tzinfo is None:
+                stamp = stamp.replace(tzinfo=TZ)
+            stamp = stamp.astimezone(TZ)
+            timestamp = stamp.timestamp()
+            if timestamp <= now_timestamp or timestamp in seen:
+                continue
+            seen.add(timestamp)
+            result.append((timestamp, {'datetime': stamp.isoformat(), 'condition': str(entry.get('condition') or ''),
+                                       'temperature': number(entry.get('temperature')),
+                                       'rainChance': number(entry.get('precipitation_probability'))}))
+        except (KeyError, ValueError, TypeError, OverflowError):
+            continue
+    return [item for _, item in sorted(result, key=lambda row: row[0])[:12]]
+
+
 async def weather(request):
     app = request.app
     async with app['weather_lock']:
@@ -55,15 +79,33 @@ async def weather(request):
             result = current_weather(raw)
         except Exception:
             return web.json_response({'error': 'Wetter konnte nicht aus Home Assistant geladen werden.'}, status=502)
-        result.update(forecast=[], forecastError=None, fetchedAt=datetime.now(TZ).isoformat())
-        if int(raw.get('attributes', {}).get('supported_features') or 0) & 1:
+        result.update(forecast=[], forecastError=None, hourlyForecast=[], hourlyForecastError=None,
+                      fetchedAt=datetime.now(TZ).isoformat())
+        features = int(raw.get('attributes', {}).get('supported_features') or 0)
+        today = datetime.now(TZ).date().isoformat()
+
+        async def get_forecast(kind, enabled, parse, unsupported):
+            if not enabled:
+                return [], unsupported
             try:
-                data = await app['ha'].service('weather', 'get_forecasts', {'entity_id': app['weather_entity'], 'type': 'daily'}, response=True)
-                result['forecast'] = daily_forecast(data[app['weather_entity']]['forecast'], datetime.now(TZ).date().isoformat())
+                data = await app['ha'].service('weather', 'get_forecasts',
+                                               {'entity_id': app['weather_entity'], 'type': kind}, response=True)
+                forecast = data[app['weather_entity']]['forecast']
+                if not isinstance(forecast, list):
+                    raise ValueError('Forecast response is missing a list.')
+                return parse(forecast), None
             except Exception:
-                result['forecastError'] = 'Vorhersage momentan nicht verfügbar.'
-        else:
-            result['forecastError'] = 'Diese Wetterquelle bietet keine Tagesvorhersage.'
+                message = 'Stundenprognose momentan nicht verfügbar.' if kind == 'hourly' else 'Vorhersage momentan nicht verfügbar.'
+                return [], message
+
+        daily, hourly = await asyncio.gather(
+            get_forecast('daily', bool(features & 1), lambda rows: daily_forecast(rows, today),
+                         'Diese Wetterquelle bietet keine Tagesvorhersage.'),
+            get_forecast('hourly', bool(features & 2), lambda rows: hourly_forecast(rows, datetime.now(TZ)),
+                         'Diese Wetterquelle bietet keine stündliche Vorhersage.')
+        )
+        result['forecast'], result['forecastError'] = daily
+        result['hourlyForecast'], result['hourlyForecastError'] = hourly
         app['weather_cache'] = (time.monotonic(), result)
         return web.json_response(result)
 

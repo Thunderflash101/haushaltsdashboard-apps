@@ -51,13 +51,13 @@ Anschließend **Home Assistant einmal neu starten**. Während des Neustarts sind
 
 Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach **Familienküche Kalender** suchen. Alternativ führt [dieser Link zum Einrichtungsdialog](https://my.home-assistant.io/redirect/config_flow_start/?domain=familienkueche_calendar).
 
-Jörns **bereits vorhandenen Google-Kalender** auswählen und bestätigen. Ein neuer Google-Kalender wird dabei nicht angelegt. Der Dialog zeigt nur Google-Kalender aus der vorhandenen HA-Integration. Das gewählte Konto muss Eigentümer sein; der Kalender muss in HA Schreibzugriff erlauben. Tinas importierter iCal-Kalender bleibt lesbar.
+des verbundenen Profils **bereits vorhandenen Google-Kalender** auswählen und bestätigen. Ein neuer Google-Kalender wird dabei nicht angelegt. Der Dialog zeigt nur Google-Kalender aus der vorhandenen HA-Integration. Das gewählte Konto muss Eigentümer sein; der Kalender muss in HA Schreibzugriff erlauben. Ein importierter iCal-Kalender bleibt lesbar.
 
 ## 4. Im Dashboard prüfen
 
 Zur Familienküche zurückkehren: **Optionen → Kalender direkt bearbeiten einrichten → Erneut erkennen → Verbindung prüfen**. Angezeigten Kalendernamen und Kalender-ID prüfen. Diese Verbindungskontrolle liest nur Daten und verändert keinen Termin.
 
-Danach einen Termin von Jörn öffnen und **Bearbeiten / Verschieben** wählen. Vor dem Speichern erscheinen weiterhin Vorher/Nachher und mögliche Überschneidungen. Serien werden zunächst nur für das angeklickte einzelne Vorkommen geändert. Versionsprüfung, Schutz vor mehrfacher Speicherung und Erhalt von Gästen, Erinnerungen und Konferenzdaten gelten weiter.
+Danach einen Termin von Profil B öffnen und **Bearbeiten / Verschieben** wählen. Vor dem Speichern erscheinen weiterhin Vorher/Nachher und mögliche Überschneidungen. Serien werden zunächst nur für das angeklickte einzelne Vorkommen geändert. Versionsprüfung, Schutz vor mehrfacher Speicherung und Erhalt von Gästen, Erinnerungen und Konferenzdaten gelten weiter.
 
 ## Was geändert wird
 

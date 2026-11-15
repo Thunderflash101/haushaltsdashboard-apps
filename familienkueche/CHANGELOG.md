@@ -1,3 +1,9 @@
+# 0.20.2
+
+- Wetterdialog um eine horizontal wischbare Stundenprognose mit bis zu zwölf kommenden Werten erweitert: Berliner Ortszeit, passende Wettersymbole, Temperatur und Regenwahrscheinlichkeit sofern vorhanden.
+- Stunden- und Tagesprognose unabhängig und parallel über Home Assistant abrufen. Fehlt die Stundenfunktion oder schlägt nur dieser Abruf fehl, bleiben aktuelle Bedingungen und Tageskarten erhalten.
+- Prognosezeiten sortieren, vergangene Werte ausblenden und bei Sommerzeitwechsel anhand des tatsächlichen Zeitpunkts behandeln. Die bestehende Fünf-Minuten-Zwischenspeicherung gilt für beide Prognosen.
+
 # 0.20.1
 
 - Personen- und Rezeptbilder bei Hintergrundaktualisierungen im bestehenden DOM erhalten. Ladehinweise austauschen, ohne unveränderte Bildbereiche zu entfernen; Suchentwürfe, Fokus und Scrollpositionen erhalten.
@@ -9,7 +15,7 @@
 # 0.20.0
 
 - Aufgaben und Routinen wahlweise gemeinsam oder für jede zugewiesene Person einzeln abhaken. Eigene Häkchen und Routinefortschritte neben den vorhandenen Familienfotos anzeigen.
-- Bei „Familie“ im persönlichen Modus getrennte Häkchen für Tina, Jörn und Felix; ausgewählte Teilgruppen behalten ausschließlich ihre zugewiesenen Personen. Personenfilter zeigen deren eigenen Fortschritt und sortieren entsprechend unter „Geschafft“ ein.
+- Bei „Familie“ im persönlichen Modus getrennte Häkchen für die drei Familienprofile; ausgewählte Teilgruppen behalten ausschließlich ihre zugewiesenen Personen. Personenfilter zeigen deren eigenen Fortschritt und sortieren entsprechend unter „Geschafft“ ein.
 - Fortschrittsprüfung je Person: Änderungen unterschiedlicher Personen können unabhängig gespeichert werden. Alte Clients können persönliche Aufgaben nicht versehentlich gemeinsam abhaken; bestehende Datensätze behalten gemeinsame Häkchen.
 - Neue Personen beginnen offen, unverändert zugewiesene Personen und unveränderte Routine-Schritte behalten ihren Fortschritt. Entfernen von Personen sowie Wechsel der Erledigungsart sind sichtbar erklärt und gegen zwischenzeitlich geänderte Häkchen geschützt.
 - Beim ausdrücklich gewählten Wechsel der Erledigungsart alle bisherigen Häkchen dieser Aufgabe/Routine zurücksetzen. Zentrale Speicherung, Tageswechsel, Wiederholungen und bestätigte Speicherung bleiben erhalten.
@@ -25,10 +31,10 @@
 
 # 0.18.0
 
-- Vorhandene Termine aus Jörns Google-Kalender direkt im Dashboard bearbeiten und verschieben: Titel, Start-/Enddatum, Uhrzeiten, ganztägig, Ort und Beschreibung; Tasten für einen Tag früher/später, eine Woche später und 30 Minuten später.
+- Vorhandene Termine aus dem zugeordneten Google-Kalender direkt im Dashboard bearbeiten und verschieben: Titel, Start-/Enddatum, Uhrzeiten, ganztägig, Ort und Beschreibung; Tasten für einen Tag früher/später, eine Woche später und 30 Minuten später.
 - Optionale direkte Google-Anbindung mit eigenen OAuth-Zugangsdaten und Offline-Refresh-Token in secrets.yaml; standardmäßig ausgeschaltet. Einrichtung und rein lesende Verbindungsprüfung unter Optionen, vollständige Anleitung in GOOGLE_CALENDAR.md.
 - Einzelne Google-Termine eindeutig über HA-Quellkalender, iCalUID, Originalzeitraum und gegebenenfalls Serienvorkommens-ID zuordnen. Nur eigene, selbst organisierte Standardtermine; importierte und andere Quellen bleiben lesbar.
-- Vorher/Nachher prüfen und Überschneidungen in Jörns Kalender anzeigen; erst ausdrücklich speichern. Serienänderungen gelten zunächst nur für das einzelne Vorkommen.
+- Vorher/Nachher prüfen und Überschneidungen in dem zugeordneten Kalender anzeigen; erst ausdrücklich speichern. Serienänderungen gelten zunächst nur für das einzelne Vorkommen.
 - Bestehenden Google-Termin mit PATCH und If-Match aktualisieren, statt Löschen/Neuanlegen. Unveränderte Zeitfelder behalten Sekunden; Gäste, Erinnerungen und Konferenzdaten bleiben erhalten. Keine Einladungs-E-Mails durch die App.
 - Vor und während des Schreibens Versionskonflikte erkennen. Persistente semantische Anfragekennungen verhindern Wiederholungen auch mit neuer Client-Anfragekennung; unklare Schreibbestätigungen bleiben gesperrt. Nach bestätigtem Speichern HA-Kalender aktualisieren.
 - Geheimnisse bleiben serverseitig; eigene Google-HTTP-Sitzung ohne Supervisor-/OpenAI-Token und ohne Weiterleitungen. Im Produktionseinstieg ein gemeinsames Servermodul für Hilfsfunktionen und Fehlerklassen verwenden.
@@ -43,7 +49,7 @@
 
 # 0.16.0
 
-- Original-Rezeptbilder schon vor dem Mealie-Import anzeigen, auch bei bereits gespeicherten Vorschlägen. Bilder ausschließlich aus Metadaten der passenden Chefkoch-Rezeptseite laden, verkleinern und auf dem NUC zwischenspeichern; fehlende Bilder erhalten einen neutralen Platzhalter.
+- Original-Rezeptbilder schon vor dem Mealie-Import anzeigen, auch bei bereits gespeicherten Vorschlägen. Bilder ausschließlich aus Metadaten der passenden Chefkoch-Rezeptseite laden, verkleinern und auf dem App-Server zwischenspeichern; fehlende Bilder erhalten einen neutralen Platzhalter.
 - „Gefällt uns“, „Heute nicht“ und „Nicht unser Geschmack“ für KI- und Mealie-Rezepte ergänzen. Rückmeldungen zentral speichern und beim nächsten Vorschlagen berücksichtigen; gespeicherte Ersatzideen nach Möglichkeit kostenlos nachrücken lassen.
 - Familiengeschmack direkt im Dashboard bearbeiten und Bewertungen zurücksetzen. Mealie-Familienfavoriten und ausdrückliche Rückmeldungen als Kontext für neue KI-Ideen nutzen, ohne Mealie-Tags automatisch zu verändern.
 - „Heute gekocht“ mit Rückgängig-Funktion und dauerhafter Kochhistorie ergänzen. Tatsächlich gekochte Gerichte bei der Auswahl berücksichtigen, unabhängig von bloßen Planeinträgen.
@@ -102,7 +108,7 @@
 - Auch die Aufgaben-/Routinenansicht nach mehreren ausgewählten Personen filtern. Familie zeigt wieder alles.
 - Zugewiesene Bilder und Namen gemeinsam anzeigen. Ein Eintrag bleibt eine gemeinsame Aufgabe mit gemeinsamem Fortschritt, ohne Duplikate je Person.
 - Vorhandene Einzel-/Familienzuweisungen weiter unterstützen. Mehrfachzuweisungen beim Bearbeiten erhalten, auch wenn ein älterer geöffneter Client die neue Personenliste noch nicht kennt.
-- Jörns Termine erhalten „In Google Kalender bearbeiten“: öffnet Google Kalender am Tag des Termins zum Auswählen und Bearbeiten. Direktes Ändern in der Familienküche wird von der aktuellen Google-Anbindung in Home Assistant nicht unterstützt.
+- Termine des zugeordneten Kalenders erhalten „In Google Kalender bearbeiten“: öffnet Google Kalender am Tag des Termins zum Auswählen und Bearbeiten. Direktes Ändern in der Familienküche wird von der aktuellen Google-Anbindung in Home Assistant nicht unterstützt.
 
 # 0.12.2
 
@@ -122,11 +128,11 @@
 
 # 0.12.0
 
-- Personenleiste mit runden Fotos für Tina, Jörn und Felix sowie eigener Familie-Schaltfläche.
+- Personenleiste mit runden Fotos für die drei Familienprofile sowie eigener Familie-Schaltfläche.
 - Ein Tipp auf eine Person zeigt ausschließlich deren zugeordnete Termine; Familie stellt alle Termine einschließlich Müll, Geburtstagen und Feiertagen wieder her. Auswahl gilt für Woche, Monat, Liste, Tagesdetails und die nächste Kalenderanzeige.
 - Optionen → Personen & Farben: private Personenfotos hochladen/ersetzen/entfernen; ohne Foto erscheinen Initialen.
 - Frei wählbare Personenfarben mit Farbauswahl und Palette; Farben auf Fotoringe, Kalendertermine und vorhandene Personenkennzeichnungen anwenden.
-- Profile zentral auf dem NUC speichern und auf weiteren Geräten übernehmen. Revisionsprüfung verhindert versehentliches Überschreiben gleichzeitiger Änderungen.
+- Profile zentral auf dem App-Server speichern und auf weiteren Geräten übernehmen. Revisionsprüfung verhindert versehentliches Überschreiben gleichzeitiger Änderungen.
 - Fotos separat vom Ruhemodus-Album als normalisierte 320×320-JPEGs ohne Kamerametadaten speichern und ausschließlich über HA-Ingress ausliefern.
 - Bewährte Einzeldatei-Auswahl und Bildaufbereitung für Android wiederverwenden; native Dateifelder beim Nachladen erhalten.
 
@@ -147,7 +153,7 @@
 
 # 0.11.0
 
-- Zentrale Erinnerungs-Vorschau für die nächsten 14 Tage: Müllabfuhr am Vorabend um 18 Uhr und zeitgebundene Termine von Tina/Jörn mit 30 Minuten Vorlauf.
+- Zentrale Erinnerungs-Vorschau für die nächsten 14 Tage: Müllabfuhr am Vorabend um 18 Uhr und zeitgebundene Termine von den zugeordneten Personen mit 30 Minuten Vorlauf.
 - Einstellbare Regeln, Personen und Ruhezeiten; Berechnung in Europe/Berlin mit Zeitumstellungsbehandlung.
 - Glocke und kompakte fällige Hinweise im Kalender; Schließen und um 10/30 Minuten verschieben, ohne Kalendertermine zu ändern.
 - Vorschau als Standard: automatische Handy-Nachrichten bleiben ausgeschaltet.
@@ -177,9 +183,9 @@
 # 0.10.0
 
 - Eigener Aufgaben-Reiter mit Personenfiltern, Einzelaufgaben und wiederkehrenden Aufgaben nach Wochentag.
-- Gemeinsam gespeicherte Routinen mit bis zu zwölf großen Bildschritten; bearbeitbare Vorlagen „Guten Morgen“ und „Gute Nacht“ für Felix.
+- Gemeinsam gespeicherte Routinen mit bis zu zwölf großen Bildschritten; bearbeitbare Vorlagen „Guten Morgen“ und „Gute Nacht“ für das Kinderprofil.
 - Häkchen je Wiederholungstag, Tagesvorschau, Verlauf und Verwaltung aller Aufgaben; Konfliktprüfung bei Änderungen von mehreren Geräten.
-- Aufgaben, Routinen und Fortschritt bleiben zentral im App-Datenverzeichnis auf dem NUC erhalten.
+- Aufgaben, Routinen und Fortschritt bleiben zentral im App-Datenverzeichnis auf dem App-Server erhalten.
 - Familien-Bildschirmschoner mit bis zu 20 privaten Fotos, Wechselintervall, Füllen-/Ganzbildansicht, Uhr, Wetter und nächstem Termin.
 - Foto-Upload mit Verkleinerung, normalisierter JPEG-Ausgabe ohne Kamerametadaten; Entfernen erst nach Bestätigung.
 - Gerätespezifische dunkle Ansicht und zeitgesteuertes nächtliches Abdunkeln der Oberfläche.

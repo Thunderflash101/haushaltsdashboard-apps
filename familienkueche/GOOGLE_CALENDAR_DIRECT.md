@@ -1,6 +1,6 @@
 # Termine direkt bearbeiten und verschieben
 
-Ab Familienküche 0.18.0 lassen sich vorhandene Termine aus **Jörns zugeordnetem Google-Kalender** im Dashboard ändern: Titel, Beginn/Ende, ganztägig, Ort und Beschreibung. Ein Kalendertermin bleibt derselbe Termin; er wird nicht gelöscht und neu angelegt. Serien werden zunächst **nur für das angeklickte einzelne Vorkommen** bearbeitet. Ganze Serien und fremd organisierte Einladungen bleiben in Google Kalender bearbeitbar. Tinas importierter iCal-Kalender bleibt hier lesbar.
+Ab Familienküche 0.18.0 lassen sich vorhandene Termine aus **dem zugeordneten Google-Kalender** im Dashboard ändern: Titel, Beginn/Ende, ganztägig, Ort und Beschreibung. Ein Kalendertermin bleibt derselbe Termin; er wird nicht gelöscht und neu angelegt. Serien werden zunächst **nur für das angeklickte einzelne Vorkommen** bearbeitet. Ganze Serien und fremd organisierte Einladungen bleiben in Google Kalender bearbeitbar. Ein importierter iCal-Kalender bleibt hier lesbar.
 
 Home Assistants Google-Kalender bietet derzeit keine direkte Aktualisierung vorhandener Termine. Die Familienküche verwendet dafür nach einmaliger Einrichtung die offizielle Google Calendar API. Die bestehende HA-Anbindung bleibt erhalten; Anlegen und Lesen funktionieren auch ohne diese Einrichtung wie bisher.
 
@@ -16,7 +16,7 @@ Als **Authorized redirect URI / Autorisierte Weiterleitungs-URI** genau eintrage
 https://developers.google.com/oauthplayground
 ```
 
-Client-ID und Client-Secret privat aufbewahren. Den bisherigen HA-Client und dessen Weiterleitungsadressen unverändert lassen. Für diese Einrichtung wird kein öffentlich erreichbarer NUC und kein eigener OAuth-Rückrufserver benötigt.
+Client-ID und Client-Secret privat aufbewahren. Den bisherigen HA-Client und dessen Weiterleitungsadressen unverändert lassen. Für diese Einrichtung wird kein öffentlich erreichbarer App-Server und kein eigener OAuth-Rückrufserver benötigt.
 
 Im Einwilligungsbildschirm beziehungsweise unter **Audience / Zielgruppe** den eigenen Google-Nutzer zulassen. Bei externen Apps im Status **Testing** laufen Google-Freigaben mit Kalenderrechten typischerweise nach sieben Tagen ab. Für dauerhaften privaten Betrieb ist der Status **In production / In Produktion** erforderlich; Google kann weiterhin Hinweise oder Freigabeschritte anzeigen. Widerrufene Zugriffe und geänderte Google-Richtlinien können eine erneute Freigabe erfordern.
 
@@ -39,7 +39,7 @@ https://www.googleapis.com/auth/calendar.events.owned
 https://www.googleapis.com/auth/calendar.calendarlist.readonly
 ```
 
-**Authorize APIs** wählen und mit dem Google-Konto anmelden, dem Jörns Kalender gehört. Die erste Berechtigung ermöglicht Terminänderungen in eigenen Kalendern; die zweite liest Kalendernamen und die Zugehörigkeit. Die Familienküche bearbeitet ausschließlich den eingestellten Kalender und einen zuvor eindeutig zugeordneten Termin.
+**Authorize APIs** wählen und mit dem Google-Konto anmelden, dem dem zugeordneten Kalender gehört. Die erste Berechtigung ermöglicht Terminänderungen in eigenen Kalendern; die zweite liest Kalendernamen und die Zugehörigkeit. Die Familienküche bearbeitet ausschließlich den eingestellten Kalender und einen zuvor eindeutig zugeordneten Termin.
 
 In **Step 2 / Exchange authorization code for tokens** auf **Exchange authorization code for tokens** klicken. Benötigt wird das Feld **Refresh token**, nicht der kurzlebige **Access token**. Falls kein Refresh-Token erscheint, die Offline-/Consent-Einstellungen prüfen und erneut freigeben.
 
@@ -62,17 +62,17 @@ google_calendar_edit_enabled: true
 google_calendar_edit_id: "primary"
 ```
 
-`primary` bedeutet den Hauptkalender des gerade freigegebenen Google-Kontos. Wenn Jörns HA-Kalender stattdessen einen weiteren eigenen Google-Kalender anzeigt, dessen Kalender-ID eintragen. Sie steht in Google Kalender unter **Einstellungen → Einstellungen für meine Kalender → gewünschter Kalender → Kalender integrieren → Kalender-ID**. Die ID ist keine Home-Assistant-Entitäts-ID. Unterstützt werden eigene Kalender mit Eigentümerrecht; fremde oder nur freigegebene Kalender bleiben hier ausgeschlossen.
+`primary` bedeutet den Hauptkalender des gerade freigegebenen Google-Kontos. Wenn des verbundenen Profils HA-Kalender stattdessen einen weiteren eigenen Google-Kalender anzeigt, dessen Kalender-ID eintragen. Sie steht in Google Kalender unter **Einstellungen → Einstellungen für meine Kalender → gewünschter Kalender → Kalender integrieren → Kalender-ID**. Die ID ist keine Home-Assistant-Entitäts-ID. Unterstützt werden eigene Kalender mit Eigentümerrecht; fremde oder nur freigegebene Kalender bleiben hier ausgeschlossen.
 
 Die App besitzt bereits die schreibgeschützte Einbindung von Home Assistants Konfigurationsverzeichnis. Kein Home-Assistant-Core-Neustart und keine Änderung von `configuration.yaml` sind nötig. **Familienküche neu starten** und die Dashboardseite neu laden.
 
 ## 4. Verbindung prüfen und benutzen
 
-In der Familienküche **Optionen → Kalender direkt bearbeiten einrichten → Verbindung prüfen** öffnen. Angezeigten Kalendernamen und Kalender-ID mit Jörns gewünschtem Kalender vergleichen. Diese Prüfung liest nur die Verbindung; sie verändert keine Termine.
+In der Familienküche **Optionen → Kalender direkt bearbeiten einrichten → Verbindung prüfen** öffnen. Angezeigten Kalendernamen und Kalender-ID mit des verbundenen Profils gewünschtem Kalender vergleichen. Diese Prüfung liest nur die Verbindung; sie verändert keine Termine.
 
-Einen Termin von Jörn öffnen und **Bearbeiten / Verschieben** wählen. Die App liest den aktuellen Google-Stand, statt alte Tablet-Daten zu überschreiben. Über Datum und Uhrzeit oder die Tasten **1 Tag früher**, **1 Tag später**, **1 Woche später** und **30 Min. später** verschieben.
+Einen Termin von Profil B öffnen und **Bearbeiten / Verschieben** wählen. Die App liest den aktuellen Google-Stand, statt alte Tablet-Daten zu überschreiben. Über Datum und Uhrzeit oder die Tasten **1 Tag früher**, **1 Tag später**, **1 Woche später** und **30 Min. später** verschieben.
 
-**Änderungen prüfen** zeigt Vorher/Nachher und mögliche Überschneidungen in Jörns gewähltem Kalender. Erst **In Google speichern** beziehungsweise **Trotz Überschneidung speichern** schreibt die Änderung. Bei ganztägigen Terminen zählt der im Formular gewählte Endtag mit. Gäste, bestehende Google-Erinnerungen und Konferenzdaten bleiben erhalten; die App verschickt keine Einladungs-E-Mails. Bei Änderungen an einem Termin mit Gästen sollten diese bei Bedarf gesondert informiert werden.
+**Änderungen prüfen** zeigt Vorher/Nachher und mögliche Überschneidungen in des verbundenen Profils gewähltem Kalender. Erst **In Google speichern** beziehungsweise **Trotz Überschneidung speichern** schreibt die Änderung. Bei ganztägigen Terminen zählt der im Formular gewählte Endtag mit. Gäste, bestehende Google-Erinnerungen und Konferenzdaten bleiben erhalten; die App verschickt keine Einladungs-E-Mails. Bei Änderungen an einem Termin mit Gästen sollten diese bei Bedarf gesondert informiert werden.
 
 Ändert ein anderer Client den Termin zwischen Laden und Speichern, verhindert die Google-Versionsprüfung ein Überschreiben. Bei unklarer Speicherbestätigung den Google-Kalender prüfen und den Termin neu öffnen; nicht mehrfach speichern. Die App wiederholt unklare Änderungen nicht automatisch. Nach erfolgreichem Speichern fordert sie Home Assistant zum Aktualisieren auf; dessen Kalendercache kann verzögert nachziehen.
 
