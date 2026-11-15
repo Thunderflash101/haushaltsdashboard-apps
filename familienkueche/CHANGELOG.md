@@ -1,3 +1,10 @@
+# 0.21.0
+
+- Tagesansicht mit breitem 7–22-Uhr-Raster, einzeln dargestellten Parallelterminen und vollständiger Tagesliste ergänzen. Vergangenes, ganztägige Einträge und Termine außerhalb des Rasters bleiben zugänglich; Tagesnavigation über Monats-/Jahresgrenzen und direkte Auswahl über Wochentagsköpfe.
+- Monatsansicht mit abhängig von der Bildschirmhöhe bis zu drei Vorschauterminen, Gesamtzahl und „+ weitere“ verbessern. Vollständige Tagesübersicht mit direktem Wechsel zur Tagesansicht; Personenfilter und historische Termine erhalten.
+- Pirate Weather als Standardquelle nutzen und die frühere Vorgabe weather.home auf weather.pirateweather umstellen. Abweichende explizite Wetterquellen weiterhin unterstützen. Stunden- und Tagesprognose über die eingerichtete HA-Integration abrufen.
+- Anleitung zur Auswahl, Aufbewahrung und getrennten Wiederherstellungsprüfung der App-Sicherung ergänzen.
+
 # 0.20.2
 
 - Wetterdialog um eine horizontal wischbare Stundenprognose mit bis zu zwölf kommenden Werten erweitert: Berliner Ortszeit, passende Wettersymbole, Temperatur und Regenwahrscheinlichkeit sofern vorhanden.

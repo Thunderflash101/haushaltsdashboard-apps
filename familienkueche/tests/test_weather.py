@@ -30,6 +30,11 @@ class WeatherTests(unittest.TestCase):
         self.assertEqual(result[0]['rainChance'],0)
         self.assertTrue(all(datetime.fromisoformat(x['datetime'])>now for x in result))
 
+    def test_old_default_migrates_to_pirate(self):
+        app=make_app(AsyncMock(),':memory:',options={'weather_entity':'weather.home'})
+        try:self.assertEqual(app['weather_entity'],'weather.pirateweather')
+        finally:app['db'].close()
+
     def test_birthdays_and_holidays_identity(self):
         for source in SOURCES[3:]:
             rows=normalize_event({'start':{'date':'2026-11-10'},'end':{'date':'2026-11-11'},'summary':'Test'},source,date(2026,11,1),date(2026,12,1))
@@ -39,7 +44,7 @@ class WeatherApiTests(unittest.IsolatedAsyncioTestCase):
     async def test_current_survives_forecast_failure_and_caches(self):
         ha=AsyncMock();ha.request.return_value={'state':'cloudy','attributes':{'temperature':6,'supported_features':1}}
         ha.service.side_effect=TimeoutError()
-        app=make_app(ha,':memory:',options={'weather_entity':'weather.home'})
+        app=make_app(ha,':memory:',options={'weather_entity':'weather.pirateweather'})
         req=make_mocked_request('GET','/api/weather',app=app)
         for _ in range(2):
             response=await weather(req);self.assertEqual(response.status,200)
@@ -50,7 +55,7 @@ class WeatherApiTests(unittest.IsolatedAsyncioTestCase):
     async def test_hourly_capability_and_cache(self):
         ha=AsyncMock();ha.request.return_value={'state':'sunny','attributes':{'supported_features':2}}
         future=(datetime.now(timezone.utc)+timedelta(hours=2)).isoformat()
-        ha.service.return_value={'weather.home':{'forecast':[{'datetime':future,'temperature':12,'precipitation_probability':0}]}}
+        ha.service.return_value={'weather.pirateweather':{'forecast':[{'datetime':future,'temperature':12,'precipitation_probability':0}]}}
         app=make_app(ha,':memory:')
         try:
             req=make_mocked_request('GET','/api/weather',app=app)
@@ -60,14 +65,14 @@ class WeatherApiTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(data['hourlyForecast'][0]['rainChance'],0)
                 self.assertIsNone(data['hourlyForecastError'])
                 self.assertTrue(data['forecastError'])
-            ha.service.assert_awaited_once_with('weather','get_forecasts',{'entity_id':'weather.home','type':'hourly'},response=True)
+            ha.service.assert_awaited_once_with('weather','get_forecasts',{'entity_id':'weather.pirateweather','type':'hourly'},response=True)
         finally:app['db'].close()
 
     async def test_hourly_failure_keeps_daily_and_current(self):
         ha=AsyncMock();ha.request.return_value={'state':'cloudy','attributes':{'temperature':6,'supported_features':3}}
         async def forecast(domain,name,payload,response=False):
             if payload['type']=='hourly':raise TimeoutError()
-            return {'weather.home':{'forecast':[{'datetime':datetime.now().date().isoformat()+'T12:00:00+01:00','temperature':10}]}}
+            return {'weather.pirateweather':{'forecast':[{'datetime':datetime.now().date().isoformat()+'T12:00:00+01:00','temperature':10}]}}
         ha.service.side_effect=forecast
         app=make_app(ha,':memory:')
         try:

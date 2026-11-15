@@ -111,7 +111,10 @@ async def weather(request):
 
 
 def setup(app, options):
-    entity = options.get('weather_entity') or 'weather.home'
+    # Migrate the historical default; explicitly configured other entities remain usable.
+    entity = options.get('weather_entity') or 'weather.pirateweather'
+    if entity == 'weather.home':
+        entity = 'weather.pirateweather'
     if not re.fullmatch(r'weather\.[a-z0-9_]+', entity):
         raise ValueError('Ungültige Wetter-Entität in der App-Konfiguration.')
     app['weather_entity'], app['weather_cache'], app['weather_lock'] = entity, None, asyncio.Lock()

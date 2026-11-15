@@ -403,3 +403,15 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .planned-dish>.row,.suggestion-actions{flex-wrap:wrap}.suggestion-actions .recipe-feedback{flex-basis:100%}
 
 #calendar-google-setup .calendar-editor-actions>a{color:#8a4e35;font-size:14px;text-decoration:underline}
+
+/* Calendar day detail and readable month previews. */
+.day-head{background:transparent;border-top:0;border-right:0;border-bottom:0;border-radius:0;min-height:44px;cursor:pointer}
+.month-count{margin-left:auto;border-radius:12px;min-width:21px;padding:2px 5px;background:#eee1d0;color:#6b5541;text-align:center;font-size:11px}
+.month-row,.month-day{min-height:96px}.month-event{padding:3px 4px}.month-more{font-weight:bold;min-height:18px}
+.day-calendar{display:flex;gap:12px;flex:1;min-height:0}.day-calendar>.calendar{flex:1.6;min-width:0}.day-agenda{flex:1;min-width:230px;overflow-y:auto;padding:15px}.day-agenda h3{margin-bottom:12px}
+.day-entry{align-items:flex-start;min-height:60px;padding:12px 5px}.day-entry .agenda-line{margin-top:3px;flex-shrink:0}.day-entry-text{min-width:0}.day-entry strong{font-size:17px;white-space:normal;overflow-wrap:break-word}.day-entry small{font-size:13px}
+.day-calendar .event strong{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:15px;line-height:1.25}.day-calendar .event .time{font-size:12px}.day-calendar .event-tiny strong{white-space:nowrap;display:block;font-size:12px}.day-calendar .event-compact strong{-webkit-line-clamp:1}
+.day-calendar .all-day{height:auto;min-height:35px;max-height:112px;overflow-y:auto}.day-calendar .all-day-cell{display:flex;gap:4px;flex-wrap:wrap}.day-calendar .waste{white-space:normal;text-align:left}
+.day-calendar .meal-strip{min-height:60px}.day-calendar .day-grid{background-size:100% 64px;background-image:repeating-linear-gradient(to bottom,#cfc4b5 0,#cfc4b5 1px,transparent 1px,transparent 31px,#e9e1d7 31px,#e9e1d7 32px,transparent 32px,transparent 64px)}
+@media(max-height:699px){.month-row,.month-day{min-height:100px}.day-agenda{padding:10px}}
+@media(max-width:700px){.day-calendar{flex-direction:column;overflow:auto}.day-calendar>.calendar{flex:none;min-height:410px}.day-agenda{flex:none;min-height:150px}}
