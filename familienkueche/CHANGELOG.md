@@ -1,3 +1,11 @@
+# 0.22.0
+
+- Kalenderanzeige je Gerät einstellen: drei Schriftgrößen, drei Zeilenhöhen sowie frei wählbare volle Start-/Endstunden zwischen 00:00 und 24:00. Stunden-/Halbstundenlinien, Termine und Jetzt-Linie an den gewählten Bereich anpassen. Vollständige Tageslisten erhalten.
+- Mehrere Personen über die bestehenden Fotofilter kombinieren und einzeln abwählen; Familie zeigt wieder alle Personen. Müll, Geburtstage und Feiertage unabhängig über eigene Quellenschalter anzeigen oder ausblenden.
+- Bevorzugte Kalenderansicht und Filter lokal beim nächsten Öffnen wiederherstellen, optional abschaltbar. Darstellungsgrößen bleiben pro Gerät gespeichert; Datum, Termininhalte und Personenbilder werden dadurch nicht im Browser gespeichert.
+- Überschneidungshinweise auf die sichtbaren Personen abstimmen und beim Sprung aus Suchtreffern die benötigte Person bzw. Quelle sichtbar machen. Suchdialog behält eine eigene Personenauswahl.
+- Kalenderanzeige aus der Werkzeugleiste oder den Optionen öffnen, ungültige Zeitintervalle verständlich ablehnen und Standardwerte mit einem Klick wiederherstellen.
+
 # 0.21.0
 
 - Tagesansicht mit breitem 7–22-Uhr-Raster, einzeln dargestellten Parallelterminen und vollständiger Tagesliste ergänzen. Vergangenes, ganztägige Einträge und Termine außerhalb des Rasters bleiben zugänglich; Tagesnavigation über Monats-/Jahresgrenzen und direkte Auswahl über Wochentagsköpfe.
