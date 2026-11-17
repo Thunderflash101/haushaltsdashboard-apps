@@ -10,15 +10,16 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from aiohttp import ClientError, ClientSession, ClientTimeout, web
+from household_config import profile_names
 
 ROOT = Path(__file__).parent
 TZ = ZoneInfo('Europe/Berlin')
 SOURCES = (
-    {'key': 'tina', 'entity': 'calendar.tina', 'label': 'Tina · Kalender', 'person': 'tina'},
-    {'key': 'joern', 'entity': 'calendar.joern', 'label': 'Jörn · Google', 'person': 'joern'},
-    {'key': 'waste', 'entity': 'calendar.muell', 'label': 'Müllabfuhr', 'person': 'alle'},
-    {'key': 'birthdays', 'entity': 'calendar.geburtstage_2', 'label': 'Geburtstage', 'person': 'alle'},
-    {'key': 'holidays', 'entity': 'calendar.feiertage_in_deutschland', 'label': 'Feiertage', 'person': 'alle'},
+    {'key': 'tina', 'entity': 'calendar.person_1', 'label': 'Person 1 · Kalender', 'person': 'tina'},
+    {'key': 'joern', 'entity': 'calendar.person_2', 'label': 'Person 2 · Google', 'person': 'joern'},
+    {'key': 'waste', 'entity': 'calendar.waste', 'label': 'Müllabfuhr', 'person': 'alle'},
+    {'key': 'birthdays', 'entity': 'calendar.birthdays', 'label': 'Geburtstage', 'person': 'alle'},
+    {'key': 'holidays', 'entity': 'calendar.holidays', 'label': 'Feiertage', 'person': 'alle'},
 )
 
 class UpstreamError(Exception):
@@ -113,7 +114,7 @@ def validate_create(data):
     if not isinstance(title, str) or not title.strip() or len(title) > 100:
         raise ValueError('Bitte einen Titel mit höchstens 100 Zeichen angeben.')
     if data.get('person') != 'joern':
-        raise ValueError('Neue Termine können aktuell nur in Jörns Kalender gespeichert werden.')
+        raise ValueError('Neue Termine können aktuell nur in dem zugeordneten Google-Kalender gespeichert werden.')
     day = date.fromisoformat(data['date'])
     result = {'entity_id': SOURCES[1]['entity'], 'summary': title.strip()}
     if data.get('allDay') is True:
@@ -192,7 +193,7 @@ async def create_event(request):
         payload = validate_create(data)
         payload['entity_id'] = request.app['sources'][1]['entity']
     except (ValueError, KeyError, TypeError, AttributeError):
-        return web.json_response({'error': 'Titel, Datum oder Uhrzeiten sind ungültig. Ziel ist Jörns Kalender.'}, status=400)
+        return web.json_response({'error': 'Titel, Datum oder Uhrzeiten sind ungültig. Ziel ist dem zugeordneten Google-Kalender.'}, status=400)
     digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
     async with request.app['write_lock']:
         db = request.app['db']
@@ -228,7 +229,11 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     app = web.Application(middlewares=[ingress_only], client_max_size=3_000_000)
     app['ha'], app['write_lock'] = ha, asyncio.Lock()
     options = options or {}
+    app['profile_names'] = profile_names(options)
     app['sources'] = [dict(source, entity=options.get(field) or source['entity']) for source, field in zip(SOURCES, ('tina_calendar', 'joern_calendar', 'waste_calendar', 'birthdays_calendar', 'holidays_calendar'))]
+    for source in app['sources']:
+        if source['person'] != 'alle':
+            source['label'] = app['profile_names'][source['person']] + (' · Google' if source['key']=='joern' else ' · Kalender')
     vacation = (options.get('vacations_calendar') or '').strip()
     if vacation:
         app['sources'].append(dict(key='vacations', entity=vacation, label='Ferien', person='alle'))
@@ -274,7 +279,7 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'calendar-tools.js', 'calendar-editor.js', 'meals.js', 'meal-ai.js', 'meal-tools.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
+    for filename in ('app.js', 'calendar-tools.js', 'calendar-editor.js', 'meals.js', 'meal-ai.js', 'meal-tools.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'rewards.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
         async def asset(request, filename=filename):
             return web.FileResponse(ROOT / 'www' / filename)
         app.router.add_get('/' + filename, asset)

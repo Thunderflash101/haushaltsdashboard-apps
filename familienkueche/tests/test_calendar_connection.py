@@ -17,7 +17,7 @@ from google_calendar import GoogleError
 class ConnectionTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.ha=AsyncMock()
-        self.app={'ha':self.ha,'sources':[{}, {'entity':'calendar.joern'}]}
+        self.app={'ha':self.ha,'sources':[{}, {'entity':'calendar.person_2'}]}
     def native_status(self):
         return {'success':True,'protocol':1,'version':'0.19.0','configured':True,'binding':'a'*64,'calendarId':'own@example.test'}
     async def test_existing_ha_login_is_preferred_without_reading_secrets(self):
@@ -28,8 +28,8 @@ class ConnectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result['configured']);self.assertEqual(result['mode'],'homeassistant')
         self.assertIs(connection.active,connection.bridge)
         self.assertTrue(connection.calendar.endswith('a'*64))
-        self.ha.service.return_value={'success':True,'result':{'id':'own@example.test','name':'Jörn'}}
-        self.assertEqual((await connection.info())['name'],'Jörn')
+        self.ha.service.return_value={'success':True,'result':{'id':'own@example.test','name':'Person 2'}}
+        self.assertEqual((await connection.info())['name'],'Person 2')
         args=self.ha.service.call_args.args
         self.assertEqual(args[:2],('familienkueche_calendar','request'))
         self.assertEqual(args[2]['binding'],'a'*64)
@@ -53,7 +53,7 @@ class ConnectionTests(unittest.IsolatedAsyncioTestCase):
             state=await Connection(self.app,{}).status()
             self.assertTrue(state['available']);self.assertFalse(state['configured']);self.assertEqual(state['mode'],'setup')
     async def test_patch_uncertainty_and_definite_rejection_are_preserved_without_retry(self):
-        client=BridgeGoogle(self.ha,'calendar.joern');client.binding='a'*64
+        client=BridgeGoogle(self.ha,'calendar.person_2');client.binding='a'*64
         for response,uncertain in (({'success':False,'error':'Geändert','status':409,'uncertain':False},False),
                                    ({'success':False,'error':'Unklar','status':502,'uncertain':True},True),({},True),(None,True)):
             self.ha.service.return_value=response
@@ -64,7 +64,7 @@ class ConnectionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(GoogleError) as caught:await client.patch('id',{'summary':'Neu'},'"v1"')
         self.assertTrue(caught.exception.uncertain)
     async def test_only_bounded_read_params_are_forwarded(self):
-        client=BridgeGoogle(self.ha,'calendar.joern');client.binding='a'*64
+        client=BridgeGoogle(self.ha,'calendar.person_2');client.binding='a'*64
         self.ha.service.return_value={'success':True,'result':[]}
         await client.events({'iCalUID':'uid','timeMin':'2026-11-10T00:00:00Z','timeMax':'2026-11-11T00:00:00Z','singleEvents':'true','url':'https://untrusted.example'})
         payload=self.ha.service.call_args.args[2]

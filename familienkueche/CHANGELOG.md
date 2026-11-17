@@ -1,3 +1,13 @@
+# 0.24.0
+
+- Persönliche Auslieferungsvorgaben durch neutrale Profilnamen und Quellen-Platzhalter ersetzen; Mealie-Bildadresse und Geschmacksprofil standardmäßig leer lassen. Eigene Profilnamen über HA-App-Optionen beziehen. Bestehende gespeicherte Optionen und stabile Profilzuordnungen erhalten.
+
+- Optionale Punkte pro Aufgabe und vollständig erledigter Routine ergänzen. Persönliche Häkchen werten jede Person einzeln; gemeinsame Häkchen schreiben allen zugewiesenen Personen Punkte gut. Bestehende Aufgaben beginnen mit null Punkten.
+- Belohnungen mit eigenem Namen und Punktepreis anlegen, bearbeiten und entfernen. Punktestände über vorhandene Profile auswählen; Einlösungen ausdrücklich bestätigen und über die Historie zurücknehmen.
+- Punkte und Einlösungen lokal und transaktional speichern. Wiederholte Anfragen erzeugen keine doppelte Gutschrift; Zurücknehmen eines Häkchens nimmt die Punkte zurück. Pro Person und Vorkommen bleibt der ursprüngliche Punktewert erhalten, auch nach einer Änderung der Aufgabe.
+- Wiederholungen alle 1–12 Wochen mit ausgewählten Wochentagen sowie alle 1–12 Monate mit festem Monatstag oder letztem Tag ergänzen. Monatsdaten in kurzen Monaten begrenzen. Einmalige Aufgaben und bisherige Tages-/Wochenregeln erhalten.
+- Zuständigkeit bei wiederkehrenden Aufgaben und Routinen reihum wechseln lassen. Der Wechsel folgt den geplanten Vorkommen, unabhängig vom Abhaken; im Editor bleibt die vollständige Personenauswahl erhalten.
+
 # 0.23.0
 
 - Mehrtägige Termine in der Woche zu zusammenhängenden Balken mit Fortsetzungspfeilen und eigenem Überlappungsraster zusammenfassen. Monat und Tagesliste zeigen vollständigen Zeitraum und Fortsetzung; exklusives Ganztagsende korrekt behandeln.
@@ -84,7 +94,7 @@
 
 - Kochzeit-Auswahl im KI-Dialog: Gemischt als Startwert, Schnell bis30 Minuten Gesamtzeit und Wochenende mit bis180 Minuten Gesamtzeit. Letzte Auswahl auf dem jeweiligen Gerät merken; beim Wechsel Eingaben erhalten und keine KI-Anfrage starten.
 - Gemischte Suche soll kurze und längere Gerichte kombinieren. Wochenendsuche bevorzugt Eintöpfe, Ofengerichte und Pizza. Zeitgrenzen auch serverseitig prüfen.
-- Geschmacksprofil vorbelegen: Nudeln, Eintöpfe, Pizza und Hähnchen bevorzugen; Nüsse/Erdnüsse und erkennbare verwandte Nusszutaten meiden. Profil im Dialog anzeigen, über App-Optionen anpassbar.
+- Konfigurierbares Geschmacksprofil für bevorzugte Gerichte und zu meidende Zutaten ergänzen. Profil im Dialog anzeigen; Angaben über App-Optionen anpassen.
 - Profil bei der KI-Suche und serverseitigen Auswahl berücksichtigen. Erkannte unerwünschte Zutaten aus Titel, Zutatenzuordnung oder gelieferter Zutatenliste ausschließen; unterschiedliche Gerichte weiterhin bevorzugen.
 - Gesamtzeit und aktive Arbeitszeit getrennt auf Rezeptkarten zeigen. Fehlende oder widersprüchliche Arbeitszeit offen lassen statt schätzen.
 - Suchversion, Modus und Profil im Cache berücksichtigen. Neue bewusste Suche nach Update möglich; keine kostenpflichtigen Anfragen durch das Update oder Umschalten.
@@ -254,7 +264,7 @@
 
 # 0.6.0
 
-- Gemeinsame Einkaufsliste über die konfigurierbare Home-Assistant-To-do-Entität, Standard todo.einkaufsliste.
+- Gemeinsame Einkaufsliste über die konfigurierbare Home-Assistant-To-do-Entität, Standard über eine eigene todo.*-Quelle zuordnen.
 - Hinzufügen, Abhaken, Wiederherstellen, Umbenennen und bestätigtes Entfernen direkt synchronisieren.
 - Erledigte Einträge einklappbar und Anzahl offener Artikel in der Navigation.
 - Aktualisierung spätestens alle 30 Sekunden im Einkaufsreiter; Entwurf und Scrollposition bleiben erhalten.

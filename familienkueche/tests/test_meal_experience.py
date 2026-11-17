@@ -198,6 +198,7 @@ class PlanTests(unittest.IsolatedAsyncioTestCase):
         updated=await get_plan(make_mocked_request('GET',query,app=self.app))
         self.assertEqual(json.loads(updated.text)['revisions'],value['revisions'])
     async def test_profile_excludes_nut_recipe_and_draft_preserves_occupied_days(self):
+        self.app['meal_ai_profile'] = {'preferred': [], 'avoid': ['Nüsse']}
         self.raw[0]['ingredients'].append({'food':{'name':'Cashews'},'display':'Cashews'})
         self.plan.append(dict(mealplan_id=1,mealplan_date=today(),entry_type='dinner',recipe=self.raw[3]))
         data, body = await self.prepare()

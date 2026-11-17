@@ -62,9 +62,10 @@ class MealAIValidation(unittest.TestCase):
                      reason='Passend', matches=['Gemüse'], ingredients=ingredients[i]) for i, title in enumerate(names)]
         raw['output'][0]['action']['sources'] = [{'url': r['url']} for r in rows]
         raw['output'][1]['content'][0]['text'] = json.dumps(dict(offers=['Gemüse'], recipes=rows, warnings=[]))
-        result = result_from_response(raw, data())
+        profile={'preferred':['Pizza'], 'avoid':['Nüsse']}
+        result = result_from_response(raw, {**data(), 'profile':profile})
         self.assertEqual({r['title'] for r in result['recipes']}, {'Pizza mit Gemüse', 'Hähnchen-Pfanne'})
-        self.assertEqual(result['profile'], DEFAULT_PROFILE)
+        self.assertEqual(result['profile'], profile)
 
     def test_mixed_balances_short_and_long_favorite_dishes(self):
         titles = ['Brokkoli-Pasta', 'Hähnchen-Pfanne', 'Tomaten-Nudeln', 'Lachs-Spaghetti',
@@ -76,7 +77,7 @@ class MealAIValidation(unittest.TestCase):
         self.assertEqual([r['minutes'] <= 30 for r in result], [True, False]*4)
         other = dict(title='Gurkensalat', url='https://www.chefkoch.de/rezepte/400/Rezept.html',
                      minutes=15, matches=['Gurke'], reason='Passend')
-        self.assertNotEqual(varied_recipes([other, rows[0]], 'quick', DEFAULT_PROFILE['preferred'])[0], other)
+        self.assertNotEqual(varied_recipes([other, rows[0]], 'quick', ['Nudeln'])[0], other)
 
     def test_reported_cream_variants_and_duplicate_recipe_ids(self):
         def dish(title, ident, matches):
@@ -231,7 +232,7 @@ class MealAIApi(unittest.IsolatedAsyncioTestCase):
         result = await get_offers(make_mocked_request('GET', '/api/meal-ai/offers?window=next', app=self.app))
         self.assertEqual(result.status, 200)
         self.assertEqual(json.loads(result.text)['products'], ['Lachs', 'Tomaten'])
-        self.app['ha'].request.assert_awaited_once_with('GET', 'states/sensor.aldi_nord_offers_next')
+        self.app['ha'].request.assert_awaited_once_with('GET', 'states/sensor.shop_offers_next')
         self.app['meal_ai_call'].assert_not_called(); self.app['ha'].service.assert_not_called()
         self.assertEqual(json.loads((await get_status(self.request())).text)['reservedCents'], 0)
 

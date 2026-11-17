@@ -1,5 +1,5 @@
 name: Familienküche
-version: "0.23.0"
+version: "0.24.0"
 slug: familienkueche
 description: Familienkalender, Erinnerungen, Aufgaben und Mealie-Anbindung
 arch:
@@ -17,27 +17,33 @@ map:
   - type: homeassistant_config
     read_only: true
 options:
+  profile_name_1: "Person 1"
+  profile_name_2: "Person 2"
+  profile_name_3: "Person 3"
   google_calendar_edit_enabled: false
   google_calendar_edit_id: "primary"
-  shopping_entity: "todo.einkaufsliste"
-  birthdays_calendar: "calendar.geburtstage_2"
-  holidays_calendar: "calendar.feiertage_in_deutschland"
+  shopping_entity: "todo.shopping_list"
+  birthdays_calendar: "calendar.birthdays"
+  holidays_calendar: "calendar.holidays"
   vacations_calendar: ""
   weather_entity: "weather.pirateweather"
-  tina_calendar: "calendar.tina"
-  joern_calendar: "calendar.joern"
-  waste_calendar: "calendar.muell"
+  tina_calendar: "calendar.person_1"
+  joern_calendar: "calendar.person_2"
+  waste_calendar: "calendar.waste"
   mealie_entry_id: ""
-  mealie_image_base_url: "http://a0d7b954-mealie:9001"
-  meal_ai_offers_entity: "sensor.aldi_nord_offers"
-  meal_ai_next_offers_entity: "sensor.aldi_nord_offers_next"
+  mealie_image_base_url: ""
+  meal_ai_offers_entity: "sensor.shop_offers"
+  meal_ai_next_offers_entity: "sensor.shop_offers_next"
   meal_ai_offers_shop: "Aldi Nord"
-  meal_ai_preferred_dishes: "Nudeln, Eintöpfe, Pizza, Hähnchen"
-  meal_ai_avoid: "Nüsse, Erdnüsse"
+  meal_ai_preferred_dishes: ""
+  meal_ai_avoid: ""
   meal_ai_enabled: false
   meal_ai_model: "gpt-6-luna"
   meal_ai_monthly_budget_usd: 5
 schema:
+  profile_name_1: str?
+  profile_name_2: str?
+  profile_name_3: str?
   google_calendar_edit_enabled: bool?
   google_calendar_edit_id: str?
   shopping_entity: str?
@@ -49,7 +55,7 @@ schema:
   joern_calendar: str?
   waste_calendar: str?
   mealie_entry_id: str?
-  mealie_image_base_url: url?
+  mealie_image_base_url: str?
   meal_ai_offers_entity: str?
   meal_ai_next_offers_entity: str?
   meal_ai_offers_shop: list(Aldi Nord|Aldi Süd)?

@@ -82,7 +82,7 @@ class FamilyTests(unittest.IsolatedAsyncioTestCase):
         edited = self.routine()
         edited['weekdays'] = [(self.day.weekday() + 1) % 7]
         current = (await self.items())[0]
-        await self.write(dict(action='edit', id=item['id'], revision=current['revision'], item=edited))
+        await self.write(dict(action='edit', id=item['id'], revision=current['revision'], completionRevision=current['completionRevision'], item=edited))
         current = (await self.items())[0]
         self.assertFalse(current['active'])
         self.assertEqual((await self.mark(current, step=current['steps'][0]['id']))[0], 400)
@@ -95,7 +95,7 @@ class FamilyTests(unittest.IsolatedAsyncioTestCase):
         edited = dict(current)
         edited['steps'] = [dict(s) for s in current['steps']]
         edited['steps'][1]['title'] = 'Gemeinsam lesen'
-        status, _ = await self.write(dict(action='edit', id=current['id'], revision=current['revision'], item=edited))
+        status, _ = await self.write(dict(action='edit', id=current['id'], revision=current['revision'], completionRevision=current['completionRevision'], item=edited))
         self.assertEqual(status, 200)
         new = (await self.items())[0]
         self.assertTrue(new['steps'][0]['done'])

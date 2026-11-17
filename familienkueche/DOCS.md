@@ -8,7 +8,7 @@ Dieses GitHub-Repository in Home Assistant unter Einstellungen → Apps → App-
 
 Kalenderoptionen: `tina_calendar`, `joern_calendar`, `waste_calendar` erwarten die jeweiligen vollständigen `calendar.*`-Entitäten. Die generischen Standardwerte sind Platzhalter. Ein eigenes Kalenderprofil kann optional ohne Quelle bleiben.
 
-Mealie-Optionen: `mealie_entry_id` ist die Konfigurationseintrags-ID der bereits eingerichteten Mealie-Integration (kein Token). `mealie_image_base_url` ist die lokale Basisadresse von Mealie; vorbelegt ist die Standardadresse der Community-App. Zugangsschlüssel bleiben serverseitig in Home Assistant. Die App wird ausschließlich über den angemeldeten Ingress-Zugang geöffnet.
+Mealie-Optionen: `mealie_entry_id` ist die Konfigurationseintrags-ID der bereits eingerichteten Mealie-Integration (kein Token). `mealie_image_base_url` ist die lokale Basisadresse von Mealie; der Standard ist leer. Für Rezeptbilder die tatsächliche Adresse der eigenen Installation eintragen. Zugangsschlüssel bleiben serverseitig in Home Assistant. Die App wird ausschließlich über den angemeldeten Ingress-Zugang geöffnet.
 
 ## Einmaliger Wechsel von einer lokalen App
 
@@ -34,7 +34,7 @@ Der Build und Betrieb unter Supervisor sowie echte Mealie-Imports und Bildabrufe
 
 ## Geburtstage und Feiertage (ab 0.5.0)
 
-Zusätzlich werden `calendar.geburtstage_2` und `calendar.feiertage_in_deutschland` eingebunden. Die Optionen `birthdays_calendar` und `holidays_calendar` sind damit vorbelegt und können geändert werden. Beide Quellen sind ausschließlich lesbar. Sie bleiben wie Mülltermine auch bei ausgeschalteten Personenfiltern sichtbar; Geburtstage sind rosa und Feiertage gelb markiert. Die Beschriftungen stehen in der Ganztagszeile, Monatsübersicht und Tages-/Terminliste zur Verfügung.
+Zusätzlich werden die Quellen für Geburtstage und Feiertage eingebunden. Die Optionen `birthdays_calendar` und `holidays_calendar` müssen den eigenen Quellen zugeordnet werden. Beide Quellen sind ausschließlich lesbar. Sie bleiben wie Mülltermine auch bei ausgeschalteten Personenfiltern sichtbar; Geburtstage sind rosa und Feiertage gelb markiert. Die Beschriftungen stehen in der Ganztagszeile, Monatsübersicht und Tages-/Terminliste zur Verfügung.
 
 ## Wetter (ab 0.5.0)
 
@@ -50,7 +50,7 @@ Die Kalender-Essenszeile bleibt ab 0.5.1 auf 60 Pixel Höhe begrenzt und zeigt h
 
 ## Gemeinsame Einkaufsliste (ab 0.6.0)
 
-Die Option `shopping_entity` ist mit `todo.einkaufsliste` vorbelegt. Für eine andere vorhandene Liste deren vollständige `todo.*`-Entität in den App-Optionen eintragen und die App neu starten. Es wird genau eine Liste verwendet; andere Listen und Mealie-Einkaufslisten werden nicht zusammengeführt.
+Die Option `shopping_entity` ist mit `todo.shopping_list` vorbelegt. Für eine andere vorhandene Liste deren vollständige `todo.*`-Entität in den App-Optionen eintragen und die App neu starten. Es wird genau eine Liste verwendet; andere Listen und Mealie-Einkaufslisten werden nicht zusammengeführt.
 
 Der Reiter Einkauf liest offene und erledigte Einträge direkt aus Home Assistant. Artikel können ergänzt, abgehakt, wieder geöffnet, umbenannt und nach einer Einzelbestätigung entfernt werden. Die Anzahl offener Einträge erscheint an der Navigation. Die verfügbaren Schaltflächen richten sich nach den Fähigkeiten der gewählten Liste. Mengen stehen im Artikelnamen; ab 0.7.0 ist eine Portions- und Zutatenübernahme aus Rezepten möglich.
 
@@ -426,7 +426,7 @@ Die Auswahl ist unabhängig vom aktuellen Wochentag. Sie bleibt als lokale Gerä
 
 ### Familiengeschmack
 
-Vorbelegt sind **Nudeln, Eintöpfe, Pizza und Hähnchen** als bevorzugte Gerichte/Zutaten sowie **Nüsse und Erdnüsse** als zu meidende Geschmacksrichtungen. Das aktive Profil erscheint oberhalb des Formulars. Die App-Optionen **`meal_ai_preferred_dishes`** und **`meal_ai_avoid`** enthalten durch Komma getrennte Begriffe. Diese Angaben können später in der App-Konfiguration verändert werden; danach die Familienküche neu starten. Eine leere Zeichenfolge entfernt die betreffende Vorgabe. Höchstens zwölf kurze Begriffe je Feld sind erlaubt. Fehlende Optionen bei einem Update erhalten automatisch die vorbelegten Werte.
+Vorlieben und zu meidende Zutaten sind für neue Installationen leer. Das aktive Profil erscheint oberhalb des Formulars. Die App-Optionen **`meal_ai_preferred_dishes`** und **`meal_ai_avoid`** enthalten eigene, durch Komma getrennte Begriffe. Gespeicherte App-Optionen sowie ein unter „Unser Geschmack“ gespeichertes Profil bleiben beim Update erhalten. Eine leere Zeichenfolge entfernt die betreffende Vorgabe. Höchstens zwölf kurze Begriffe je Feld sind erlaubt. Fehlende Optionen erhalten keine persönlichen Vorlieben automatisch.
 
 Der Server setzt das konfigurierte Profil für jede Suche durch; ein beliebiger vom Browser mitgesendeter Profilwert ersetzt es nicht. Das Profil wird zusammen mit Zutatenliste und Modus an OpenAI gesendet, ohne Kalender-, Personenfoto- oder Paperless-Daten. Die Suchanweisung priorisiert Geschmack, dann Abwechslung und passende Angebotszutaten. Ein biszwei passende Angebotszutaten pro Rezept reichen; gewöhnliche Grundzutaten dürfen hinzukommen. Fleisch und Fisch sind weiterhin erlaubt.
 
@@ -642,3 +642,52 @@ Optional in der App-Konfiguration `vacations_calendar` auf eine vorhandene `cale
 Bei geeigneten Terminen im verbundenen Google-Kalender steht neben **Bearbeiten** eine eigene Taste **Verschieben**. Die reduzierte Ansicht zeigt Beginn, Ende und Zeitsprünge: einen Tag oder eine Woche früher/später sowie 30 Minuten früher/später. Ganztägige Termine haben keine Minutensprünge. Titel, Ort, Beschreibung und Terminart bleiben im Hintergrund erhalten. **Weitere Felder bearbeiten** öffnet den vollständigen Editor und übernimmt die bereits geänderten Zeiten.
 
 **Änderungen prüfen** zeigt weiterhin Vorher/Nachher und mögliche Überschneidungen. Erst die anschließende Speichern-Taste schreibt über die bestehende geprüfte Verbindung. Für Serien gilt weiterhin nur das einzelne Vorkommen. Diese Version ergänzt weder Drag-and-drop noch das Löschen bestehender Termine oder das Ändern ganzer Serien.
+
+
+## Punkte und Belohnungen (0.24.0)
+
+Unter **Aufgaben → Aufgabe bearbeiten** oder beim Anlegen steht „Punkte bei Erledigung“. Der Wert kann zwischen 0 und 100 liegen; 0 schaltet Punkte für diesen Eintrag aus. Bestehende Aufgaben und Routinen haben zunächst null Punkte. Bereits gesetzte Häkchen werden durch das Update nicht nachträglich vergütet.
+
+Bei „Jede Person einzeln“ erhält die jeweilige Person ihre Punkte nach ihrer vollständigen Erledigung. Bei „Gemeinsam“ erhalten alle zugewiesenen Personen den angegebenen Wert. Eine Routine vergibt ihre Punkte erst nach dem letzten offenen Schritt, einmal je Person bzw. gemeinsamer Erledigung. Die Zuweisung verwendet dieselben Profile und Bilder wie bisher.
+
+Im Reiter **Belohnungen**:
+
+1. Eine Person auswählen, um ihren verfügbaren Punktestand zu sehen.
+2. Mit „+ Belohnung“ einen Namen und einen Preis von 1 bis 10000 Punkten anlegen.
+3. „Einlösen“ öffnen und die angezeigte Person, Belohnung und den Punktepreis bestätigen. Erst diese Bestätigung zieht Punkte ab.
+4. Unter „Letzte Einlösungen“ eine Einlösung bei Bedarf ausdrücklich zurücknehmen. Der ursprüngliche Preis wird einmal zurückgebucht.
+
+Ein Häkchen zurückzunehmen widerruft die zugehörige Punktegutschrift. Erneutes Abhaken desselben Vorkommens stellt genau die ursprüngliche Gutschrift wieder her, auch wenn inzwischen der Punktewert der Aufgabe geändert wurde. Das Ändern oder Entfernen einer Aufgabendefinition löscht zuvor erworbene Punkte nicht. Namen und Preise vergangener Einlösungen bleiben nach einer Änderung oder Entfernung der Belohnung erhalten.
+
+Wurden die Punkte schon ausgegeben, kann die Rücknahme eines Häkchens einen negativen Stand erzeugen. Neue Gutschriften gleichen ihn aus; bis ausreichend Punkte verfügbar sind, sind weitere Einlösungen gesperrt. Die letzten 40 Einlösungen sind sichtbar. Punktestände und Einlösungen liegen in der bestehenden lokalen App-Datenbank und bleiben nach einem Neustart erhalten. Die Bestätigung ist kein Eltern-PIN; alle berechtigten Dashboard-Benutzer können die vorhandenen Aktionen bedienen.
+
+## Flexible Aufgaben und Routinen (0.24.0)
+
+Im Aufgaben- oder Routineneditor unter „Regel“ wählen:
+
+- **Einmalig:** Ab dem Fälligkeitsdatum offen, bis erledigt; nur für Aufgaben.
+- **Nach Wochentagen:** Mindestens einen Wochentag und ein Intervall von 1–12 Wochen wählen. Intervall 1 mit allen Wochentagen bedeutet täglich. Die Woche mit dem Startdatum ist die erste Intervallwoche, jeweils ab Montag; Termine vor dem Startdatum zählen nicht.
+- **Monatlich:** Intervall von 1–12 Monaten und einen Monatstag oder „Letzter Tag“ wählen. Der Startmonat ist die erste Intervallphase; ein Monatstag vor dem Startdatum wird übersprungen. Der 31. fällt im Februar beispielsweise auf den letzten Februartag.
+
+**„Zuständigkeit reihum wechseln“** aktiviert persönliche Häkchen und verteilt jedes geplante Vorkommen auf genau eine ausgewählte Person, in der angezeigten Reihenfolge der Profile. Bei „Familie“ werden alle vorhandenen Personen berücksichtigt. Das nächste geplante Vorkommen wechselt auch dann zur nächsten Person, wenn das vorige noch nicht erledigt wurde. Beispiel: alle zwei Wochen am Montag, zwei ausgewählte Personen — erste Person am ersten Montag, zweite Person zwei Wochen später, erste Person nach vier Wochen.
+
+Der Tagesblick zeigt die für diesen Tag zuständige Person. Der Editor erhält die vollständige Zuweisung; „Alle verwalten“ zeigt auch Einträge, die an diesem Tag nicht fällig sind. Neue Vorkommen beginnen mit offenen Häkchen. Vorschauen zukünftiger Tage bleiben ohne Schreibmöglichkeit; vergangene Häkchen können weiterhin nur im bestehenden Zeitraum von 31 Tagen angepasst werden.
+
+Regeländerungen gelten für die Berechnung der Aufgabenansicht. Bereits gespeicherte datierte Häkchen und Punkte bleiben erhalten, werden jedoch nur bei einem weiterhin passenden Vorkommen angezeigt. Ein Wechsel zwischen gemeinsamer und persönlicher Erledigung setzt Häkchen wie bisher nach dem sichtbaren Hinweis zurück. Gleichzeitige Änderungen werden über Revisionen abgefangen; veraltete Clients dürfen fortgeschrittene Regeln und rotierende Zuweisungen nicht still überschreiben.
+
+### Prüfung 0.24.0
+
+181 Backendtests, 23 DOM-/Timer-Skripte sowie lokale Browserprüfungen für Punkte, bestätigte Einlösungen/Rücknahmen, Wiederholungseditor, persönliche Häkchen und grafische Zuweisung. Abgedeckt sind Monatsenden und Schaltjahre, Wochenintervalle, Rotation, doppelte Anfragen, Konflikte, eingefrorene Punktewerte, vollständige Routinen, negative Salden und Datenbank-Neustart. Testdaten sind temporär; externe Dienste, echte Kalender, Einkaufslisten und bezahlte KI werden nicht beschrieben. Eine Prüfung auf dem tatsächlichen Endgerät steht nach dem App-Update aus.
+
+
+## Neutrale Vorgaben und eigene Profile (0.24.0)
+
+Öffentlicher Programmcode und Auslieferung enthalten keine persönlichen Anzeigenamen, lokale Mealie-Adresse oder vorgegebenen Familiengeschmack mehr. Namen werden ausschließlich über **`profile_name_1`**, **`profile_name_2`**, **`profile_name_3`** in der Home-Assistant-App-Konfiguration festgelegt, jeweils 1–40 Zeichen. Standard ist „Person 1“, „Person 2“, „Person 3“. Diese Namen erscheinen in Kalender, Aufgaben, Routinen, Belohnungen, Profilverwaltung, Suche und Erinnerungen. Die Profilverwaltung zeigt den Hinweis, wo die Namen geändert werden.
+
+Die älteren technischen Profil- und Optionskennungen bleiben aus Kompatibilitätsgründen bestehen. Sie sind keine aktuellen Anzeigenamen. Ihre Beibehaltung erhält Fotos, Farben, Aufgaben, persönliche Häkchen und Punktestände, ohne Daten neu zuzuordnen. Die Zahl der persönlichen Profile bleibt bei drei.
+
+**Beim Update:** Bereits in Home Assistant gespeicherte Kalenderkennungen, Mealie-Adresse und Vorlieben werden weiterhin unverändert eingelesen. Die früher fest eingebauten Anzeigenamen waren keine gespeicherte Einstellung; sie einmal in den neuen Namensfeldern eintragen und die App neu starten. Ein in „Unser Geschmack“ gespeichertes Profil bleibt vorrangig. Falls eine Adresse oder Vorliebe bisher nur aus einem Programm-Fallback stammte, muss sie jetzt ausdrücklich eingetragen werden.
+
+**Bei neuer Installation:** Die neutralen Entitäten `calendar.person_1`, `calendar.person_2`, `calendar.waste`, `calendar.birthdays`, `calendar.holidays`, `todo.shopping_list`, `sensor.shop_offers` und `sensor.shop_offers_next` sind Platzhalter und müssen auf die vorhandenen HA-Entitäten gesetzt werden. Der Wetterstandard bleibt Pirate Weather. Mealie-Bildadresse und Geschmacksfelder sind leer. Eine fehlende Bildadresse verhindert den Bildabruf, ohne die übrige App am Start zu hindern. Reale Konfigurationen, Datenbanken, Fotos, Tokens und interne Arbeitsnotizen werden nicht veröffentlicht.
+
+Die Änderung entfernt Werte aus dem aktuellen Quellstand. Frühere GitHub-Commits bleiben Teil der Repository-Historie; es wird keine Historie umgeschrieben.

@@ -16,13 +16,13 @@ class FixtureHA:
         self.sent = 0
 
     async def events(self, entity, start, end):
-        if entity == 'calendar.muell':
+        if entity == 'calendar.waste':
             day = (self.started + timedelta(days=1)).date()
             return [dict(uid='fixture-waste', summary='Restmüll', start={'date': day.isoformat()}, end={'date': (day+timedelta(days=1)).isoformat()})]
-        if entity in ('calendar.tina', 'calendar.joern'):
-            begins = self.started + timedelta(minutes=20 if entity == 'calendar.tina' else 120)
+        if entity in ('calendar.person_1', 'calendar.person_2'):
+            begins = self.started + timedelta(minutes=20 if entity == 'calendar.person_1' else 120)
             finishes = begins + timedelta(hours=1)
-            return [dict(uid=entity, summary='Arzttermin Tina' if entity == 'calendar.tina' else 'Fußball Jörn', start={'dateTime': begins.isoformat()}, end={'dateTime': finishes.isoformat()})]
+            return [dict(uid=entity, summary='Arzttermin Person 1' if entity == 'calendar.person_1' else 'Fußball Person 2', start={'dateTime': begins.isoformat()}, end={'dateTime': finishes.isoformat()})]
         return []
 
     async def request(self, method, path, *args, **kwargs):
@@ -39,7 +39,7 @@ class FixtureHA:
 async def main():
     with tempfile.TemporaryDirectory(prefix='family-browser-') as root:
         fake = FixtureHA()
-        app = make_app(fake, str(Path(root) / 'fixture.sqlite'))
+        app = make_app(fake, str(Path(root) / 'fixture.sqlite'), options={'tina_calendar':'calendar.person_1','joern_calendar':'calendar.person_2','waste_calendar':'calendar.waste'})
         async def count(request):
             return web.json_response({'count': fake.sent})
         app.router.add_get('/fixture/notify-count', count)

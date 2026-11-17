@@ -136,7 +136,7 @@ async def shopping_write(request):
 
 
 def setup(app, options):
-    entity = options.get('shopping_entity') or 'todo.einkaufsliste'
+    entity = options.get('shopping_entity') or 'todo.shopping_list'
     if not re.fullmatch(r'todo\.[a-z0-9_]+', entity):
         raise ValueError('Ungültige Einkaufslisten-Entität in der App-Konfiguration.')
     app['shopping_entity'] = entity

@@ -23,7 +23,7 @@ RESERVATION_CENTS = 25
 SEARCH_VERSION = 5
 TARGET_RECIPES = 8
 COOK_MODES = {'mixed': ('Gemischt', 180), 'quick': ('Schnell', 30), 'weekend': ('Wochenende', 180)}
-DEFAULT_PROFILE = {'preferred': ['Nudeln', 'Eintöpfe', 'Pizza', 'Hähnchen'], 'avoid': ['Nüsse', 'Erdnüsse']}
+DEFAULT_PROFILE = {'preferred': [], 'avoid': []}
 NUTS = re.compile(r'(?<![a-z])(?:erdnuss|erdnussbutter|walnuss|haselnuss|paranuss|nuss|nusse|nussen|mandel|cashew|pistazi|pekann|macadam|pinienkern|peanut|almond|hazelnut|walnut|pecan|pistachio|satay|sate\b)', re.I)
 
 
@@ -497,8 +497,8 @@ def setup(app, options):
     app['meal_ai_key'] = read_key() if enabled else ''
     app['meal_ai_lock'], app['meal_ai_call'] = asyncio.Lock(), call_openai
     app['meal_ai_profile'] = taste_profile(options)
-    app['meal_ai_offers_entity'] = options.get('meal_ai_offers_entity') or 'sensor.aldi_nord_offers'
-    app['meal_ai_next_offers_entity'] = options.get('meal_ai_next_offers_entity') or 'sensor.aldi_nord_offers_next'
+    app['meal_ai_offers_entity'] = options.get('meal_ai_offers_entity') or 'sensor.shop_offers'
+    app['meal_ai_next_offers_entity'] = options.get('meal_ai_next_offers_entity') or 'sensor.shop_offers_next'
     app['meal_ai_offers_shop'] = options.get('meal_ai_offers_shop') or 'Aldi Nord'
     if app['meal_ai_offers_shop'] not in ('Aldi Nord', 'Aldi Süd') or any(
             not re.fullmatch(r'sensor\.[a-z0-9_]+', app[k]) for k in ('meal_ai_offers_entity', 'meal_ai_next_offers_entity')):

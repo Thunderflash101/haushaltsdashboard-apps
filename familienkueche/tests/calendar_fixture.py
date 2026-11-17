@@ -22,15 +22,15 @@ class FixtureHA:
             day = (self.day + timedelta(days=offset)).isoformat()
             return dict(uid=uid, summary=title, start={'dateTime': day+'T'+start_time+':00+01:00'},
                         end={'dateTime': day+'T'+end_time+':00+01:00'}, location='Testpraxis Münster')
-        if entity == 'calendar.tina':
+        if entity == 'calendar.person_1':
             return [timed('arzt', 'Zahnarzt Kontrolle', '10:00', '11:00'),
                     timed('meeting', 'Elterngespräch', '10:30', '11:30'),
                     timed('adjacent', 'Anschließender Termin', '11:30', '12:00'),
                     timed('past', 'Zahnarzt vergangen', '09:00', '10:00', -45),
                     timed('future', 'Zahnarzt in drei Monaten', '09:00', '10:00', 80)]
-        if entity == 'calendar.joern':
-            return [timed('football', 'Fußball Jörn', '10:00', '11:00'),
-                    timed('dentist', 'Zahnarzt Jörn', '12:00', '13:00')]
+        if entity == 'calendar.person_2':
+            return [timed('football', 'Fußball Person 2', '10:00', '11:00'),
+                    timed('dentist', 'Zahnarzt Person 2', '12:00', '13:00')]
         return []
 
     async def features(self, entity):
@@ -51,7 +51,7 @@ class FixtureHA:
 async def main():
     with tempfile.TemporaryDirectory(prefix='calendar-browser-') as root:
         fake = FixtureHA()
-        app = make_app(fake, str(Path(root) / 'fixture.sqlite'))
+        app = make_app(fake, str(Path(root) / 'fixture.sqlite'), options={'tina_calendar':'calendar.person_1','joern_calendar':'calendar.person_2','waste_calendar':'calendar.waste'})
         async def writes(request):
             return web.json_response({'writes': fake.writes})
         app.router.add_get('/fixture/writes', writes)

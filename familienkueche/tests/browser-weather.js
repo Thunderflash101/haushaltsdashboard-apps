@@ -12,7 +12,7 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
   const url=new URL(route.request().url()),p=url.pathname;
   if(p.startsWith('/api/profiles')||p.startsWith('/api/family')||p.startsWith('/api/saver')||p.startsWith('/api/reminders'))return route.continue();
   let data;
-  if(p==='/api/calendar'){const day=new Date().toISOString().slice(0,10);data={fetchedAt:day+'T12:00:00+01:00',sources:[{key:'tina',ok:true,canCreate:false,events:[{id:'example',date:day,title:'Gemeinsamer Nachmittag',start:'20:00',end:'21:00',person:'tina',source:'tina',sourceLabel:'Tina'}]},{key:'joern',ok:true,canCreate:true,events:[]}]};}
+  if(p==='/api/calendar'){const day=new Date().toISOString().slice(0,10);data={fetchedAt:day+'T12:00:00+01:00',sources:[{key:'tina',ok:true,canCreate:false,events:[{id:'example',date:day,title:'Gemeinsamer Nachmittag',start:'20:00',end:'21:00',person:'tina',source:'tina',sourceLabel:'Person 1'}]},{key:'joern',ok:true,canCreate:true,events:[]}]};}
   else if(p==='/api/weather')data={source:'Testwetter',condition:weatherCondition,temperature:5.8,temperatureUnit:'°C',windSpeed:1.5,windUnit:'km/h',humidity:null,forecast:['cloudy','rainy','fog','fog','rainy'].map((condition,i)=>({date:'2026-11-'+String(i+8).padStart(2,'0'),condition,high:[5.8,9.4,10.2,3.8,5.1][i],low:[1.5,4.9,2,0,3][i],rainChance:null})),fetchedAt:new Date().toISOString()};
   else if(p==='/api/shopping')data={items:[],label:'Test-Einkauf',canAdd:true,canUpdate:true,canRemove:true};
   else if(p==='/api/meals')data={entries:[],revisions:{}};

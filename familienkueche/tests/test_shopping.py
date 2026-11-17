@@ -24,7 +24,7 @@ class ShoppingTests(unittest.TestCase):
 class ShoppingApiTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.ha=AsyncMock();self.ha.request.return_value={'state':'1','attributes':{'friendly_name':'Gemeinsamer Einkauf','supported_features':7}}
-        self.ha.service.return_value={'todo.einkaufsliste':{'items':RAW}}
+        self.ha.service.return_value={'todo.shopping_list':{'items':RAW}}
         self.app=make_app(self.ha,':memory:')
 
     async def asyncTearDown(self):self.app['db'].close()
@@ -38,7 +38,7 @@ class ShoppingApiTests(unittest.IsolatedAsyncioTestCase):
         result=await get_count(req)
         self.assertEqual(json.loads(result.text), {'count':1})
         self.ha.service.assert_not_awaited()
-        self.ha.request.assert_awaited_once_with('GET','states/todo.einkaufsliste')
+        self.ha.request.assert_awaited_once_with('GET','states/todo.shopping_list')
 
     async def test_unavailable_or_invalid_count_is_not_zero(self):
         req=make_mocked_request('GET','/api/shopping/count',app=self.app)
@@ -56,7 +56,7 @@ class ShoppingApiTests(unittest.IsolatedAsyncioTestCase):
         row=result['items'][1]
         data={'action':'status','id':row['id'],'revision':row['revision'],'done':False}
         self.assertEqual((await shopping_write(self.req(data))).status,200)
-        self.assertEqual(self.ha.service.call_args.args,('todo','update_item',{'entity_id':'todo.einkaufsliste','item':'uid-two','status':'needs_action'}))
+        self.assertEqual(self.ha.service.call_args.args,('todo','update_item',{'entity_id':'todo.shopping_list','item':'uid-two','status':'needs_action'}))
 
     async def test_add_duplicate_and_idempotency(self):
         self.assertEqual((await shopping_write(self.req({'action':'add','name':' milch '}))).status,409)
@@ -78,7 +78,7 @@ class ShoppingApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.ha.service.call_args.args[2]['item'],'uid-one')
         self.assertEqual(self.ha.service.call_args.args[2]['rename'],'Hafermilch')
         async def service(domain,name,payload,response=False):
-            if name=='get_items':return {'todo.einkaufsliste':{'items':RAW}}
+            if name=='get_items':return {'todo.shopping_list':{'items':RAW}}
             raise TimeoutError()
         self.ha.service.side_effect=service
         add={'action':'add','name':'Äpfel'}

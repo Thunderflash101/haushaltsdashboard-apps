@@ -1,4 +1,4 @@
-"""Read/preview/CAS-update a single Jörn occurrence. Never delete/recreate events."""
+"""Read/preview/CAS-update a single configured calendar occurrence. Never delete/recreate events."""
 import asyncio
 import hashlib
 import json
@@ -123,7 +123,7 @@ class Editor:
 
     async def open(self, query):
         if query.get('source') != 'joern' or not re.fullmatch(r'[a-f0-9]{24}-\d{4}-\d{2}-\d{2}', query.get('id', '')):
-            raise GoogleError('Nur Termine aus Jörns Google-Kalender sind hier bearbeitbar.', 403)
+            raise GoogleError('Nur Termine aus dem zugeordneten Google-Kalender sind hier bearbeitbar.', 403)
         day = date.fromisoformat(query['date'])
         source = self.app['sources'][1]
         raw = await asyncio.wait_for(self.app['ha'].events(source['entity'], day, day+timedelta(days=1)), 8)

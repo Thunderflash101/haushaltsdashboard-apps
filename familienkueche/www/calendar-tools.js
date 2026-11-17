@@ -13,7 +13,7 @@ function overlaps(events){
 }
 window.FamilyCalendarConflicts={groups:overlaps};
 window.createFamilyCalendarTools=function(h){
- var manager=null,seq=0,rows=[],snapshot=null,back=null,names={alle:'Familie',tina:'Tina',joern:'Jörn',felix:'Felix'};
+ var manager=null,seq=0,rows=[],snapshot=null,back=null,names=h.names||{alle:'Familie',tina:'Person 1',joern:'Person 2',felix:'Person 3'};
  var search={q:'',start:h.plus(h.today(),-90),end:h.plus(h.today(),180),person:'alle'};
  function active(){return manager&&document.contains(manager);}
  function timing(e){var first=(e.originalStart||e.date).slice(0,10),last=(e.originalEnd||e.date).slice(0,10);if(e.allDay&&e.originalEnd)last=h.plus(last,-1);var span=h.fmt(first,{day:'numeric',month:'short',year:'numeric'});if(last!==first)span+=' – '+h.fmt(last,{day:'numeric',month:'short',year:'numeric'});return span+' · '+(e.allDay?'Ganztägig':(e.originalStart||'').slice(11,16)||e.start)+(e.allDay?'':' - '+((e.originalEnd||'').slice(11,16)||e.end));}

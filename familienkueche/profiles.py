@@ -17,7 +17,7 @@ DEFAULTS = {'alle': '#c58a53', 'tina': '#9b6cb1', 'joern': '#5082ba', 'felix': '
 
 
 def snapshot(app):
-    return {'profiles': [dict(person=person, color=color, revision=revision,
+    return {'profiles': [dict(person=person, name=app['profile_names'][person], color=color, revision=revision,
                               photo='api/profiles/' + person + '/photo/' + digest + '.jpg' if digest else None)
                          for person, color, revision, digest in app['db'].execute(
                              'SELECT person, color, revision, digest FROM family_profiles ORDER BY person')]}
@@ -63,7 +63,7 @@ async def write(request):
                 raise ValueError('Bitte eine gültige Farbe wählen.')
             color = color.lower()
         elif person == 'alle':
-            raise ValueError('Bitte ein Foto für Tina, Jörn oder Felix wählen.')
+            raise ValueError('Bitte ein persönliches Profil für das Foto wählen.')
         elif action == 'photo':
             encoded = data.get('image')
             if not isinstance(encoded, str) or len(encoded) > 2_700_000:

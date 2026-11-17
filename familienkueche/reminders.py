@@ -315,7 +315,7 @@ def notification(item):
     if item['source'] == 'waste':
         message = item['title'] + ' · Abholung am ' + starts.strftime('%d.%m.') + ' · Bitte am Vorabend bereitstellen.'
     else:
-        person = 'Tina' if item['person'] == 'tina' else 'Jörn'
+        person = item.get('sourceLabel', 'Kalender')
         message = item['title'] + ' · ' + starts.strftime('%d.%m. %H:%M') + ' - ' + ends.strftime('%H:%M') + ' · ' + person
     return dict(title='Familienküche · Erinnerung', message=message,
                 data=dict(tag='familienkueche-' + item['id'][:24], group='familienkueche'))

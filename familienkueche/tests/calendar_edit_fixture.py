@@ -16,11 +16,11 @@ from server import make_app, TZ
 class HA:
     def __init__(self,client,day):self.client,self.day=client,day
     async def events(self,entity,start,end):
-        if entity=='calendar.joern':
+        if entity=='calendar.person_2':
             e=self.client.event
             return [{k:e[k] for k in ('summary','start','end','location','description')}|{'uid':e['iCalUID']}]
-        if entity=='calendar.tina':
-            return [{'uid':'tina-test','summary':'Tinas Termin','start':{'dateTime':self.day+'T10:00:00+01:00'},'end':{'dateTime':self.day+'T11:00:00+01:00'}}]
+        if entity=='calendar.person_1':
+            return [{'uid':'tina-test','summary':'Person 1s Termin','start':{'dateTime':self.day+'T10:00:00+01:00'},'end':{'dateTime':self.day+'T11:00:00+01:00'}}]
         return []
     async def features(self,entity):return 3
     async def service(self,domain,name,payload,**kwargs):

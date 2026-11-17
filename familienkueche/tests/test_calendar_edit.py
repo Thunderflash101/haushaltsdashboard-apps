@@ -36,7 +36,7 @@ class FakeGoogle:
     def status(self):
         return {'enabled':True,'configured':True,'calendarId':self.calendar,'scopes':list(google_calendar.SCOPES)}
     async def info(self):
-        return {'id':'joern@example.test','name':'Jörn Testkalender'}
+        return {'id':'joern@example.test','name':'Person 2 Testkalender'}
     async def events(self,params):
         return [copy.deepcopy(self.event)]+([] if 'iCalUID' in params else copy.deepcopy(self.extra))
     async def get(self,event_id):
@@ -91,7 +91,7 @@ class EditTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.client.patches[0][1],{'summary':'Fußballtraining'})
         for key in ('start','end','attendees','reminders','conferenceData','iCalUID'):
             self.assertEqual(self.client.event[key],self.original[key])
-        self.ha.service.assert_awaited_once_with('homeassistant','update_entity',{'entity_id':'calendar.joern'})
+        self.ha.service.assert_awaited_once_with('homeassistant','update_entity',{'entity_id':'calendar.person_2'})
         self.ha.create.assert_not_awaited()
     async def test_move_changes_existing_id_with_if_match_and_exact_boundaries(self):
         _,preview=await self.prepare({'date':'2026-11-11','endDate':'2026-11-11','start':'18:00','end':'19:30','location':'Halle','description':'Neue Beschreibung'})

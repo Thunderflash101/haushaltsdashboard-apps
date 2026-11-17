@@ -36,7 +36,7 @@ class RecipesHA(FixtureHA):
                                      ingredients=[{'food':{'name':f},'display':f} for f in foods],instructions=[],image='fixture'))
 
     async def events(self,entity,start,end):
-        if entity!='calendar.tina':return []
+        if entity!='calendar.person_1':return []
         begin=datetime.now(TZ).replace(hour=16,minute=0,second=0,microsecond=0)
         return [dict(start={'dateTime':begin.isoformat()},end={'dateTime':(begin+timedelta(hours=2)).isoformat()},summary='Private title never sent to AI')]
 

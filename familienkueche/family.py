@@ -7,6 +7,8 @@ from datetime import date, datetime, timedelta
 
 from aiohttp import web
 from server import TZ
+import family_schedule as schedules
+import rewards
 
 PEOPLE = ('alle', 'tina', 'joern', 'felix')
 ICONS = ('check', 'sun', 'moon', 'tooth', 'shirt', 'bag', 'book', 'tidy', 'dishes', 'trash', 'bed', 'heart')
@@ -39,9 +41,12 @@ def completion_mode(item):
     return item.get('completionMode', 'shared')
 
 
-def participants(item):
+def participants(item, day=None):
     assigned = assignees(item)
-    return list(PEOPLE[1:]) if assigned == ['alle'] else assigned
+    members = list(PEOPLE[1:]) if assigned == ['alle'] else assigned
+    if day is not None and item.get('rotation'):
+        return [members[schedules.index(item,day) % len(members)]]
+    return members
 
 
 def definition(data, previous=None):
@@ -74,11 +79,17 @@ def definition(data, previous=None):
     days = data.get('weekdays')
     if not isinstance(days, list) or len(days) > 7 or any(type(x) is not int or x not in range(7) for x in days) or len(set(days)) != len(days):
         raise ValueError('Bitte gültige Wochentage wählen.')
-    if kind == 'routine' and not days:
-        raise ValueError('Für eine Routine mindestens einen Wochentag wählen.')
+    repeat = schedules.validate(data, previous, kind, days, date.fromisoformat(start))
+    rotation = data.get('rotation', (previous or {}).get('rotation', False))
+    points = data.get('points', (previous or {}).get('points', 0))
+    if type(rotation) is not bool or type(points) is not int or not 0 <= points <= 100:
+        raise ValueError('Punkte von 0 bis 100 und eine gültige Zuständigkeit wählen.')
+    if rotation and (mode != 'individual' or repeat['kind'] == 'once'):
+        raise ValueError('Wechselnde Zuständigkeit benötigt Wiederholung und persönliche Häkchen.')
     result = dict(kind=kind, title=text(data.get('title'), 100),
                   person=assigned[0] if len(assigned) == 1 else 'alle', assignees=assigned,
-                  completionMode=mode, icon=data['icon'], startDate=start, weekdays=sorted(days), steps=[])
+                  completionMode=mode, icon=data['icon'], startDate=start, weekdays=sorted(days) if repeat['kind']=='weekly' else [], steps=[],
+                  repeat=repeat, rotation=rotation, points=points)
     if kind == 'routine':
         steps = data.get('steps')
         if not isinstance(steps, list) or not 1 <= len(steps) <= 12:
@@ -100,11 +111,19 @@ def definition(data, previous=None):
 
 
 def scheduled(item, day):
-    return day.isoformat() >= item['startDate'] and (not item['weekdays'] or day.weekday() in item['weekdays'])
+    return schedules.scheduled(item,day)
 
 
 def occurrence(item, day):
-    return day.isoformat() if item['weekdays'] else 'once'
+    return schedules.occurrence(item,day)
+
+
+def completed_people(db, ident, item, day):
+    result={}
+    for person in participants(item,day):
+        checks,_=progress(db,ident,item,day,person if completion_mode(item)=='individual' else None)
+        result[person]=len(checks)==len(item['steps']) if item['kind']=='routine' else 'task' in checks
+    return result
 
 
 def progress(db, ident, item, day, person=None):
@@ -138,7 +157,7 @@ def snapshot(app, day):
         active = scheduled(item, day)
         personal = []
         if completion_mode(item) == 'individual':
-            for person in participants(item):
+            for person in participants(item, day):
                 checked, stamp = progress(app['db'], ident, item, day, person)
                 steps = [dict(s, done=s['id'] in checked) for s in item['steps']]
                 done = all(s['done'] for s in steps) if steps else 'task' in checked
@@ -150,10 +169,12 @@ def snapshot(app, day):
             checked, stamp = progress(app['db'], ident, item, day)
             steps = [dict(s, done=s['id'] in checked) for s in item['steps']]
             done = all(s['done'] for s in steps) if steps else 'task' in checked
-        result.append(dict(item, assignees=assignees(item), id=ident, revision=revision, steps=steps, active=active,
+        result.append(dict(item, person=participants(item,day)[0] if item.get('rotation') else item['person'],
+                           assignees=participants(item,day) if item.get('rotation') else assignees(item),
+                           configuredAssignees=assignees(item), id=ident, revision=revision, steps=steps, active=active,
                            completionMode=completion_mode(item), personProgress=personal,
                            done=done, progressRevision=stamp, completionRevision=completion_revision(app['db'], ident)))
-    return dict(items=result, date=day.isoformat(), today=today().isoformat(), timezone='Europe/Berlin', individualCompletion=True)
+    return dict(items=result, date=day.isoformat(), today=today().isoformat(), timezone='Europe/Berlin', individualCompletion=True, flexibleSchedules=True, pointsEnabled=True)
 
 
 async def get_items(request):
@@ -215,12 +236,16 @@ async def write_item(request):
                     return web.json_response({'error': 'Die Aufgabe wurde inzwischen geändert. Bitte aktualisieren.', 'conflict': True}, status=409)
                 old = json.loads(row[0])
             if action in ('create', 'edit'):
+                incoming=data.get('item')
+                if old and isinstance(incoming,dict) and (old.get('rotation') or schedules.rule(old)['kind']=='monthly' or schedules.rule(old)['interval']>1) and ('repeat' not in incoming or old.get('rotation') and 'rotation' not in incoming):
+                    return web.json_response({'error':'Diese Aufgabe hat erweiterte Wiederholungen. Bitte die Seite vollständig neu laden.','conflict':True},status=409)
                 item = definition(data.get('item'), old)
                 if action == 'create' and db.execute('SELECT count(*) FROM family_items').fetchone()[0] >= 200:
                     raise ValueError('Es sind bereits 200 Aufgaben und Routinen vorhanden.')
                 ident = ident if action == 'edit' else uuid.uuid4().hex
                 destructive = old and (completion_mode(item) != completion_mode(old) or
-                    completion_mode(old) == 'individual' and bool(set(participants(old))-set(participants(item))))
+                    completion_mode(old) == 'individual' and bool(set(participants(old))-set(participants(item))) or
+                    schedules.signature(old) != schedules.signature(item))
                 if destructive and data.get('completionRevision') != completion_revision(db, ident):
                     return web.json_response({'error': 'Häkchen wurden inzwischen geändert. Bitte neu laden und die Änderung nochmals prüfen.', 'conflict': True}, status=409)
             elif action == 'check':
@@ -234,13 +259,14 @@ async def write_item(request):
                 if completion_mode(old) == 'individual':
                     if person is None:
                         return web.json_response({'error': 'Diese Aufgabe wird pro Person abgehakt. Bitte die Seite vollständig neu laden.', 'conflict': True}, status=409)
-                    if person not in participants(old):
+                    if person not in participants(old, day):
                         raise ValueError('Bitte eine zugewiesene Person wählen.')
                 elif 'person' in data:
                     raise ValueError('Diese Aufgabe hat ein gemeinsames Häkchen. Bitte neu laden.')
                 checked, stamp = progress(db, ident, old, day, person)
                 if data.get('progressRevision') != stamp:
                     return web.json_response({'error': 'Der Fortschritt wurde inzwischen geändert. Bitte aktualisieren.', 'conflict': True}, status=409)
+            before = completed_people(db,ident,old,day) if action=='check' else {}
             with db:
                 if action == 'create':
                     db.execute('INSERT INTO family_items VALUES (?, ?, ?, ?)',
@@ -266,6 +292,8 @@ async def write_item(request):
                     else:
                         sql = 'DELETE FROM family_person_checks WHERE item_id=? AND occurrence=? AND person=? AND step_id=?' if personal else 'DELETE FROM family_checks WHERE item_id=? AND occurrence=? AND step_id=?'
                         db.execute(sql, args)
+                if action == 'check':
+                    rewards.completion(db,ident,occurrence(old,day),old,before,completed_people(db,ident,old,day))
                 result = {'success': True, 'id': ident}
                 save_response(db, key, digest, result)
             return web.json_response(result)
@@ -280,5 +308,6 @@ def setup(app):
     db.execute('CREATE TABLE IF NOT EXISTS family_person_checks (item_id TEXT, occurrence TEXT, person TEXT, step_id TEXT, completed_at TEXT, PRIMARY KEY(item_id, occurrence, person, step_id))')
     db.execute('CREATE TABLE IF NOT EXISTS family_requests (key TEXT PRIMARY KEY, digest TEXT, response TEXT, created TEXT)')
     db.commit()
+    rewards.setup(app)
     app.router.add_get('/api/family', get_items)
     app.router.add_post('/api/family/actions', write_item)

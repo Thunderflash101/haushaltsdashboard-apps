@@ -42,8 +42,8 @@ class SearchTests(unittest.IsolatedAsyncioTestCase):
         self.ha.events.assert_not_awaited()
 
     async def test_person_fields_german_matching_and_no_feature_or_write_calls(self):
-        self.ha.events.return_value = [event('a', title='Örtlicher Arzt', location='Münster', description='Jörns Kontrolle')]
-        status, result = await self.search('q=JOERNS+MUENSTER&start=2026-11-01&end=2026-12-01&person=joern')
+        self.ha.events.return_value = [event('a', title='Örtlicher Arzt', location='Münster', description='Person 2s Kontrolle')]
+        status, result = await self.search('q=KONTROLLE+MUENSTER&start=2026-11-01&end=2026-12-01&person=joern')
         self.assertEqual(status, 200)
         self.assertEqual(len(result['events']), 1)
         self.assertEqual(result['events'][0]['person'], 'joern')

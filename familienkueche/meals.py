@@ -11,7 +11,7 @@ from aiohttp import ClientError, web
 from recipe_meta import metadata
 
 DEFAULT_ENTRY = ''
-DEFAULT_IMAGE_BASE = 'http://a0d7b954-mealie:9001'
+DEFAULT_IMAGE_BASE = ''
 
 
 def recipe_id(value):
@@ -151,7 +151,7 @@ async def get_image(request):
         rid = recipe_id(request.match_info['recipe_id'])
     except ValueError:
         raise web.HTTPNotFound()
-    if rid not in request.app['recipe_ids']:
+    if not request.app['mealie_image_base'] or rid not in request.app['recipe_ids']:
         raise web.HTTPNotFound()
     url = request.app['mealie_image_base'] + '/api/media/recipes/' + rid + '/images/min-original.webp'
     try:
@@ -237,7 +237,7 @@ def setup(app, options):
     entry = options.get('mealie_entry_id') or DEFAULT_ENTRY
     base = (options.get('mealie_image_base_url') or DEFAULT_IMAGE_BASE).rstrip('/')
     parsed = urlsplit(base)
-    if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path:
+    if base and (parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path):
         raise ValueError('Ungültige Mealie-Bildadresse in der App-Konfiguration.')
     app['mealie_entry'], app['mealie_image_base'] = entry, base
     app['recipe_ids'] = set()
