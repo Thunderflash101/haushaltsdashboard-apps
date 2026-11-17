@@ -81,6 +81,8 @@ def normalize_event(event, source, start, end):
     last = min(end, finishes.date() + (timedelta(days=1) if finishes.time() != time.min else timedelta()))
     fingerprint = hashlib.sha256(json.dumps([source['key'], event.get('uid'), event.get('recurrence_id'),
         event.get('summary'), begins.isoformat(), finishes.isoformat()], ensure_ascii=False).encode()).hexdigest()[:24]
+    first_date = begins.date()
+    last_date = finishes.date() - (timedelta(days=1) if finishes.time() == time.min else timedelta())
     rows = []
     day = first
     while day < last:
@@ -92,7 +94,9 @@ def normalize_event(event, source, start, end):
             'person': source['person'], 'source': source['key'], 'sourceLabel': source['label'],
             'allDay': all_day, 'kind': source['key'], 'readOnly': True, 'isWaste': source['key'] == 'waste',
             'description': event.get('description') or '', 'location': event.get('location') or '',
-            'originalStart': begins.isoformat(), 'originalEnd': finishes.isoformat()})
+            'originalStart': begins.isoformat(), 'originalEnd': finishes.isoformat(),
+            'occurrenceId': fingerprint, 'firstDate': first_date.isoformat(), 'lastDate': last_date.isoformat(),
+            'multiDay': first_date != last_date, 'continuesBefore': day > first_date, 'continuesAfter': day < last_date})
         day += timedelta(days=1)
     return rows
 
@@ -169,7 +173,8 @@ async def calendar(request):
                     skipped += 1
             return {'key': source['key'], 'label': source['label'], 'ok': True, 'events': events,
                     'warning': str(skipped) + ' ungültige Termine konnten nicht angezeigt werden.' if skipped else '',
-                    'canCreate': source['key'] == 'joern' and bool(features & 1)}
+                    'canCreate': source['key'] == 'joern' and bool(features & 1),
+                    'fetchedAt': datetime.now(TZ).isoformat()}
         except (UpstreamError, ValueError, TypeError):
             return {'key': source['key'], 'label': source['label'], 'ok': False,
                     'error': 'Kalender konnte nicht geladen werden.', 'canCreate': False}
@@ -224,6 +229,9 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     app['ha'], app['write_lock'] = ha, asyncio.Lock()
     options = options or {}
     app['sources'] = [dict(source, entity=options.get(field) or source['entity']) for source, field in zip(SOURCES, ('tina_calendar', 'joern_calendar', 'waste_calendar', 'birthdays_calendar', 'holidays_calendar'))]
+    vacation = (options.get('vacations_calendar') or '').strip()
+    if vacation:
+        app['sources'].append(dict(key='vacations', entity=vacation, label='Ferien', person='alle'))
     if any(not re.fullmatch(r'calendar\.[a-z0-9_]+', source['entity']) for source in app['sources']):
         raise ValueError('Ungültige Kalender-Entität in der App-Konfiguration.')
     db = sqlite3.connect(db_path)

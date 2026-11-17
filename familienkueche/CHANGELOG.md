@@ -1,3 +1,10 @@
+# 0.23.0
+
+- Mehrtägige Termine in der Woche zu zusammenhängenden Balken mit Fortsetzungspfeilen und eigenem Überlappungsraster zusammenfassen. Monat und Tagesliste zeigen vollständigen Zeitraum und Fortsetzung; exklusives Ganztagsende korrekt behandeln.
+- Optionale Ferienquelle vacations_calendar ergänzen, standardmäßig leer. Vorhandene Ferienkalender lesend in Anzeige und Suche übernehmen; unabhängiger Quellenschalter ohne automatisch angenommene Region.
+- Quellenübersicht mit Zustand und letzter erfolgreicher Abfrage je Kalender ergänzen. Vorherige Daten nur für dasselbe Zeitfenster weiterverwenden, Abruffehler und teilweise Daten sichtbar machen und erneuten Abruf direkt anbieten.
+- Reduzierten Verschieben-Dialog für geeignete Google-Termine ergänzen. Tages-/Wochensprünge und 30-Minuten-Schritte in beide Richtungen, vollständige Formularwerte erhalten und weiterhin Vorschau sowie bestätigtes Speichern mit bestehendem Konfliktschutz verwenden.
+
 # 0.22.0
 
 - Kalenderanzeige je Gerät einstellen: drei Schriftgrößen, drei Zeilenhöhen sowie frei wählbare volle Start-/Endstunden zwischen 00:00 und 24:00. Stunden-/Halbstundenlinien, Termine und Jetzt-Linie an den gewählten Bereich anpassen. Vollständige Tageslisten erhalten.

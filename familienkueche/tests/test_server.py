@@ -31,6 +31,16 @@ class NormalizationTests(unittest.TestCase):
         rows=normalize_event(self.event({'date':'2026-11-10'},{'date':'2026-11-11'}),SOURCES[2],date(2026,11,1),date(2026,12,1))
         self.assertTrue(rows[0]['isWaste']);self.assertEqual(rows[0]['person'],'alle')
 
+    def test_multi_day_metadata_inclusive_and_window_independent(self):
+        e=self.event({'date':'2026-11-01'},{'date':'2026-11-08'})
+        rows=normalize_event(e,SOURCES[0],date(2026,11,3),date(2026,11,6))
+        self.assertEqual(len(rows),3)
+        self.assertTrue(all(r['firstDate']=='2026-11-01' and r['lastDate']=='2026-11-07' and r['multiDay'] for r in rows))
+        self.assertTrue(all(r['continuesBefore'] and r['continuesAfter'] for r in rows))
+        self.assertEqual(len({r['occurrenceId'] for r in rows}),1)
+        single=normalize_event(self.event({'date':'2026-11-01'},{'date':'2026-11-02'}),SOURCES[0],date(2026,11,1),date(2026,11,3))[0]
+        self.assertFalse(single['multiDay'])
+
     def test_window_limit(self):
         for q in [{'start':'2026-01-01','end':'2027-01-01'}, {'start':'2026-02-30','end':'2026-03-01'}]:
             with self.assertRaises(ValueError):validated_window(q)
@@ -83,6 +93,20 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         response=await create_event(self.request(app,data,'second-request-12345'));self.assertEqual(response.status,409)
         self.assertEqual(ha.create.await_count,2)
         app['db'].close()
+
+    async def test_optional_vacation_source(self):
+        ha=AsyncMock();ha.features.return_value=0
+        ha.events.return_value=[{'summary':'Ferien','uid':'vacation','start':{'date':'2026-11-01'},'end':{'date':'2026-11-04'}}]
+        app=make_app(ha,':memory:',options={'vacations_calendar':'calendar.school_breaks'})
+        try:
+            self.assertEqual(app['sources'][-1]['key'],'vacations')
+            req=make_mocked_request('GET','/api/calendar?start=2026-11-01&end=2026-11-08',app=app)
+            data=json.loads((await calendar(req)).text)
+            result=data['sources'][-1]
+            self.assertTrue(result['ok']);self.assertIn('fetchedAt',result)
+            self.assertFalse(result['canCreate']);self.assertTrue(all(e['kind']=='vacations' and e['readOnly'] for e in result['events']))
+        finally:app['db'].close()
+        with self.assertRaises(ValueError):make_app(ha,':memory:',options={'vacations_calendar':'sensor.invalid'})
 
     async def test_partial_read_keeps_other_sources(self):
         from server import UpstreamError
