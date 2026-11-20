@@ -1,3 +1,8 @@
+# 0.26.0
+
+- Aufgaben nach Profil und gemeinsamen Aufgaben gruppieren. Bestätigte Gutschriften fliegen als Münzen zum Guthaben.
+- Drei Überraschungstruhen für 10, 30 und 100 Münzen mit selbst zugeordneten Gewinnen, Öffnungsanimation und offenen Schätzen ergänzen.
+
 # 0.25.0
 
 - Optionaler Elternschutz für Änderungen an Aufgaben, Routinen und Belohnungen sowie für das Zurücknehmen einer Einlösung. Die PIN wird beim Speichern geprüft. Abhaken und bestätigtes Einlösen sind weiterhin direkt möglich.

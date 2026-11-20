@@ -174,7 +174,7 @@ def snapshot(app, day):
                            configuredAssignees=assignees(item), id=ident, revision=revision, steps=steps, active=active,
                            completionMode=completion_mode(item), personProgress=personal,
                            done=done, progressRevision=stamp, completionRevision=completion_revision(app['db'], ident)))
-    return dict(items=result, date=day.isoformat(), today=today().isoformat(), timezone='Europe/Berlin', individualCompletion=True, flexibleSchedules=True, pointsEnabled=True, parentPinEnabled=app['parent_guard'].enabled)
+    return dict(items=result, date=day.isoformat(), today=today().isoformat(), timezone='Europe/Berlin', individualCompletion=True, flexibleSchedules=True, pointsEnabled=True, balances={p: rewards.balance(app['db'],p) for p in rewards.PEOPLE}, parentPinEnabled=app['parent_guard'].enabled)
 
 
 async def get_items(request):
@@ -297,8 +297,11 @@ async def write_item(request):
                         sql = 'DELETE FROM family_person_checks WHERE item_id=? AND occurrence=? AND person=? AND step_id=?' if personal else 'DELETE FROM family_checks WHERE item_id=? AND occurrence=? AND step_id=?'
                         db.execute(sql, args)
                 if action == 'check':
-                    rewards.completion(db,ident,occurrence(old,day),old,before,completed_people(db,ident,old,day))
+                    credits = rewards.completion(db,ident,occurrence(old,day),old,before,completed_people(db,ident,old,day))
                 result = {'success': True, 'id': ident}
+                if action == 'check':
+                    result['credits'] = credits
+                    result['balances'] = {p: rewards.balance(db,p) for p in rewards.PEOPLE}
                 save_response(db, key, digest, result)
             return web.json_response(result)
         except (ValueError, TypeError, KeyError) as exc:

@@ -697,3 +697,9 @@ Die Änderung entfernt Werte aus dem aktuellen Quellstand. Frühere GitHub-Commi
 In **Home Assistant → Einstellungen → Apps → Familienküche → Konfiguration** die optionale Einstellung `parent_pin` einblenden und eine eigene PIN aus 4–8 Ziffern eingeben. Speichern, die Familienküche neu starten und die Ansicht neu laden. Zum Ändern oder Abschalten die PIN dort ersetzen oder die Option entfernen.
 
 Beim Anlegen, Bearbeiten und Entfernen von Aufgaben, Routinen und Belohnungen sowie beim Zurücknehmen einer Einlösung verlangt die Familienküche die PIN für diesen Speichervorgang. Auf dem gemeinsamen Tablet können alle ihre Aufgaben abhaken, Guthaben ansehen und verfügbare Belohnungen nach Bestätigung einlösen. Nach fünf falschen Eingaben pausieren geschützte Änderungen für eine Minute.
+
+## Aufgabenbrett und Schatztruhen (0.26.0)
+
+Die Familienspalte enthält gemeinsam abzuhakende Gruppenaufgaben. Persönliche Aufgaben erscheinen bei der zuständigen Person. Unter „Geschafft“ lassen sich erledigte Aufgaben wieder öffnen. Ein gemeinsames Häkchen vergibt den eingestellten Betrag an jedes zugeordnete Profil. Münzen entsprechen den bisherigen Punkten.
+
+Unter Aufgaben → Belohnungen eine Belohnung bearbeiten und unter „Auch als Überraschung in“ die Truhe wählen. Die drei Truhen kosten 10, 30 und 100 Münzen. Der normale Einzelpreis ist unabhängig davon. Jede Öffnung zieht mit gleicher Wahrscheinlichkeit einen der zugeordneten Gewinne. Derselbe Gewinn kann später erneut erscheinen. Erst das Bestätigen der Öffnung zieht Münzen ab. Unter „Meine Schätze“ bleiben Gewinne bis zur Erfüllung sichtbar. Bei aktivem Elternschutz benötigen Änderungen am Inhalt, Erfüllungsmarkierungen und Rückbuchungen die PIN.
