@@ -55,10 +55,31 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
   for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);assert(await page.locator('.reward-panel').evaluate(x=>x.scrollWidth<=x.clientWidth+1));}
   await page.locator('[data-action="treasure-choose"][data-cost="10"]').click();
   assert.equal((await rewards()).balances.felix,10);
+  assert.equal(await page.locator('.treasure-stage').count(),0);
   await page.locator('#treasure-form [type="submit"]').click();
   await page.locator('.prize-reveal').waitFor();
   assert((await page.locator('.prize-reveal').innerText()).includes('Abendessen aussuchen'));
   assert.equal((await rewards()).balances.felix,0);
+  const bursts=page.locator('.treasure-stage .firework-burst');
+  assert.equal(await bursts.count(),3);
+  // Hold the celebration at a reproducible frame for the layout check and preview.
+  await page.locator('.treasure-stage').evaluate(stage=>{
+    stage.getAnimations({subtree:true}).forEach(animation=>{
+      animation.pause();
+      animation.currentTime=1430;
+    });
+  });
+  assert(await bursts.first().evaluate(el=>Number(getComputedStyle(el).opacity)>0.5));
+  const lid=page.locator('.treasure-stage .chest-lid');
+  assert(await lid.evaluate(el=>el.getBoundingClientRect().height>25));
+  assert.equal(await page.locator('.chest-cover').evaluate(el=>getComputedStyle(el).opacity),'0');
+  await page.screenshot({path:'/tmp/familienkueche-truhenfeuerwerk.png'});
+  await page.emulateMedia({reducedMotion:'reduce'});
+  assert(await bursts.first().evaluate(el=>getComputedStyle(el).animationName==='none'&&Number(getComputedStyle(el).opacity)>0));
+  await page.setViewportSize({width:375,height:667});
+  assert(await page.locator('.modal').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+  assert(await lid.isVisible());
+  await page.setViewportSize({width:960,height:600});
   await page.locator('.prize-reveal button').click();
   await page.locator('[data-action="treasure-fulfill"]').click();
   await page.locator('#parent-pin').fill(pin);

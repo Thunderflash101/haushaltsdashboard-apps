@@ -459,21 +459,33 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .treasure-grid{margin:10px 0 20px}
 .treasure-card{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;background:#fcf5e8;padding:12px 5px}
 .treasure-card:disabled{opacity:.7}
-.chest-art{--trim:#bd8052;display:block;position:relative;width:68px;height:48px;margin:15px auto 8px;border-radius:5px;background:linear-gradient(90deg,#99623c 9%,var(--trim) 9% 18%,#a87448 18% 82%,var(--trim) 82% 91%,#99623c 91%);box-shadow:inset 0 -4px #69462955}
-.chest-art.tier-30{--trim:#c3cdd3}
-.chest-art.tier-100{--trim:#ebba48}
-.chest-art i{position:absolute;left:-1px;right:-1px;top:-5px;height:24px;border-radius:12px 12px 3px 3px;background:inherit;border-bottom:4px solid var(--trim);transform-origin:50% 0}
-.chest-art b{position:absolute;left:39%;top:26%;padding:0 3px;border-radius:4px;background:var(--trim);color:#543b26}
-.chest-open i{animation:open-lid .7s ease-out both}
-.prize-reveal{text-align:center;animation:show-prize .9s ease-out both}
-@keyframes open-lid{from{transform:rotateX(0)}to{transform:perspective(120px) rotateX(120deg)}}
-@keyframes show-prize{0%,35%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){.prize-reveal,.chest-open i{animation:none}.chest-open i{transform:rotateX(120deg)}}
+.chest-art{--trim:#dfa86d;display:block;width:74px;height:58px;margin:4px auto}
+.chest-art.tier-30{--trim:#d4dfe1}
+.chest-art.tier-100{--trim:#f8c854}
+.chest-metal{fill:var(--trim)}
+.treasure-stage{position:relative;width:100%;max-width:340px;height:148px;overflow:hidden;margin:0 auto;background:radial-gradient(ellipse at 50% 72%,#fae6b9,transparent 57%);pointer-events:none}
+.treasure-stage .chest-art{position:absolute;width:128px;height:100px;bottom:4px;left:50%;margin:0 0 0 -64px}
+.chest-lid{transform-origin:64px 52px;animation:chest-unfold .65s ease-out both}
+.chest-cover{transform-origin:64px 52px;animation:chest-lift .3s ease-in both}
+.chest-coins{animation:chest-coins .75s ease-out both}
+.chest-fireworks{position:absolute;top:0;left:0;width:100%;height:100%;fill:none;stroke-width:3;stroke-linecap:round}
+.firework-burst{opacity:0;animation:firework-bloom 1.55s ease-out .38s both}
+.firework-burst.burst-1{animation-delay:.75s}
+.firework-burst.burst-2{animation-delay:1.15s}
+.prize-reveal{text-align:center}
+.prize-reveal h3{margin:6px 0 14px;overflow-wrap:break-word}
+@keyframes chest-lift{from{transform:scaleY(1)}95%{opacity:1}to{transform:scaleY(.08);opacity:0}}
+@keyframes chest-unfold{0%,42%{transform:scaleY(.08)}to{transform:scaleY(1)}}
+@keyframes chest-coins{0%,35%{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes firework-bloom{0%{opacity:0;transform:scale(.12)}16%{opacity:1;transform:scale(.45)}65%{opacity:1;transform:scale(.92)}100%{opacity:0;transform:translateY(4px) scale(1.12)}}
+@media(prefers-reduced-motion:reduce){
+  .chest-lid,.chest-cover,.chest-coins,.firework-burst{animation:none}
+  .chest-cover{display:none}
+  .firework-burst{opacity:.72}
+}
 @media(max-width:700px){.task-board{flex-wrap:wrap}.task-column{flex-basis:44%}}
 .coin-symbol{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:17px;height:17px;border-radius:50%;border:1px solid #c78d25;color:#805015;background:#ffdf78;box-shadow:inset 0 0 0 2px #ffedab;font:normal bold 11px/1 sans-serif}
-.chest-open::after{content:'✧   ★   ✦';position:absolute;left:0;right:0;text-align:center;pointer-events:none;color:#b27f25;animation:chest-stars .9s ease-out both}
-@keyframes chest-stars{0%,20%{opacity:0;transform:translateY(0)}55%{opacity:1}100%{opacity:0;transform:translateY(-32px)}}
-@media(prefers-reduced-motion:reduce){.chest-open::after{display:none}}
+
 
 .weather-button .weather-outfit{display:inline-flex;align-items:center;gap:5px;margin-left:4px;padding:5px 8px;border-radius:9px;background:#e6ebdc;color:#415436;font-size:13px;font-weight:bold;max-width:120px;line-height:1.15}
 .weather-outfit svg{width:22px;height:22px;flex:none;fill:#d1ddc2;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}

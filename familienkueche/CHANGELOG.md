@@ -1,3 +1,7 @@
+# 0.26.3
+
+- Beim Öffnen einer Schatztruhe klappt der Deckel am Scharnier auf. Nach der bestätigten Einlösung erscheint ein kurzes Feuerwerk. Bei reduzierter Bewegung ist das Feuerwerk ein Standbild.
+
 # 0.26.2
 
 - Den aktuellen Kleidungstipp mit Symbol auch im Ruhemodus anzeigen. Die linke Navigation erhält farbige Symbolflächen, kräftigere Konturen und eine Checkliste für Aufgaben.
