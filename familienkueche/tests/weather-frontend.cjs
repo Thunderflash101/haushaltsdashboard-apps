@@ -18,4 +18,18 @@ assert.equal(paths.size,15,'All supported conditions have their own drawing');
 for(const condition of ['', 'constructor','<img src=x onerror=bad()>']){widget.refresh();pending.shift()(null,{...sample,condition,forecast:[{...sample.forecast[0],condition}]});assert.equal(d.querySelector('#header svg').dataset.weatherCondition,'unknown');assert.equal(d.querySelector('.weather-day p').textContent,'Wetterlage nicht angegeben');assert(!d.querySelector('img'));}
 widget.refresh();pending.shift()(null,{...sample,hourlyForecastError:null,hourlyForecast:[{datetime:'2026-11-16T11:00:00Z',condition:'rainy',temperature:0,rainChance:0},{datetime:'2026-11-16T12:00:00Z',condition:'fog',temperature:null,rainChance:null}]});
 assert.equal(d.querySelectorAll('.weather-hour').length,2);assert(d.querySelector('.weather-hour time').textContent.includes('12:00'));assert(d.querySelector('.weather-hour').textContent.includes('0 °C'));assert(d.querySelector('.weather-hour').textContent.includes('Regen 0 %'));assert.equal(d.querySelectorAll('.weather-hour small').length,1);assert.equal(d.querySelectorAll('.weather-day').length,5);
+
+// The calendar header opts into the current clothing hint.
+for(const [temperature,temperatureUnit,condition,expected] of [
+    [0,'°C','cloudy','Wintermantel'],[5,'°C','snowy-rainy','Warme Regenjacke'],
+    [12,'°C','rainy','Regenjacke'],[59,'°F','sunny','Pullover'],[20,'°C','sunny','T-Shirt'],
+    [12,'°C','cloudy','Jacke'],[null,'°C','sunny',null],[50,'?','cloudy',null]
+]){
+    widget.refresh();pending.shift()(null,{...sample,temperature,temperatureUnit,condition});
+    const display=d.createElement('div');display.innerHTML=widget.compact(true);
+    const tip=display.querySelector('.weather-outfit');assert.equal(tip&&tip.textContent,expected);
+    if(tip)assert(tip.querySelector('svg path'));
+    assert(!widget.compact().includes('weather-outfit'));
+}
+widget.refresh();pending.shift()({error:'Offline'});assert(!widget.compact(true).includes('weather-outfit'));
 w.close();console.log('PASS: weather values/errors, reported clouds/rain/fog regression, all 15 conditions with matching distinct symbols and labels in compact/current/forecast views, and safe unknown fallback.');

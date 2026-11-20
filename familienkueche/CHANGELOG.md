@@ -1,3 +1,7 @@
+# 0.26.1
+
+- Im Kalender neben dem aktuellen Wetter einen Kleidungstipp mit passendem Symbol anzeigen. Grundlage sind Temperatur und Niederschlagsart der Wetterquelle.
+
 # 0.26.0
 
 - Aufgaben nach Profil und gemeinsamen Aufgaben gruppieren. Bestätigte Gutschriften fliegen als Münzen zum Guthaben.

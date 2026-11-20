@@ -474,3 +474,6 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .chest-open::after{content:'✧   ★   ✦';position:absolute;left:0;right:0;text-align:center;pointer-events:none;color:#b27f25;animation:chest-stars .9s ease-out both}
 @keyframes chest-stars{0%,20%{opacity:0;transform:translateY(0)}55%{opacity:1}100%{opacity:0;transform:translateY(-32px)}}
 @media(prefers-reduced-motion:reduce){.chest-open::after{display:none}}
+
+.weather-button .weather-outfit{display:inline-flex;align-items:center;gap:5px;margin-left:4px;padding:5px 8px;border-radius:9px;background:#e6ebdc;color:#415436;font-size:13px;font-weight:bold;max-width:120px;line-height:1.15}
+.weather-outfit svg{width:22px;height:22px;flex:none;fill:#d1ddc2;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}

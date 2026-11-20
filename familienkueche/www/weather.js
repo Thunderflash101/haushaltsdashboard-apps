@@ -27,7 +27,40 @@ function label(condition){return (known(condition)?conditions[condition]:unknown
 function symbol(condition){var key=known(condition)?condition:'unknown',drawing=(key==='unknown'?unknown:conditions[key])[1];return '<svg class="weather-symbol" data-weather-condition="'+key+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+drawing+'"/></svg>';}
 
 function value(n){return n===null||typeof n==='undefined'?'—':Number(n).toLocaleString('de-DE',{maximumFractionDigits:1});}
-function compact(){var d=state.data;if(!d)return '<button class="weather-button row" type="button" data-action="weather">'+symbol('')+'<span>Wetter<br><small>'+(state.loading?'Wird geladen …':state.error?'Nicht verfügbar':'Wird geladen …')+'</small></span></button>';return '<button class="weather-button row" type="button" data-action="weather" aria-label="Wetter und Vorhersage öffnen">'+symbol(d.condition)+'<span><strong>'+h.esc(value(d.temperature)+' '+d.temperatureUnit)+'</strong><br><small>'+h.esc(state.error?'Letzter Stand':label(d.condition))+'</small></span></button>';}
+var garments = {
+    coat: ['Wintermantel', 'M9 3l3 2 3-2 4 3 3 12-3 1-2-7 1 10H6l1-10-2 7-3-1L5 6z M12 5v16 M8 10h3m2 0h3m-9 4h4m2 0h4'],
+    jacket: ['Jacke', 'M8 4l4-2 4 2 3 2 3 12-3 1-2-6v8H7v-8l-2 6-3-1L5 6z M8 4l4 5 4-5 M12 9v12 M8 17l2-2m4 0 2 2'],
+    rain: ['Regenjacke', 'M8 7q0-6 4-6t4 6l3 2 3 10-3 1-2-6 1 8H6l1-8-2 6-3-1L5 9z M8 7q4 5 8 0 M12 10v11'],
+    sweater: ['Pullover', 'M8 4q4 4 8 0l4 3 2 12-3 1-2-8v9H7v-9l-2 8-3-1L4 7z M7 18h10'],
+    shirt: ['T-Shirt', 'M8 4q4 4 8 0l6 4-3 5-3-2v10H8V11l-3 2-3-5z']
+};
+
+function outfit(data){
+    var temp = data.temperature;
+    if(typeof temp !== 'number' || !isFinite(temp))return null;
+    if(data.temperatureUnit === '°F')temp = (temp - 32) * 5 / 9;
+    else if(data.temperatureUnit !== '°C')return null;
+    var wet = ['rainy','pouring','lightning-rainy','snowy-rainy','hail'].indexOf(data.condition) >= 0;
+    if(wet && temp <= 5)return ['Warme Regenjacke', garments.rain[1]];
+    if(wet)return garments.rain;
+    if(temp <= 5)return garments.coat;
+    if(temp < 15)return garments.jacket;
+    if(temp < 20)return garments.sweater;
+    return garments.shirt;
+}
+
+function compact(showOutfit){
+    var d = state.data;
+    if(!d)return '<button class="weather-button row" type="button" data-action="weather">'+symbol('')+
+        '<span>Wetter<br><small>'+(state.error?'Nicht verfügbar':'Wird geladen …')+'</small></span></button>';
+    var tip = showOutfit && !state.error && outfit(d);
+    var caption = value(d.temperature)+' '+d.temperatureUnit;
+    var condition = state.error?'Letzter Stand':label(d.condition);
+    var description = 'Wetter und Vorhersage öffnen. '+caption+', '+condition+(tip?'. Jetzt anziehen: '+tip[0]:'');
+    return '<button class="weather-button row" type="button" data-action="weather" aria-label="'+h.esc(description)+'">'+
+        symbol(d.condition)+'<span><strong>'+h.esc(caption)+'</strong><br><small>'+h.esc(condition)+'</small></span>'+
+        (tip?'<span class="weather-outfit" title="Jetzt anziehen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+tip[1]+'"/></svg>'+tip[0]+'</span>':'')+'</button>';
+}
 function body(){var d=state.data,html='<div class="row spread"><p class="source-label">'+h.esc(d?d.source:'Home Assistant')+'</p><button type="button" data-action="weather-refresh">Aktualisieren</button></div>';if(state.loading)html+='<p role="status" class="notice">Wetter wird geladen …</p>';if(state.error)html+='<p role="alert" class="notice">'+h.esc(state.error)+(d?' · Letzter geladener Stand.':'')+'</p>';if(!d)return html;
 html+='<div class="weather-current row">'+symbol(d.condition)+'<div><strong>'+h.esc(value(d.temperature)+' '+d.temperatureUnit)+'</strong><p>'+h.esc(label(d.condition))+'</p></div></div><div class="row wrap muted">'+(d.windSpeed!==null?'<span>Wind '+h.esc(value(d.windSpeed)+' '+d.windUnit)+'</span>':'')+(d.humidity!==null?'<span>Luftfeuchte '+h.esc(value(d.humidity))+' %</span>':'')+'</div><h3 class="weather-section-title">Stündliche Vorschau · nächste Stunden</h3>';
 var hourly=Array.isArray(d.hourlyForecast)?d.hourlyForecast:[];

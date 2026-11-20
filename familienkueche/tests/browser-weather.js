@@ -23,7 +23,16 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  };
  await page.route('**/api/**',mockApi);
 
- const base='http://127.0.0.1:'+port+'/';await page.goto(base);await page.locator('.header-weather [data-weather-condition="cloudy"]').waitFor();await page.locator('.header-weather [data-action="weather"]').click();await page.locator('.weather-day').first().waitFor();
+ const base='http://127.0.0.1:'+port+'/';await page.goto(base);await page.locator('.header-weather [data-weather-condition="cloudy"]').waitFor();
+ for(const size of [{width:1280,height:800},{width:960,height:600}]){
+   await page.setViewportSize(size);
+   const hint=page.locator('.header-weather .weather-outfit');
+   assert.equal(await hint.innerText(),'Jacke');
+   const box=await hint.boundingBox(), clock=await page.locator('.header .clock').boundingBox();
+   assert(box && box.width>35 && box.x+box.width<=clock.x && clock.x+clock.width<=size.width+1);
+ }
+ await page.screenshot({path:'/tmp/familienkueche-kleidungstipp.png'});
+ await page.locator('.header-weather [data-action="weather"]').click();await page.locator('.weather-day').first().waitFor();
  const labels=await page.locator('.weather-day>p:first-of-type').allTextContents();assert.deepEqual(labels,['Bewölkt','Regen','Nebel','Nebel','Regen']);const paths=await page.locator('.weather-day svg path').evaluateAll(nodes=>nodes.map(x=>x.getAttribute('d')));assert.equal(new Set(paths.slice(0,3)).size,3);assert.equal(paths[1],paths[4]);assert.equal(paths[2],paths[3]);
  for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);await page.waitForTimeout(200);assert(await page.locator('.modal').evaluate(x=>x.scrollWidth<=x.clientWidth+1));assert.equal(await page.locator('.weather-day svg').count(),5);}await page.screenshot({path:'/tmp/familienkueche-wettersymbole.png'});
  weatherCondition='fog';await page.locator('[data-action="weather-refresh"]').click();await page.locator('.weather-current [data-weather-condition="fog"]').waitFor();await page.locator('#overlay [data-action="close"]').first().click();assert.equal(await page.locator('.header-weather [data-weather-condition="fog"]').count(),1);
