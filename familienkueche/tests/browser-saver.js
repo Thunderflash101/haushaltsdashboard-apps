@@ -31,7 +31,13 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  const jpg=await source.evaluate(()=>{var c=document.createElement('canvas');c.width=1200;c.height=800;var g=c.getContext('2d');g.fillStyle='#567766';g.fillRect(0,0,c.width,c.height);return c.toDataURL('image/jpeg').split(',')[1];});
  const upload=await page.request.post(base+'api/saver/photos',{headers:{'X-Family-Request':'1','Idempotency-Key':'fullscreen-photo'},data:{action:'add',name:'Vollbildtest',image:jpg}});assert.equal(upload.status(),200);
  async function enter(){await iframe.locator('[data-screen="saver"]').click();await page.locator('[data-family-saver-fullscreen] .family-saver').waitFor();}
- async function checkSize(){await page.waitForFunction(()=>{const host=document.querySelector('[data-family-saver-fullscreen]'),section=host&&host.shadowRoot.querySelector('.family-saver');if(!section||getComputedStyle(host).visibility==='hidden')return false;const r=section.getBoundingClientRect();return r.x===0&&r.y===0&&r.width===innerWidth&&r.height===innerHeight;});assert.equal(await source.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);}
+ async function checkSize(){await page.waitForFunction(()=>{const host=document.querySelector('[data-family-saver-fullscreen]'),section=host&&host.shadowRoot.querySelector('.family-saver');if(!section||getComputedStyle(host).visibility==='hidden')return false;const r=section.getBoundingClientRect();return r.x===0&&r.y===0&&r.width===innerWidth&&r.height===innerHeight;});assert.equal(await source.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ const hint=page.locator('[data-family-saver-fullscreen] .weather-outfit');
+ await hint.waitFor();
+ assert.equal(await hint.innerText(),'Pullover');
+ const bounds=await hint.boundingBox();
+ assert(bounds.x>=0 && bounds.x+bounds.width<=page.viewportSize().width+1);
+ }
 
  await enter();
  for(const size of [{width:1280,height:800},{width:960,height:600},{width:412,height:915}]){await page.setViewportSize(size);await page.waitForTimeout(250);await checkSize();}

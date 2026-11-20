@@ -477,3 +477,16 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 
 .weather-button .weather-outfit{display:inline-flex;align-items:center;gap:5px;margin-left:4px;padding:5px 8px;border-radius:9px;background:#e6ebdc;color:#415436;font-size:13px;font-weight:bold;max-width:120px;line-height:1.15}
 .weather-outfit svg{width:22px;height:22px;flex:none;fill:#d1ddc2;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+.side-nav .nav-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:29px;border-radius:9px;color:#343d38;background:#e1e5e0}
+.side-nav .nav-icon svg{width:22px;height:22px;stroke-width:2.15}
+.side-nav .nav-icon-calendar{background:#dce7d2;color:#314b30}
+.side-nav .nav-icon-cart{background:#f6e3cd;color:#734021}
+.side-nav .nav-icon-meal{background:#f0dfd4;color:#703d2b}
+.side-nav .nav-icon-checklist{background:#dce7e8;color:#285354}
+.side-nav .nav-icon-moon{background:#e4e2ef;color:#464360}
+.side-nav button.active .nav-icon{color:#fffdf6;background:#365538}
+.side-nav .nav-label{font-weight:600;color:#343a30}
+.family-saver .weather-outfit{max-width:none;padding:6px 10px;font-size:15px;background:#e1ead9;color:#2f4930}
+.family-saver.saver-has-photo .weather-outfit,.family-saver.dark .weather-outfit,.family-saver.saver-night .weather-outfit{color:#f5faed;background:#2c4032;border:1px solid #aabca9}
+.family-saver.saver-has-photo .weather-outfit svg,.family-saver.dark .weather-outfit svg,.family-saver.saver-night .weather-outfit svg{fill:#506851}

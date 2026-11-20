@@ -1,3 +1,7 @@
+# 0.26.2
+
+- Den aktuellen Kleidungstipp mit Symbol auch im Ruhemodus anzeigen. Die linke Navigation erhält farbige Symbolflächen, kräftigere Konturen und eine Checkliste für Aufgaben.
+
 # 0.26.1
 
 - Im Kalender neben dem aktuellen Wetter einen Kleidungstipp mit passendem Symbol anzeigen. Grundlage sind Temperatur und Niederschlagsart der Wetterquelle.
