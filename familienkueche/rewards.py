@@ -49,6 +49,10 @@ async def write(request):
         digest=hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest()
     except (ValueError,TypeError) as exc:
         return web.json_response({'error':str(exc)},status=400)
+    if data.get('action') != 'redeem':
+        denied = request.app['parent_guard'].check(request)
+        if denied is not None:
+            return denied
     async with request.app['write_lock']:
         db=request.app['db'];saved=saved_response(db,key,digest)
         if saved is not None:return saved

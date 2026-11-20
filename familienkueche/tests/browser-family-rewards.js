@@ -1,7 +1,8 @@
 const path=require('path'),assert=require('assert'),{spawn}=require('child_process');
 const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
 (async()=>{
- const server=spawn('python3',['-W','ignore',path.join(__dirname,'family_fixture.py')],{stdio:['ignore','pipe','pipe']});let browser,log='';server.stderr.on('data',x=>log+=x);
+ const pin = String(require('crypto').randomInt(1000,10000));
+ const server=spawn('python3',['-W','ignore',path.join(__dirname,'family_fixture.py')],{env:{...process.env,FIXTURE_PARENT_PIN:pin},stdio:['ignore','pipe','pipe']});let browser,log='';server.stderr.on('data',x=>log+=x);
  try{
   const port=await new Promise((resolve,reject)=>{let out='';const timer=setTimeout(()=>reject(Error('Fixture startup '+log)),12000);server.stdout.on('data',x=>{out+=x;try{const data=JSON.parse(out.trim().split('\n')[0]);clearTimeout(timer);resolve(data.port);}catch(e){}});server.on('error',reject);server.on('exit',code=>{clearTimeout(timer);reject(Error('Fixture stopped '+code+' '+log));});});
   browser=await chromium.launch({executablePath:process.env.FAMILY_CHROMIUM||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
@@ -19,6 +20,11 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
   await page.locator('#family-repeat-kind').selectOption('weekly');await page.locator('#family-repeat-interval').fill('2');
   const weekday=await page.evaluate(()=> (new Date().getDay()+6)%7);await page.locator('[name="weekday"][value="'+weekday+'"]').check();
   await page.locator('[name="rotation"]').check();assert(await page.locator('[name="completionMode"][value="individual"]').isChecked());
+  await page.locator('#parent-pin').fill('0000');
+  await page.locator('#family-edit-form [type="submit"]').click();
+  await page.getByText('Die Eltern-PIN stimmt nicht.',{exact:true}).first().waitFor();
+  assert.equal((await snapshot()).items.length,0);
+  await page.locator('#parent-pin').fill(pin);
   await page.locator('#family-edit-form [type="submit"]').click();await page.waitForFunction(()=>document.getElementById('overlay').hidden);
   await page.locator('[data-family-person="felix"]:not([disabled])').waitFor();
   let item=(await snapshot()).items.find(x=>x.title==='Tisch decken');assert.equal(item.repeat.interval,2);assert(item.rotation);
@@ -27,11 +33,14 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
   await page.locator('[data-action="family-tab"][data-tab="rewards"]').click();await page.locator('[data-action="reward-new"]:not([disabled])').waitFor();
   assert((await page.locator('[data-action="reward-person"][data-person="felix"]').innerText()).includes('5 Punkte'));assert((await page.locator('[data-action="reward-person"][data-person="tina"]').innerText()).includes('Alex & <A>'));
   await page.locator('[data-action="reward-new"]').click();await page.locator('#reward-title').fill('Abendessen aussuchen');await page.locator('#reward-cost').fill('3');
+  await page.locator('#parent-pin').fill(pin);
   await page.locator('#reward-edit-form [type="submit"]').click();await page.waitForFunction(()=>document.getElementById('overlay').hidden);await page.locator('[data-action="reward-choose"]:not([disabled])').waitFor();
   await page.locator('[data-action="reward-choose"]').click();assert.equal((await rewards()).balances.felix,5,'Opening confirmation never spends points');
+  assert.equal(await page.locator('#parent-pin').count(),0);
   await page.locator('#reward-confirm-form [type="submit"]').click();await page.waitForFunction(()=>document.getElementById('overlay').hidden);
   await page.waitForFunction(()=>document.querySelector('[data-action="reward-person"][data-person="felix"]').textContent.includes('2 Punkte'));
   await page.locator('.reward-history summary').click();await page.locator('[data-action="reward-reverse"]').click();
+  await page.locator('#parent-pin').fill(pin);
   await page.locator('#reward-confirm-form [type="submit"]').click();await page.waitForFunction(()=>document.getElementById('overlay').hidden);
   await page.waitForFunction(()=>document.querySelector('[data-action="reward-person"][data-person="felix"]').textContent.includes('5 Punkte'));
   for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);assert(await page.locator('.reward-panel').evaluate(x=>x.scrollWidth<=x.clientWidth+1));}
@@ -42,6 +51,7 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
   await page.locator('[data-action="family-assign-person"][data-person="tina"]').click();
   for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);assert(await page.locator('.modal').evaluate(x=>x.scrollWidth<=x.clientWidth+1));}
   await page.screenshot({path:'/tmp/familienkueche-wiederholungen.png'});
+  await page.locator('#parent-pin').fill(pin);
   await page.locator('#family-edit-form [type="submit"]').click();await page.waitForFunction(()=>document.getElementById('overlay').hidden);
   item=(await snapshot()).items.find(x=>x.title==='Tisch decken');assert.deepEqual(item.configuredAssignees,['tina','felix']);
   await page.locator('[data-action="family-edit"]').click();assert.equal(await page.locator('[data-action="family-assign-person"][aria-pressed="true"]').count(),2);

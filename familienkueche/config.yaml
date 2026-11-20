@@ -1,5 +1,5 @@
 name: Familienküche
-version: "0.24.0"
+version: "0.25.0"
 slug: familienkueche
 description: Familienkalender, Erinnerungen, Aufgaben und Mealie-Anbindung
 arch:
@@ -41,6 +41,7 @@ options:
   meal_ai_model: "gpt-6-luna"
   meal_ai_monthly_budget_usd: 5
 schema:
+  parent_pin: password?
   profile_name_1: str?
   profile_name_2: str?
   profile_name_3: str?

@@ -1,4 +1,5 @@
 """Loopback-only backend for browser tests; temporary DB, no HA connection."""
+import os
 import asyncio
 import json
 import tempfile
@@ -39,7 +40,7 @@ class FixtureHA:
 async def main():
     with tempfile.TemporaryDirectory(prefix='family-browser-') as root:
         fake = FixtureHA()
-        app = make_app(fake, str(Path(root) / 'fixture.sqlite'), options={'tina_calendar':'calendar.person_1','joern_calendar':'calendar.person_2','waste_calendar':'calendar.waste'})
+        app = make_app(fake, str(Path(root) / 'fixture.sqlite'), options={'parent_pin':os.environ.get('FIXTURE_PARENT_PIN',''),'tina_calendar':'calendar.person_1','joern_calendar':'calendar.person_2','waste_calendar':'calendar.waste'})
         async def count(request):
             return web.json_response({'count': fake.sent})
         app.router.add_get('/fixture/notify-count', count)

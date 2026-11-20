@@ -174,7 +174,7 @@ def snapshot(app, day):
                            configuredAssignees=assignees(item), id=ident, revision=revision, steps=steps, active=active,
                            completionMode=completion_mode(item), personProgress=personal,
                            done=done, progressRevision=stamp, completionRevision=completion_revision(app['db'], ident)))
-    return dict(items=result, date=day.isoformat(), today=today().isoformat(), timezone='Europe/Berlin', individualCompletion=True, flexibleSchedules=True, pointsEnabled=True)
+    return dict(items=result, date=day.isoformat(), today=today().isoformat(), timezone='Europe/Berlin', individualCompletion=True, flexibleSchedules=True, pointsEnabled=True, parentPinEnabled=app['parent_guard'].enabled)
 
 
 async def get_items(request):
@@ -220,6 +220,10 @@ async def write_item(request):
             raise ValueError('Unbekannte Aktion.')
     except (ValueError, TypeError) as exc:
         return web.json_response({'error': str(exc)}, status=400)
+    if action != 'check':
+        denied = request.app['parent_guard'].check(request)
+        if denied is not None:
+            return denied
     async with request.app['write_lock']:
         db = request.app['db']
         saved = saved_response(db, key, digest)

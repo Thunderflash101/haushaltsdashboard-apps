@@ -691,3 +691,9 @@ Die älteren technischen Profil- und Optionskennungen bleiben aus Kompatibilitä
 **Bei neuer Installation:** Die neutralen Entitäten `calendar.person_1`, `calendar.person_2`, `calendar.waste`, `calendar.birthdays`, `calendar.holidays`, `todo.shopping_list`, `sensor.shop_offers` und `sensor.shop_offers_next` sind Platzhalter und müssen auf die vorhandenen HA-Entitäten gesetzt werden. Der Wetterstandard bleibt Pirate Weather. Mealie-Bildadresse und Geschmacksfelder sind leer. Eine fehlende Bildadresse verhindert den Bildabruf, ohne die übrige App am Start zu hindern. Reale Konfigurationen, Datenbanken, Fotos, Tokens und interne Arbeitsnotizen werden nicht veröffentlicht.
 
 Die Änderung entfernt Werte aus dem aktuellen Quellstand. Frühere GitHub-Commits bleiben Teil der Repository-Historie; es wird keine Historie umgeschrieben.
+
+## Elternschutz (0.25.0)
+
+In **Home Assistant → Einstellungen → Apps → Familienküche → Konfiguration** die optionale Einstellung `parent_pin` einblenden und eine eigene PIN aus 4–8 Ziffern eingeben. Speichern, die Familienküche neu starten und die Ansicht neu laden. Zum Ändern oder Abschalten die PIN dort ersetzen oder die Option entfernen.
+
+Beim Anlegen, Bearbeiten und Entfernen von Aufgaben, Routinen und Belohnungen sowie beim Zurücknehmen einer Einlösung verlangt die Familienküche die PIN für diesen Speichervorgang. Auf dem gemeinsamen Tablet können alle ihre Aufgaben abhaken, Guthaben ansehen und verfügbare Belohnungen nach Bestätigung einlösen. Nach fünf falschen Eingaben pausieren geschützte Änderungen für eine Minute.

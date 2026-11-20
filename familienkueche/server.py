@@ -10,6 +10,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from aiohttp import ClientError, ClientSession, ClientTimeout, web
+from parent_guard import ParentGuard
 from household_config import profile_names
 
 ROOT = Path(__file__).parent
@@ -229,6 +230,7 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     app = web.Application(middlewares=[ingress_only], client_max_size=3_000_000)
     app['ha'], app['write_lock'] = ha, asyncio.Lock()
     options = options or {}
+    app['parent_guard'] = ParentGuard(options.get('parent_pin', ''))
     app['profile_names'] = profile_names(options)
     app['sources'] = [dict(source, entity=options.get(field) or source['entity']) for source, field in zip(SOURCES, ('tina_calendar', 'joern_calendar', 'waste_calendar', 'birthdays_calendar', 'holidays_calendar'))]
     for source in app['sources']:

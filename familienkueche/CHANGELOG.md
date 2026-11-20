@@ -1,3 +1,7 @@
+# 0.25.0
+
+- Optionaler Elternschutz für Änderungen an Aufgaben, Routinen und Belohnungen sowie für das Zurücknehmen einer Einlösung. Die PIN wird beim Speichern geprüft. Abhaken und bestätigtes Einlösen sind weiterhin direkt möglich.
+
 # 0.24.0
 
 - Persönliche Auslieferungsvorgaben durch neutrale Profilnamen und Quellen-Platzhalter ersetzen; Mealie-Bildadresse und Geschmacksprofil standardmäßig leer lassen. Eigene Profilnamen über HA-App-Optionen beziehen. Bestehende gespeicherte Optionen und stabile Profilzuordnungen erhalten.
