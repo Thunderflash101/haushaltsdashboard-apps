@@ -459,29 +459,46 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .treasure-grid{margin:10px 0 20px}
 .treasure-card{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;background:#fcf5e8;padding:12px 5px}
 .treasure-card:disabled{opacity:.7}
-.chest-art{--trim:#dfa86d;display:block;width:74px;height:58px;margin:4px auto}
-.chest-art.tier-30{--trim:#d4dfe1}
-.chest-art.tier-100{--trim:#f8c854}
-.chest-metal{fill:var(--trim)}
-.treasure-stage{position:relative;width:100%;max-width:340px;height:148px;overflow:hidden;margin:0 auto;background:radial-gradient(ellipse at 50% 72%,#fae6b9,transparent 57%);pointer-events:none}
-.treasure-stage .chest-art{position:absolute;width:128px;height:100px;bottom:4px;left:50%;margin:0 0 0 -64px}
-.chest-lid{transform-origin:64px 52px;animation:chest-unfold .65s ease-out both}
-.chest-cover{transform-origin:64px 52px;animation:chest-lift .3s ease-in both}
-.chest-coins{animation:chest-coins .75s ease-out both}
-.chest-fireworks{position:absolute;top:0;left:0;width:100%;height:100%;fill:none;stroke-width:3;stroke-linecap:round}
-.firework-burst{opacity:0;animation:firework-bloom 1.55s ease-out .38s both}
-.firework-burst.burst-1{animation-delay:.75s}
-.firework-burst.burst-2{animation-delay:1.15s}
+.chest-art{
+  --edge:#865132;--metal:#bd8554;--shine:#ebbe88;
+  display:block;position:relative;width:76px;height:75px;margin:0 auto;
+  perspective:320px;
+}
+.chest-art.tier-30{--edge:#63717a;--metal:#a9b5bc;--shine:#edf1ee}
+.chest-art.tier-100{--edge:#9b692a;--metal:#dbad51;--shine:#fff0aa}
+.chest-art>span,.chest-lid>span{display:block;position:absolute}
+.chest-front,.chest-outside{
+  background:repeating-linear-gradient(0deg,transparent 0px,transparent 9px,rgba(90,44,17,.15) 10px,transparent 11px),linear-gradient(#d89c5c,#b37543 52%,#986139);
+}
+.chest-front{z-index:2;left:5%;right:5%;top:53%;bottom:4%;border-radius:4% 4% 10% 10%;box-shadow:inset 0 -4px 0 rgba(78,43,24,.25),0 3px 3px rgba(76,47,26,.14)}
+.chest-bands:before,.chest-bands:after{
+  content:"";position:absolute;top:0;bottom:0;width:11%;
+  background:radial-gradient(circle at 50% 23%,var(--shine) 1px,transparent 2px),radial-gradient(circle at 50% 80%,var(--edge) 1px,transparent 2px),linear-gradient(90deg,var(--edge),var(--shine) 27%,var(--metal) 48%,var(--edge));
+}
+.chest-bands:before{left:8%}.chest-bands:after{right:8%}
+.chest-lid{z-index:3;left:3%;right:3%;top:27%;height:36%;transform-origin:50% 0;transform-style:preserve-3d}
+.chest-lid>span{top:0;left:0;width:100%;height:100%;overflow:hidden;border-radius:12px 12px 4px 4px;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.chest-outside{border-bottom:4px solid var(--edge);box-shadow:inset 0 2px 2px #edc58a,inset 0 -3px 4px #965e37}
+.chest-lining{transform:rotateX(180deg);border:4px solid var(--metal);background:linear-gradient(#6a3828,#925641 85%,#613a2b);box-shadow:inset 0 0 0 2px #573421,inset 0 4px 7px #613323}
+.chest-well{left:5%;right:5%;top:27%;height:33%;border:4px solid var(--metal);border-radius:11px 11px 3px 3px;background:linear-gradient(#502d22,#845038)}
+.chest-well:before,.chest-well:after{content:"";position:absolute;top:-6px;width:11%;height:6px;border-radius:2px;background:linear-gradient(var(--edge),var(--shine),var(--edge))}
+.chest-well:before{left:10%}.chest-well:after{right:10%}
+.chest-coins{left:24%;right:24%;top:36%;height:21%;border-radius:50% 55% 0 0;background:radial-gradient(ellipse at 54% 90%,#eab44b 0%,#ffe29b 27%,transparent 30%),radial-gradient(ellipse at 26% 65%,#e5a737 0%,#ffdf87 28%,transparent 31%),radial-gradient(ellipse at 77% 55%,#dca039 0%,#ffdc86 30%,transparent 34%)}
+.chest-art>.chest-clasp{z-index:4;left:40%;top:56%;width:20%;height:26%;display:flex;align-items:center;justify-content:center;border-radius:4px;background:linear-gradient(135deg,var(--shine),var(--metal) 62%,var(--edge));box-shadow:0 1px 2px #704322;color:#66432e;font: bold 13px/1 sans-serif}
+.treasure-stage{position:relative;width:100%;max-width:360px;height:164px;overflow:hidden;margin:0 auto;background:radial-gradient(ellipse at 50% 76%,#fae6b9,transparent 55%);pointer-events:none}
+.treasure-stage .chest-art{position:absolute;width:112px;height:106px;bottom:4px;left:50%;margin-left:-56px}
+.chest-open .chest-lid{transform:rotateX(142deg);animation:unlock-lid .95s ease-in-out both}
+.chest-confetti{position:absolute;top:52%;left:50%}
+.chest-confetti i{position:absolute;width:5px;height:10px;border-radius:1px;opacity:0;animation:paper-toss 1.55s ease-out both;animation-delay:calc(.98s + var(--lag))}
+.chest-confetti i:nth-child(3n){width:6px;height:6px;border-radius:50%}
+.chest-confetti i:nth-child(4n){width:4px;height:12px}
 .prize-reveal{text-align:center}
 .prize-reveal h3{margin:6px 0 14px;overflow-wrap:break-word}
-@keyframes chest-lift{from{transform:scaleY(1)}95%{opacity:1}to{transform:scaleY(.08);opacity:0}}
-@keyframes chest-unfold{0%,42%{transform:scaleY(.08)}to{transform:scaleY(1)}}
-@keyframes chest-coins{0%,35%{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@keyframes firework-bloom{0%{opacity:0;transform:scale(.12)}16%{opacity:1;transform:scale(.45)}65%{opacity:1;transform:scale(.92)}100%{opacity:0;transform:translateY(4px) scale(1.12)}}
+@keyframes unlock-lid{0%,14%{transform:rotateX(0)}27%{transform:rotateX(8deg)}75%{transform:rotateX(149deg)}100%{transform:rotateX(142deg)}}
+@keyframes paper-toss{0%{opacity:0;transform:translate(0,0) rotate(0)}8%{opacity:1}42%{transform:translate(var(--x),var(--y)) rotate(var(--spin))}72%{opacity:1}100%{opacity:0;transform:translate(var(--end-x),65px) rotate(310deg)}}
 @media(prefers-reduced-motion:reduce){
-  .chest-lid,.chest-cover,.chest-coins,.firework-burst{animation:none}
-  .chest-cover{display:none}
-  .firework-burst{opacity:.72}
+  .chest-open .chest-lid,.chest-confetti i{animation:none}
+  .chest-confetti i:nth-child(2n+1),.chest-confetti i:nth-child(4n){opacity:.85;transform:translate(var(--x),var(--y)) rotate(var(--spin))}
 }
 @media(max-width:700px){.task-board{flex-wrap:wrap}.task-column{flex-basis:44%}}
 .coin-symbol{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:17px;height:17px;border-radius:50%;border:1px solid #c78d25;color:#805015;background:#ffdf78;box-shadow:inset 0 0 0 2px #ffedab;font:normal bold 11px/1 sans-serif}

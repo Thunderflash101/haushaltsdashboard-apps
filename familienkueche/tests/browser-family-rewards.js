@@ -53,6 +53,7 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
   await page.locator('#reward-confirm-form [type="submit"]').click();await page.waitForFunction(()=>document.getElementById('overlay').hidden);
   await page.waitForFunction(()=>document.querySelector('[data-action="reward-person"][data-person="felix"]').textContent.includes('10 Punkte'));
   for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);assert(await page.locator('.reward-panel').evaluate(x=>x.scrollWidth<=x.clientWidth+1));}
+  await page.locator('.treasure-grid').screenshot({path:'/tmp/familienkueche-holztruhen.png'});
   await page.locator('[data-action="treasure-choose"][data-cost="10"]').click();
   assert.equal((await rewards()).balances.felix,10);
   assert.equal(await page.locator('.treasure-stage').count(),0);
@@ -60,22 +61,35 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
   await page.locator('.prize-reveal').waitFor();
   assert((await page.locator('.prize-reveal').innerText()).includes('Abendessen aussuchen'));
   assert.equal((await rewards()).balances.felix,0);
-  const bursts=page.locator('.treasure-stage .firework-burst');
-  assert.equal(await bursts.count(),3);
-  // Hold the celebration at a reproducible frame for the layout check and preview.
-  await page.locator('.treasure-stage').evaluate(stage=>{
-    stage.getAnimations({subtree:true}).forEach(animation=>{
+  const stage=page.locator('.treasure-stage');
+  const paper=stage.locator('.chest-confetti i').first();
+  const lid=stage.locator('.chest-lid');
+  const frame=async ms=>stage.evaluate((el,time)=>{
+    el.getAnimations({subtree:true}).forEach(animation=>{
       animation.pause();
-      animation.currentTime=1430;
+      animation.currentTime=time;
     });
-  });
-  assert(await bursts.first().evaluate(el=>Number(getComputedStyle(el).opacity)>0.5));
-  const lid=page.locator('.treasure-stage .chest-lid');
-  assert(await lid.evaluate(el=>el.getBoundingClientRect().height>25));
-  assert.equal(await page.locator('.chest-cover').evaluate(el=>getComputedStyle(el).opacity),'0');
-  await page.screenshot({path:'/tmp/familienkueche-truhenfeuerwerk.png'});
+  },ms);
+  const opacity=()=>paper.evaluate(el=>Number(getComputedStyle(el).opacity));
+  const angle=()=>lid.evaluate(el=>getComputedStyle(el).transform);
+  await frame(0);
+  const closed=await angle();
+  await frame(480);
+  assert.notEqual(await angle(),closed);
+  assert.equal(await opacity(),0);
+  await frame(960);
+  const open=await angle();
+  assert.notEqual(open,closed);
+  assert.equal(await opacity(),0);
+  await frame(1700);
+  assert.equal(await angle(),open);
+  assert(await opacity()>0.5);
+  await page.screenshot({path:'/tmp/familienkueche-truhenkonfetti.png'});
+  await frame(3000);
+  assert.equal(await opacity(),0);
   await page.emulateMedia({reducedMotion:'reduce'});
-  assert(await bursts.first().evaluate(el=>getComputedStyle(el).animationName==='none'&&Number(getComputedStyle(el).opacity)>0));
+  assert.equal(await angle(),open);
+  assert(await paper.evaluate(el=>getComputedStyle(el).animationName==='none'&&Number(getComputedStyle(el).opacity)>0));
   await page.setViewportSize({width:375,height:667});
   assert(await page.locator('.modal').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
   assert(await lid.isVisible());

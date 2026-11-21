@@ -1,3 +1,7 @@
+# 0.26.4
+
+- Die Holztruhen tragen wieder abgerundete Deckel und Beschläge in Bronze, Silber oder Gold. Nach dem Aufklappen steigt Konfetti aus der Truhe und fällt herunter. Bei reduzierter Bewegung ist die offene Truhe sofort sichtbar.
+
 # 0.26.3
 
 - Beim Öffnen einer Schatztruhe klappt der Deckel am Scharnier auf. Nach der bestätigten Einlösung erscheint ein kurzes Feuerwerk. Bei reduzierter Bewegung ist das Feuerwerk ein Standbild.
