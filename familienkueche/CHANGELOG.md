@@ -1,3 +1,7 @@
+# 0.27.0
+
+- Die Einkaufsliste erkennt 64 Lebensmittel und Haushaltsartikel und zeigt passende Produktbilder. Über „Nach Bild hinzufügen“ können Kinder Artikel ohne Tastatur in sieben bebilderten Gruppen auswählen.
+
 # 0.26.4
 
 - Die Holztruhen tragen wieder abgerundete Deckel und Beschläge in Bronze, Silber oder Gold. Nach dem Aufklappen steigt Konfetti aus der Truhe und fällt herunter. Bei reduzierter Bewegung ist die offene Truhe sofort sichtbar.

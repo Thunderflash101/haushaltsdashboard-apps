@@ -9,9 +9,41 @@ function click(sel){const el=d.querySelector(sel);assert(el,sel);el.click();}
 function submit(id){d.getElementById(id).dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));}
 click('[data-screen="shopping"]');assert(d.body.textContent.includes('Milch <b>Hafer</b>'));assert(!d.querySelector('.shopping-main b'));assert(d.querySelector('.badge').textContent==='1');
 let input=d.getElementById('shopping-add-input');input.value='Äpfel';input.focus();submit('shopping-add-form');submit('shopping-add-form');assert.equal(posts.length,1);assert.equal(JSON.parse(posts[0].body).name,'Äpfel');assert(posts[0].headers['Idempotency-Key']);items.push({id:'apple',name:'Äpfel',done:false,description:'',revision:'c'.repeat(64)});posts.shift().answer(200,{success:true});assert.equal(d.getElementById('shopping-add-input').value,'');assert.equal(d.querySelector('.badge').textContent,'2');
-click('[data-shopping-id="milk"]');let post=posts.shift();assert.equal(JSON.parse(post.body).done,true);assert.equal(d.querySelector('[data-shopping-id="milk"]').checked,false,'No optimistic check');items[0].done=true;items[0].revision='d'.repeat(64);post.answer(200,{success:true});assert(d.querySelector('[data-shopping-id="milk"]').checked);assert.equal(d.querySelector('.badge').textContent,'1');
+click('label[for="shopping-check-0"] .shop-product-photo');let post=posts.shift();assert.equal(JSON.parse(post.body).done,true);assert.equal(d.querySelector('[data-shopping-id="milk"]').checked,false,'No optimistic check');items[0].done=true;items[0].revision='d'.repeat(64);post.answer(200,{success:true});assert(d.querySelector('[data-shopping-id="milk"]').checked);assert.equal(d.querySelector('.badge').textContent,'1');
 d.querySelector('.shop-completed').open=true;click('[data-shopping-id="milk"]');post=posts.shift();assert.equal(JSON.parse(post.body).done,false);items[0].done=false;items[0].revision='e'.repeat(64);post.answer(200,{success:true});assert(d.querySelector('.shop-completed').open);assert.equal(d.querySelector('.badge').textContent,'2');
 click('[data-action="shopping-rename"][data-id="milk"]');d.getElementById('shopping-name').value='Hafermilch';submit('shopping-rename-form');post=posts.shift();assert.equal(JSON.parse(post.body).id,'milk');assert.equal(JSON.parse(post.body).action,'rename');items[0].name='Hafermilch';items[0].revision='f'.repeat(64);post.answer(200,{success:true});assert(d.body.textContent.includes('Hafermilch'));
 click('[data-action="shopping-remove"][data-id="milk"]');assert.equal(posts.length,0,'Delete requires form confirmation');submit('shopping-remove-form');post=posts.shift();assert.equal(JSON.parse(post.body).action,'remove');post.answer(409,{error:'Inzwischen geändert',conflict:true});assert(d.querySelector('#shopping-remove-form [type="submit"]').disabled);click('[data-action="close"]');click('[data-action="shopping-refresh"]');
 input=d.getElementById('shopping-add-input');input.value='Neuer Entwurf';input.focus();input.setSelectionRange(4,4);failReads=true;click('[data-action="shopping-refresh"]');assert.equal(d.getElementById('shopping-add-input').value,'Neuer Entwurf');assert(d.body.textContent.includes('Letzter geladener Stand'));assert(d.querySelector('#shopping-add-form button').disabled);assert(d.body.textContent.includes('Hafermilch'));
+failReads=false;click('[data-action="shopping-refresh"]');
+assert(d.querySelector('label[for="shopping-check-0"] .shop-picture-other'),'Unknown products keep a neutral picture');
+click('[data-action="shopping-pictures"]');
+assert.equal(d.querySelectorAll('.shop-choice .shop-product-photo').length,10);
+assert(d.querySelector('.shop-choice[data-product="0"]').disabled,'Already listed apples cannot be added twice');
+const catalogue=new Map();
+for(const group of d.querySelectorAll('.shop-group')){
+    group.click();assert.equal(group.getAttribute('aria-pressed'),'true');
+    for(const choice of d.querySelectorAll('.shop-choice')){
+        const photo=choice.querySelector('.shop-product-photo');
+        catalogue.set(choice.textContent,photo.className+'|'+photo.style.backgroundPosition);
+    }
+}
+assert.equal(catalogue.size,64);
+assert.equal(new Set(catalogue.values()).size,64);
+click('.shop-group[data-group="1"]');
+click('.shop-choice[data-product="3"]');click('.shop-choice[data-product="3"]');
+assert.equal(posts.length,1);post=posts.shift();assert.deepEqual(JSON.parse(post.body),{action:'add',name:'Möhren'});
+items.push({id:'carrot',name:'500 g Bio-Karotten',done:false,description:'',revision:'1'.repeat(64)});
+post.answer(200,{success:true});
+assert.equal(d.querySelector('#shopping-picture-picker'),null);
+assert(d.querySelector('[data-shopping-id="carrot"] + label .shop-product-photo'));
+assert(d.querySelector('details [data-shopping-id="old"] + label .shop-product-photo'));
+assert.equal(d.getElementById('shopping-add-input').value,'Neuer Entwurf');
+items=Array.from(catalogue.keys(),(name,i)=>({id:String(i),name:'2 × '+name,done:false,revision:'1'.repeat(64)}));
+items.push({id:'canned',name:'Tomaten aus der Dose',done:true,revision:'2'.repeat(64)});
+click('[data-action="shopping-refresh"]');
+for(const row of d.querySelectorAll('.shopping-main .shop-item')){
+    const entry=items.find(x=>x.id===row.querySelector('input').dataset.shoppingId);
+    const photo=row.querySelector('.shop-product-photo');assert(photo,entry.name);
+    assert.equal(photo.className+'|'+photo.style.backgroundPosition,catalogue.get(entry.id==='canned'?'Dosentomaten':entry.name.slice(4)),entry.name);
+}
 w.close();console.log('PASS: live list, safe text, add/clear input, duplicate click guard, confirmed check/restore, rename, delete confirmation, conflict, draft preservation and stale errors.');

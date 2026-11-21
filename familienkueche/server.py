@@ -281,9 +281,10 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'calendar-tools.js', 'calendar-editor.js', 'meals.js', 'meal-ai.js', 'meal-tools.js', 'weather.js', 'shopping.js', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'rewards.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
+    for filename in ('app.js', 'calendar-tools.js', 'calendar-editor.js', 'meals.js', 'meal-ai.js', 'meal-tools.js', 'weather.js', 'shopping.js', 'einkaufsbilder.webp', 'einkaufsbilder-2.webp', 'einkaufsbilder-3.webp', 'einkaufsbilder-4.webp', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'rewards.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
         async def asset(request, filename=filename):
-            return web.FileResponse(ROOT / 'www' / filename)
+            headers = {'Content-Type': 'image/webp'} if filename.endswith('.webp') else None
+            return web.FileResponse(ROOT / 'www' / filename, headers=headers)
         app.router.add_get('/' + filename, asset)
     return app
 

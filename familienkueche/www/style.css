@@ -519,3 +519,22 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .family-saver .weather-outfit{max-width:none;padding:6px 10px;font-size:15px;background:#e1ead9;color:#2f4930}
 .family-saver.saver-has-photo .weather-outfit,.family-saver.dark .weather-outfit,.family-saver.saver-night .weather-outfit{color:#f5faed;background:#2c4032;border:1px solid #aabca9}
 .family-saver.saver-has-photo .weather-outfit svg,.family-saver.dark .weather-outfit svg,.family-saver.saver-night .weather-outfit svg{fill:#506851}
+
+/* Local photo sheets for list rows and the touch picker. */
+.shop-item label{justify-content:flex-start;min-height:54px}
+.shop-picture{display:inline-flex;width:54px;height:54px;flex:0 0 54px;border-radius:10px;background-color:white}
+.shop-product-photo{background-image:url("einkaufsbilder.webp");background-size:400% 400%;background-repeat:no-repeat}
+.shop-picture-other{align-items:center;justify-content:center;color:#776955;background-color:#eee6db}
+.shop-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.shop-choice{display:flex;align-items:center;justify-content:center;flex-direction:column;padding:6px 2px;min-width:0;background:white;font-size:14px}
+.shop-choice .shop-picture{width:60px;height:60px;flex-basis:60px}
+@media(max-width:480px){.shop-choices{grid-template-columns:repeat(3,minmax(0,1fr))}.shop-item{gap:5px;padding:6px 2px}.shop-item label{gap:6px}}
+
+.shop-sheet-2{background-image:url("einkaufsbilder-2.webp")}
+.shop-sheet-3{background-image:url("einkaufsbilder-3.webp")}
+.shop-sheet-4{background-image:url("einkaufsbilder-4.webp")}
+.shop-groups{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:12px}
+.shop-group{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;background:#fff;padding:5px 0;font-size:12px;border-radius:10px}
+.shop-group .shop-picture{width:35px;height:35px;flex-basis:35px}
+.shop-group[aria-pressed="true"]{background:#e2ecd6;border:2px solid #536b46;font-weight:bold}
+@media(max-width:540px){.shop-groups{grid-template-columns:repeat(4,minmax(0,1fr))}}
