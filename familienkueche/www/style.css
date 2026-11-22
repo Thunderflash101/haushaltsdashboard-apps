@@ -550,9 +550,10 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .shop-group,.shop-choice{position:relative;background:white}
 .shop-group{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 2px;gap:2px;font-size:15px;font-weight:bold}
 .shop-group .shop-picture{width:60px;height:60px;flex-basis:60px}
-.shop-choice.on-list{opacity:1;background:#f3f7ee;border-color:#72895b}
+.shop-choice.shop-selected{opacity:1;background:#f3f7ee;border-color:#72895b}
 .shop-tick{display:none;position:absolute;right:5px;top:5px;border-radius:50%;background:#40663c;color:white;width:23px;height:23px;line-height:23px;font-weight:bold}
-.on-list .shop-tick{display:block}
+.on-list .shop-tick,.shop-selected .shop-tick{display:block}
+.on-list .shop-tick{background:#716c60}
 .shop-picker-nav,.shop-picker-footer{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .shop-picker-nav>button:not([hidden]){margin:0 0 8px}
 .shop-picker-footer{border-top:1px solid #ddd6c9;margin-top:10px;padding-top:8px}

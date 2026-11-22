@@ -1,3 +1,7 @@
+# 0.28.1
+
+- Produktbilder lassen sich sofort an- und abwählen. Erst „Fertig“ gleicht die Auswahl mit Home Assistant ab und fügt fehlende Artikel hinzu.
+
 # 0.28.0
 
 - 160 Einkaufsmotive in zehn großen Warengruppen. Häufig gekaufte Produkte erscheinen auf der Startseite der Bildauswahl. Nach dem Hinzufügen bleibt der Dialog offen, ein grüner Haken zeigt bestätigte Artikel.
