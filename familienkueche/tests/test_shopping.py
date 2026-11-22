@@ -40,6 +40,23 @@ class ShoppingApiTests(unittest.IsolatedAsyncioTestCase):
         self.ha.service.assert_not_awaited()
         self.ha.request.assert_awaited_once_with('GET','states/todo.shopping_list')
 
+    async def test_purchase_history_deduplicates_retains_and_undoes(self):
+        req = make_mocked_request('GET','/api/shopping',app=self.app)
+        async def purchases():
+            result = json.loads((await get_list(req)).text)
+            return result['purchases']
+        milk = [{'name':'Milch','count':1}]
+        self.assertEqual(await purchases(), milk)
+        self.assertEqual(await purchases(), milk)
+        self.ha.service.return_value = {'todo.shopping_list':{'items':[]}}
+        self.assertEqual(await purchases(), milk)
+        self.ha.service.return_value = {'todo.shopping_list':{'items':[dict(RAW[1], status='needs_action')]}}
+        self.assertEqual(await purchases(), [])
+        data = dict(action='status',id=RAW[1]['uid'],revision=normalize_items([dict(RAW[1],status='needs_action')])[0]['revision'],done=True)
+        self.assertEqual((await shopping_write(self.req(data))).status,200)
+        self.ha.service.return_value = {'todo.shopping_list':{'items':[]}}
+        self.assertEqual(await purchases(), milk)
+
     async def test_unavailable_or_invalid_count_is_not_zero(self):
         req=make_mocked_request('GET','/api/shopping/count',app=self.app)
         for raw in ['unavailable','unknown',None,'-1','1.5',False,'1e3']:

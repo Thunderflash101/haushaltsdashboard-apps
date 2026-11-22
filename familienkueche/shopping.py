@@ -1,4 +1,5 @@
 """A single configured HA to-do list, addressed by UID rather than item text."""
+import asyncio
 import hashlib
 import json
 import re
@@ -38,9 +39,33 @@ async def read_list(app):
             'fetchedAt': datetime.now(ZoneInfo('Europe/Berlin')).isoformat()}
 
 
+def remember_purchases(db, entity, items):
+    # A completed UID is counted once across list refreshes and devices.
+    db.executemany(
+        "DELETE FROM shopping_purchases WHERE entity=? AND uid=?",
+        ((entity, item['id']) for item in items if not item['done']))
+    completed = [item for item in items if item['done']][-512:]
+    db.executemany(
+        """INSERT INTO shopping_purchases(entity,uid,name) VALUES(?,?,?)
+           ON CONFLICT(entity,uid) DO UPDATE SET name=excluded.name
+           WHERE shopping_purchases.name != excluded.name""",
+        ((entity, item['id'], item['name']) for item in completed))
+    db.execute("""DELETE FROM shopping_purchases WHERE rowid IN
+                  (SELECT rowid FROM shopping_purchases WHERE entity=?
+                   ORDER BY rowid DESC LIMIT -1 OFFSET 512)""", (entity,))
+
+
 async def get_list(request):
     try:
-        return web.json_response(await read_list(request.app))
+        app = request.app
+        async with app['shopping_sync']:
+            result = await read_list(app)
+            entity, db = app['shopping_entity'], app['db']
+            with db:
+                remember_purchases(db, entity, result['items'])
+            rows = db.execute("SELECT name,count(*) FROM shopping_purchases WHERE entity=? GROUP BY name", (entity,))
+            result['purchases'] = [{'name': name, 'count': count} for name, count in rows]
+        return web.json_response(result)
     except Exception:
         return web.json_response({'error': 'Die Einkaufsliste konnte nicht aus Home Assistant geladen werden.'}, status=502)
 
@@ -90,7 +115,7 @@ async def shopping_write(request):
         return web.json_response({'error': 'Bitte Artikelname und Eintrag prüfen.'}, status=400)
     key = 'shopping:' + key
     digest = hashlib.sha256(json.dumps([action, payload], sort_keys=True).encode()).hexdigest()
-    async with request.app['write_lock']:
+    async with request.app['shopping_sync'], request.app['write_lock']:
         db = request.app['db']
         previous = db.execute('SELECT digest, status FROM submissions WHERE key=?', (key,)).fetchone()
         if previous:
@@ -130,8 +155,10 @@ async def shopping_write(request):
             await request.app['ha'].service('todo', service, {'entity_id': request.app['shopping_entity'], **service_data}, response=False)
         except Exception:
             return web.json_response({'error': 'Home Assistant hat die Änderung nicht sicher bestätigt. Bitte die Liste prüfen, bevor du den Vorgang wiederholst.', 'uncertain': True}, status=502)
-        db.execute('UPDATE submissions SET status=? WHERE key=?', ('done', key))
-        db.commit()
+        with db:
+            db.execute('UPDATE submissions SET status=? WHERE key=?', ('done', key))
+            if action == 'status':
+                remember_purchases(db, request.app['shopping_entity'], [dict(item, done=payload['done'])])
     return web.json_response({'success': True})
 
 
@@ -139,6 +166,9 @@ def setup(app, options):
     entity = options.get('shopping_entity') or 'todo.shopping_list'
     if not re.fullmatch(r'todo\.[a-z0-9_]+', entity):
         raise ValueError('Ungültige Einkaufslisten-Entität in der App-Konfiguration.')
+    app['db'].execute("""CREATE TABLE IF NOT EXISTS shopping_purchases (
+        entity TEXT NOT NULL, uid TEXT NOT NULL, name TEXT NOT NULL, PRIMARY KEY(entity, uid))""")
+    app['shopping_sync'] = asyncio.Lock()
     app['shopping_entity'] = entity
     app.router.add_get('/api/shopping', get_list)
     app.router.add_get('/api/shopping/count', get_count)

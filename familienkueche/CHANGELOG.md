@@ -1,3 +1,7 @@
+# 0.28.0
+
+- 160 Einkaufsmotive in zehn großen Warengruppen. Häufig gekaufte Produkte erscheinen auf der Startseite der Bildauswahl. Nach dem Hinzufügen bleibt der Dialog offen, ein grüner Haken zeigt bestätigte Artikel.
+
 # 0.27.0
 
 - Die Einkaufsliste erkennt 64 Lebensmittel und Haushaltsartikel und zeigt passende Produktbilder. Über „Nach Bild hinzufügen“ können Kinder Artikel ohne Tastatur in sieben bebilderten Gruppen auswählen.

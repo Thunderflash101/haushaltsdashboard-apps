@@ -704,8 +704,10 @@ Die Familienspalte enthält gemeinsam abzuhakende Gruppenaufgaben. Persönliche 
 
 Unter Aufgaben → Belohnungen eine Belohnung bearbeiten und unter „Auch als Überraschung in“ die Truhe wählen. Die drei Truhen kosten 10, 30 und 100 Münzen. Der normale Einzelpreis ist unabhängig davon. Jede Öffnung zieht mit gleicher Wahrscheinlichkeit einen der zugeordneten Gewinne. Derselbe Gewinn kann später erneut erscheinen. Erst das Bestätigen der Öffnung zieht Münzen ab. Unter „Meine Schätze“ bleiben Gewinne bis zur Erfüllung sichtbar. Bei aktivem Elternschutz benötigen Änderungen am Inhalt, Erfüllungsmarkierungen und Rückbuchungen die PIN.
 
-## Einkaufsbilder (0.27.0)
+## Einkaufsbilder (0.28.0)
 
 Bei „Einkauf“ erscheint neben bekannten Artikeln ein passendes Lebensmittelbild. Auch Mengen und Schreibweisen wie „500 g Bio-Karotten“ werden erkannt. Ein Tipp auf das Bild hakt den Artikel ab. Unter „Erledigt“ lässt er sich auf dieselbe Weise wieder öffnen. Bei anderen Artikeln erscheint ein Einkaufswagen.
 
-Über „Nach Bild hinzufügen“ stehen 64 Produkte in sieben bebilderten Gruppen zur Auswahl: Obst, Gemüse, Frühstück, Kühlregal, Vorräte, Getränke und Haushalt. Ein Tipp auf ein Bild fügt den beschrifteten Artikel zur eingerichteten Home-Assistant-Liste hinzu. Eigene Bezeichnungen und Mengen lassen sich weiterhin im Textfeld eingeben. Die Beispielbilder sind Bestandteil der App.
+Unter „Nach Bild hinzufügen“ stehen 160 Produkte in zehn bebilderten Warengruppen zur Auswahl. Auf der Startseite erscheinen unter „Oft gekauft“ bis zu vier Produkte aus den bekannten erledigten Einkäufen. Gibt es noch keine passenden Einkäufe, beginnt die Auswahl mit den Gruppen. Die App berücksichtigt je Liste bis zu 512 zuletzt erfasste erledigte Einträge. Beim Wiederöffnen eines Eintrags wird er aus der Auswertung genommen.
+
+Tippe eine Gruppe und danach die gewünschten Produktbilder an. Ein grüner Haken bedeutet, dass der Artikel auf der Liste steht. Mit „← Gruppen“ geht es zurück, „Fertig ✓“ schließt die Auswahl. Eigene Bezeichnungen und Mengen lassen sich weiterhin im Textfeld eingeben. Alle Beispielbilder liegen lokal in der App.
