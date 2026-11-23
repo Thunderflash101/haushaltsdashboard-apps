@@ -1,6 +1,12 @@
 # Familienküche
 
-Eigenständige Oberfläche für ein Tablet im Querformat mit Wochen-, Monats- und Listenansicht, Kalenderdaten aus Home Assistant und Essensplanung aus der bestehenden Mealie-Integration.
+Familienküche zeigt Kalenderdaten aus Home Assistant und den Essensplan aus Mealie auf dem Küchen-Tablet und dem Smartphone.
+
+## Bedienung auf dem Smartphone
+
+Beim Öffnen auf dem Handy erscheint der heutige Tag. Tippt oben auf einen Wochentag oder blättert mit den Pfeilen wochenweise. Auch zeitgleiche Termine stehen untereinander mit Titel und Uhrzeit. Ein Personenbild filtert die persönlichen Termine, „Familie“ zeigt alle. Über „Woche“, „Monat“ und „Liste“ könnt ihr die Ansicht wechseln.
+
+Die Leiste unten führt zu Kalender, Einkauf, Essensplan und Aufgaben. Im Essensplan wählt ihr oben einen Tag, um seine Gerichte zu sehen. Die Darstellung richtet sich automatisch nach dem verfügbaren Platz. Auf dem Fire HD 10 im Querformat öffnet sich standardmäßig das Wochenraster mit der Navigation links.
 
 ## Installation und Updates
 

@@ -1,3 +1,8 @@
+# 0.29.0
+
+- Auf dem Smartphone öffnet sich der ausgewählte Tag mit einer antippbaren Wochenleiste. Zeitgleiche Termine stehen in voller Breite untereinander. Über die Personenbilder lässt sich der Kalender filtern.
+- Kalender, Einkauf, Essensplan und Aufgaben sind auf schmalen Displays über die untere Navigation erreichbar. Auf dem Küchen-Tablet bleibt die Wochenansicht mit linker Navigation der Standard.
+
 # 0.28.1
 
 - Produktbilder lassen sich sofort an- und abwählen. Erst „Fertig“ gleicht die Auswahl mit Home Assistant ab und fügt fehlende Artikel hinzu.

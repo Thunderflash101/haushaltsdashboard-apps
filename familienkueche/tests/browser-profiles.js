@@ -43,7 +43,39 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  for(const size of [{width:1280,height:800},{width:960,height:600}]){await page.setViewportSize(size);await page.clock.runFor(250);assert(await page.locator('.app-main').evaluate(x=>x.scrollWidth<=x.clientWidth+1),'Calendar fits '+JSON.stringify(size));await page.screenshot({path:'/tmp/calendar-profile-'+size.width+'.png'});assert(await page.locator('.calendar-scroll').evaluate(x=>x.clientHeight>=150),'Calendar remains usable '+JSON.stringify(size)+' '+JSON.stringify(await page.evaluate(()=>['.header','.calendar-toolbar','.calendar-conflict-strip','.next-strip','.calendar','.cal-header','.all-day','.meal-strip','.calendar-scroll','.live-status'].map(s=>({s,h:document.querySelector(s)?.getBoundingClientRect().height})))));const bounds=await page.locator('.profile-filters').boundingBox();assert(bounds.x>=0&&bounds.x+bounds.width<=size.width,'All profiles fit tablet');}
  await page.setViewportSize({width:1280,height:800});await page.clock.runFor(250);await page.waitForFunction(()=>{const img=document.querySelector('.profile-filter.tina img');return img&&img.complete&&img.naturalWidth===320;});assert.equal(await page.locator('.profile-filter.tina .profile-avatar').evaluate(x=>getComputedStyle(x).borderTopColor),'rgb(17, 136, 170)');await page.screenshot({path:'/tmp/familienkueche-personen-kalender.png'});
  // A second device reads the same picture/colour; edits use revisions.
- const phoneContext=await browser.newContext({viewport:{width:412,height:915},isMobile:true,hasTouch:true}),phone=await phoneContext.newPage();phone.on('pageerror',e=>errors.push(e.message));await phone.route('**/api/**',mockApi);await phone.goto(base);await phone.waitForFunction(()=>document.querySelector('.profile-filter.tina img'));
+ const phoneContext=await browser.newContext({viewport:{width:412,height:915},isMobile:true,hasTouch:true}),phone=await phoneContext.newPage();phone.on('pageerror',e=>errors.push(e.message));await phone.route('**/api/**',mockApi);await phone.clock.install({time:new Date('2026-11-10T10:00:00+01:00')});await phone.goto(base);await phone.waitForFunction(()=>document.querySelector('.profile-filter.tina img'));
+ const phoneDay=phone.locator('.phone-agenda');
+ await phoneDay.locator('[data-id="tina"]').waitFor();
+ assert.equal(await phone.locator('.phone-weekday').count(),7);
+ assert.equal(await phone.locator('[data-mode="day"]').getAttribute('aria-pressed'),'true');
+ await phone.screenshot({path:'/tmp/familienkueche-handy-kalender.png'});
+ async function fits(label){
+   const bounds=await phone.evaluate(()=>{const main=document.querySelector('.app-main'),nav=document.querySelector('.side-nav').getBoundingClientRect();return [innerWidth,main.scrollWidth,main.clientWidth,document.documentElement.scrollWidth,innerHeight,nav.bottom];});
+   assert(bounds[1]<=bounds[2]+1&&bounds[3]<=bounds[0]+1&&Math.abs(bounds[4]-bounds[5])<=2,label+' '+bounds.join('/'));
+ }
+ await fits('Tag');
+ await phone.locator('.profile-filter.tina').click();assert.equal(await phoneDay.locator('[data-id="joern"]').count(),0);
+ await phone.locator('.profile-filter.joern').click();assert.equal(await phoneDay.locator('[data-id="tina"]').count(),0);
+ await phoneDay.locator('[data-id="joern"]').click();await phone.locator('#overlay .modal').waitFor();await phone.locator('#overlay [data-action="close"]').first().click();
+ await phone.locator('.phone-weekday[data-date="2026-11-13"]').click();
+ assert.equal(await phoneDay.locator('.day-entry').count(),0);
+ await phone.locator('[data-action="new-event"]').click();await phone.locator('#event-form').waitFor();
+ await phone.setViewportSize({width:360,height:480});await phone.clock.runFor(300);
+ assert(await phone.locator('#event-form').isVisible());await phone.locator('#overlay [data-action="close"]').first().click();
+ for(const mode of ['week','month','list','day']){
+   await phone.locator('[data-mode="'+mode+'"]').click();await fits(mode);
+ }
+ for(const screen of ['meals','family','shopping']){
+   await phone.locator('[data-screen="'+screen+'"]').click();await fits(screen);
+ }
+ await phone.locator('[data-action="shopping-pictures"]:enabled').click();await phone.locator('.shop-group[data-group="0"]').click();await phone.locator('[data-product="16"]').click();
+ await phone.setViewportSize({width:960,height:600});await phone.clock.runFor(350);
+ assert.equal(await phone.locator('[data-product="16"]').getAttribute('aria-pressed'),'true');
+ await phone.locator('#overlay .modal-head [data-action="close"]').click();
+ await phone.locator('[data-screen="calendar"]').click();assert.equal(await phone.locator('[data-mode="week"]').getAttribute('aria-pressed'),'true');
+ await phone.setViewportSize({width:412,height:915});await phone.clock.runFor(350);
+ assert.equal(await phone.locator('.phone-weekday[data-date="2026-11-13"]').getAttribute('aria-pressed'),'true');
+ assert.equal(await phone.locator('.profile-filter.joern').getAttribute('aria-pressed'),'true');
  await phone.locator('[data-action="settings"]').click();await phone.locator('[data-action="profiles-open"]').click();await phone.locator('[data-action="profile-edit"][data-person="felix"]').click();await phone.locator('#profile-photo-input:not([disabled])').waitFor();const phoneChooserReady=phone.waitForEvent('filechooser');await phone.locator('#profile-photo-input').click();const phoneChooser=await phoneChooserReady;assert(!phoneChooser.isMultiple());await phoneChooser.setFiles({name:'Person 3.jpg',mimeType:'image/jpeg',buffer:Buffer.from(jpg,'base64')});await phone.getByText('Foto gespeichert.',{exact:true}).waitFor();assert((await phone.locator('#profile-photo-input').inputValue()).includes('Person 3.jpg'));
  await phone.screenshot({path:'/tmp/familienkueche-personen-smartphone.png'});
  await page.locator('[data-action="settings"]').click();await page.locator('[data-action="profiles-open"]').click();await page.locator('[data-action="profile-refresh"]').click();await page.locator('[data-action="profile-edit"][data-person="felix"]').click();await page.locator('[data-profile-preview] img').waitFor();
