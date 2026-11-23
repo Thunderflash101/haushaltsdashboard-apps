@@ -64,7 +64,21 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  assert(await phone.locator('#event-form').isVisible());await phone.locator('#overlay [data-action="close"]').first().click();
  for(const mode of ['week','month','list','day']){
    await phone.locator('[data-mode="'+mode+'"]').click();await fits(mode);
+   if(mode==='month'){
+     const cell=phone.locator('.month-day[data-date="2026-11-10"]');
+     await cell.getByText('Person 2s Fußball',{exact:true}).waitFor();
+     assert((await cell.innerText()).includes('Restmüll'));
+     assert.equal(await cell.locator('.month-event strong').count(),2);
+     await phone.locator('.profile-filter[data-person="alle"]').click();
+     assert(await cell.locator('.month-more').isVisible());
+     await phone.setViewportSize({width:390,height:844});await phone.clock.runFor(300);
+     await phone.screenshot({path:'/tmp/familienkueche-handy-monat-0291.png'});
+     await cell.click();await phone.locator('#overlay [data-id="joern"]').waitFor();
+     await phone.locator('#overlay [data-action="close"]').first().click();
+     await phone.locator('.profile-filter.joern').click();
+   }
  }
+ await phone.locator('.phone-weekday[data-date="2026-11-13"]').click();
  for(const screen of ['meals','family','shopping']){
    await phone.locator('[data-screen="'+screen+'"]').click();await fits(screen);
  }

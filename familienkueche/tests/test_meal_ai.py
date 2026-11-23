@@ -169,6 +169,7 @@ class MealAIValidation(unittest.TestCase):
 
     def test_request_limits_and_current_dates(self):
         self.assertEqual(validate(data())['shop'], 'Aldi Nord')
+        self.assertEqual(validate({**data(), 'offers': 'Reis'})['offers'], 'Reis')
         for changes in [dict(confirm=False), dict(offers=''), dict(offers='x'*12001), dict(image='old-upload'),
                         dict(vegetarian='true'), dict(end='2020-01-01'), dict(shop='other')]:
             with self.assertRaises(ValueError): validate({**data(), **changes})
@@ -194,6 +195,24 @@ class MealAIValidation(unittest.TestCase):
 
 
 class MealAIApi(unittest.IsolatedAsyncioTestCase):
+    async def test_free_search_needs_no_offer_data_and_has_its_own_cache(self):
+        free = dict(useOffers=False, mode='quick', confirm=True, vegetarian=False)
+        result = await trial(self.request(free))
+        self.assertEqual(result.status, 200)
+        saved = json.loads(result.text)['result']
+        self.assertFalse(saved['useOffers'])
+        self.assertEqual(saved['offers'], [])
+        self.assertEqual(saved['recipes'][0]['matches'], [])
+        sent = self.app['meal_ai_call'].call_args.args[1]
+        criteria = json.loads(sent['input'][0]['content'][0]['text'])
+        self.assertTrue({'profile', 'learning', 'mode'} <= criteria.keys())
+        self.assertTrue({'shop', 'start', 'end', 'offers'}.isdisjoint(criteria))
+        retry = await trial(self.request({**data(), **free}, 'ai-free-1234567890123456'))
+        self.assertTrue(json.loads(retry.text)['cached'])
+        offer = await trial(self.request({**data(), **free, 'useOffers': True}, 'ai-offer-1234567890123456'))
+        self.assertTrue(json.loads(offer.text)['result']['useOffers'])
+        self.assertEqual(self.app['meal_ai_call'].await_count, 2)
+
     async def test_mode_specific_cache_and_server_profile(self):
         first = await trial(self.request({**data(), 'mode': 'quick', 'profile': {'preferred': [], 'avoid': []}}))
         self.assertEqual(first.status, 200)

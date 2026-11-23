@@ -1,3 +1,8 @@
+# 0.29.1
+
+- Die KI sucht standardmäßig frei nach Rezepten für den Familiengeschmack. Aldi-Angebote lassen sich bei Bedarf zuschalten.
+- Der Monatskalender zeigt auf schmalen Displays bis zu zwei Termintitel je Tag und einen Hinweis auf weitere Termine.
+
 # 0.29.0
 
 - Auf dem Smartphone öffnet sich der ausgewählte Tag mit einer antippbaren Wochenleiste. Zeitgleiche Termine stehen in voller Breite untereinander. Über die Personenbilder lässt sich der Kalender filtern.

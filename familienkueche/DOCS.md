@@ -8,6 +8,12 @@ Beim Öffnen auf dem Handy erscheint der heutige Tag. Tippt oben auf einen Woche
 
 Die Leiste unten führt zu Kalender, Einkauf, Essensplan und Aufgaben. Im Essensplan wählt ihr oben einen Tag, um seine Gerichte zu sehen. Die Darstellung richtet sich automatisch nach dem verfügbaren Platz. Auf dem Fire HD 10 im Querformat öffnet sich standardmäßig das Wochenraster mit der Navigation links.
 
+## Rezeptideen suchen
+
+Im Essensplan öffnet **Rezeptideen mit KI** die Chefkoch-Suche. Wählt die Kochzeit und bestätigt den kostenpflichtigen Start. Die freie Suche nutzt euren Geschmack, Favoriten und Rückmeldungen. Für Gerichte mit Wochenangeboten aktiviert **Aldi-Angebote berücksichtigen** und ladet die Zutaten aus Home Assistant oder tragt sie ein. Wenn der Sensor ausfällt, könnt ihr die Option ausschalten und frei suchen. **Aus eurer Mealie-Sammlung** durchsucht bereits gespeicherte Rezepte.
+
+Im Monatskalender auf dem Handy stehen bis zu zwei Termintitel pro Tag. Tippt auf den Tag, um alle Termine mit Uhrzeiten zu sehen.
+
 ## Installation und Updates
 
 Dieses GitHub-Repository in Home Assistant unter Einstellungen → Apps → App-Store → ⋮ → Repositories hinzufügen. Anschließend Familienküche installieren und die Quellen in der App-Konfiguration zuordnen. Neue Versionen werden über den App-Store angeboten. Ein Neustart allein installiert keine geänderte Version; das angebotene Update ausführen. Automatische Updates können nach einem erfolgreichen Test in der App-Verwaltung aktiviert werden.
