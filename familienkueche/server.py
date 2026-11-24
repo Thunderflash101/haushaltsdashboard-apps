@@ -24,7 +24,9 @@ SOURCES = (
 )
 
 class UpstreamError(Exception):
-    pass
+    def __init__(self, message, *, status=None):
+        super().__init__(message)
+        self.status = status
 
 class HomeAssistant:
     def __init__(self, session, token):
@@ -37,7 +39,7 @@ class HomeAssistant:
                     headers={'Authorization': 'Bearer ' + self.token}, json=payload,
                     params=params, allow_redirects=False) as response:
                 if response.status >= 300:
-                    raise UpstreamError('Home Assistant konnte die Anfrage nicht ausführen.')
+                    raise UpstreamError('Home Assistant konnte die Anfrage nicht ausführen.', status=response.status)
                 return await response.json()
         except (ClientError, OSError, asyncio.TimeoutError, ValueError) as exc:
             raise UpstreamError('Home Assistant ist momentan nicht erreichbar.') from exc
@@ -281,7 +283,7 @@ def make_app(ha, db_path='/data/submissions.sqlite', options=None):
     app.router.add_get('/api/calendar', calendar)
     app.router.add_post('/api/events', create_event)
     # Explicit assets only: no directory listing or access to server/config/database files.
-    for filename in ('app.js', 'calendar-tools.js', 'calendar-editor.js', 'meals.js', 'meal-ai.js', 'meal-tools.js', 'weather.js', 'shopping.js', 'einkaufsbilder.webp', 'einkaufsbilder-2.webp', 'einkaufsbilder-3.webp', 'einkaufsbilder-4.webp', 'einkaufsbilder-5.webp', 'einkaufsbilder-6.webp', 'einkaufsbilder-7.webp', 'einkaufsbilder-8.webp', 'einkaufsbilder-9.webp', 'einkaufsbilder-10.webp', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'rewards.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
+    for filename in ('app.js', 'calendar-tools.js', 'calendar-editor.js', 'meals.js', 'meal-ai.js', 'meal-tools.js', 'weather.js', 'shopping.js', 'einkaufsbilder.webp', 'einkaufsbilder-2.webp', 'einkaufsbilder-3.webp', 'einkaufsbilder-4.webp', 'einkaufsbilder-5.webp', 'einkaufsbilder-6.webp', 'einkaufsbilder-7.webp', 'einkaufsbilder-8.webp', 'einkaufsbilder-9.webp', 'einkaufsbilder-10.webp', 'einkaufsbilder-11.webp', 'ingredients.js', 'suggestions.js', 'timer-core.js', 'cooking.js', 'family.js', 'rewards.js', 'saver.js', 'profiles.js', 'reminders.js', 'style.css'):
         async def asset(request, filename=filename):
             headers = {'Content-Type': 'image/webp'} if filename.endswith('.webp') else None
             return web.FileResponse(ROOT / 'www' / filename, headers=headers)

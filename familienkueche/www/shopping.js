@@ -4,6 +4,10 @@ window.createFamilyShopping=function(h){
 var count={value:null,loading:false,last:0,seq:0};
 var state={loaded:false,loading:false,busy:false,error:'',uncertain:false,lastAttempt:0,items:[],label:'Einkaufsliste',canAdd:false,canUpdate:false,canRemove:false,draft:'',fetchedAt:null},viewport={scroll:0,completed:false,focus:false,start:0,end:0};
 // Each consecutive set of 16 products matches one local 4 × 4 photo sheet.
+function fruitYogurt(flavor){
+    var yogurt='(?:frucht[ -]?)?jogh?urts?';
+    return new RegExp('\\b(?:'+flavor+'[ -]?'+yogurt+'|'+yogurt+'[ -]+(?:mit )?'+flavor+')\\b');
+}
 var products=[
     ['Äpfel', /\b(?:apfel|aepfel|tafelaepfel|tafelapfel)\b/],
     ['Bananen', /\bbananen?\b/],
@@ -164,7 +168,23 @@ var products=[
     ['Tortillas', /\b(?:tortillas?|wraps?)\b/],
     ['Gnocchi', /\b(?:gnocchi)\b/],
     ['Tortellini', /\b(?:tortellini)\b/],
-    ['Falafel', /\b(?:falafeln?)\b/]
+    ['Falafel', /\b(?:falafeln?)\b/],
+    ['Nüsse', /\b(?:nuesse|nussmix|nussmischung|gemischte nuesse)\b/],
+    ['Walnüsse', /\b(?:walnuss|walnuesse|walnusskerne?)\b/],
+    ['Mandeln', /\b(?:mandeln?|mandelkerne?)\b/],
+    ['Cashews', /\b(?:cashews?|cashewkerne?|cashewnuesse)\b/],
+    ['Haselnüsse', /\b(?:haselnuss|haselnuesse|haselnusskerne?)\b/],
+    ['Erdnüsse', /\b(?:erdnuss|erdnuesse|erdnusskerne?)\b/],
+    ['Hamburgersoße', /\b(?:hamburger|hamburgen|burger)[ -]?(?:sosse|sauce)\b/],
+    ['Kaugummi', /\b(?:kaugummis?|kaugummistreifen|kaugummidragees)\b/],
+    ['Erdbeerjoghurt', fruitYogurt('erdbeer(?:e|en)?')],
+    ['Kirschjoghurt', fruitYogurt('kirsch(?:e|en)?')],
+    ['Mangojoghurt', fruitYogurt('mangos?')],
+    ['Pfirsichjoghurt', fruitYogurt('pfirsich(?:e)?')],
+    ['Heidelbeerjoghurt', fruitYogurt('(?:heidel|blau)beer(?:e|en)?')],
+    ['Bananenjoghurt', fruitYogurt('banan(?:e|en)?')],
+    ['Fruchtjoghurt', /\bfrucht[ -]?jogh?urts?\b/],
+    ['Wattestäbchen', /\b(?:watte[ -]?staebchen|q[ -]?tips?|ohrenstaebchen)\b/]
 ];
 function productWords(name){
     return name.toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss');
@@ -193,12 +213,12 @@ var groups=[
     ['Obst',[0,1,16,17,18,19,20,21,22,23,64,65,66,67,68,69,70,71,72,73]],
     ['Gemüse',[3,2,8,9,10,11,24,25,26,27,28,29,30,31,46,74,75,76,77,78,79]],
     ['Frühstück',[5,32,33,34,35,36,37,38,39,88,89,90,91,92,93,94,95]],
-    ['Kühlregal',[7,4,6,15,12,40,41,42,43,44,45,80,81,82,83,84,85,86,87,152,153,154,155,157,158,159]],
-    ['Vorräte',[13,14,47,48,49,50,51,52,53,54,55,59,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,156]],
+    ['Kühlregal',[7,4,6,15,12,40,168,169,170,171,172,173,174,41,42,43,44,45,80,81,82,83,84,85,86,87,152,153,154,155,157,158,159]],
+    ['Vorräte',[13,14,47,48,49,50,51,52,53,54,55,59,96,97,98,99,100,101,102,103,104,105,166,106,107,108,109,110,111,156]],
     ['Getränke',[57,56,58,112,113,114,115,116,117,118,119]],
     ['Tiefkühlung',[120,121,122,123,124,125,126,127]],
-    ['Snacks',[144,145,146,147,148,149,150,151]],
-    ['Drogerie',[128,129,130,131,132,133,134,135,136,137]],
+    ['Snacks',[144,145,146,147,148,149,150,151,160,161,162,163,164,165,167]],
+    ['Drogerie',[128,129,130,131,132,133,134,135,136,137,175]],
     ['Haushalt',[60,61,62,63,138,139,140,141,142,143]]
 ];
 var openPictures={},frequent=[],pickerConfirmed={},pictureDraft=new Map(),pickerMessage='';

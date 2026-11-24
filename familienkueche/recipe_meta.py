@@ -34,6 +34,13 @@ def duration_minutes(value):
     return round(minutes, 3) if 0 < minutes <= 10080 else None
 
 
+def mealie_minutes(raw, field):
+    seconds = raw.get(field + '_seconds')
+    if type(seconds) in (int, float) and 0 < seconds <= 7 * 86400:
+        return round(seconds / 60, 3)
+    return duration_minutes(raw.get(field))
+
+
 def metadata(raw):
     labels = set()
     for entry in (raw.get('tags') or []) + (raw.get('categories') or []):
@@ -41,10 +48,11 @@ def metadata(raw):
             labels.update(key(entry.get(field) or '') for field in ('name', 'slug'))
     vegetarian = bool(labels & {'vegetarisch', 'vegetarische-gerichte', 'vegetarian', 'veggie', 'vegan', 'vegane-gerichte'})
     favorite = bool(labels & {'familienfavorit', 'familienfavoriten', 'family-favorite', 'family-favourite'})
-    total = duration_minutes(raw.get('total_time'))
+    total = mealie_minutes(raw, 'total_time')
+    prep = mealie_minutes(raw, 'prep_time')
+    cook = mealie_minutes(raw, 'perform_time')
     # Prep time alone is not a reliable total duration.
     if total is None and not raw.get('total_time'):
-        prep, cook = duration_minutes(raw.get('prep_time')), duration_minutes(raw.get('perform_time'))
         if prep is not None and cook is not None:
             total = round(prep + cook, 3)
     last = None
@@ -56,4 +64,4 @@ def metadata(raw):
             last = stamp.astimezone(TZ).date().isoformat()
         except (ValueError, TypeError):
             pass
-    return {'favorite': favorite, 'vegetarian': vegetarian, 'minutes': total, 'lastMade': last}
+    return {'favorite': favorite, 'vegetarian': vegetarian, 'minutes': total, 'prepMinutes': prep, 'cookMinutes': cook, 'lastMade': last}

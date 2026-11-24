@@ -1,3 +1,10 @@
+# 0.29.2
+
+- Rezeptkarten und der Zeitfilter berücksichtigen die von Mealie gelieferten Sekundenwerte. Die Rezeptansicht zeigt auch Vorbereitungs- und Kochzeit, wenn diese hinterlegt sind.
+
+- 16 neue Einkaufsmotive, darunter Nüsse, Hamburgersoße, Fruchtjoghurts, Kaugummi und Wattestäbchen.
+- Der Angebotsabruf zeigt den betroffenen Sensor und den Fehlergrund. Fehlt der voreingestellte Platzhalter für Aldi Nord, fragt die App den Standardsensor für dieselbe Angebotswoche ab.
+
 # 0.29.1
 
 - Die KI sucht standardmäßig frei nach Rezepten für den Familiengeschmack. Aldi-Angebote lassen sich bei Bedarf zuschalten.

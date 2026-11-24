@@ -544,6 +544,7 @@ html.saver-active,body.saver-active{width:100%;height:100%;min-width:0;min-heigh
 .shop-sheet-8{background-image:url("einkaufsbilder-8.webp")}
 .shop-sheet-9{background-image:url("einkaufsbilder-9.webp")}
 .shop-sheet-10{background-image:url("einkaufsbilder-10.webp")}
+.shop-sheet-11{background-image:url("einkaufsbilder-11.webp")}
 
 .shopping-picker-modal{display:flex;flex-direction:column;height:90vh;max-height:620px;overflow:hidden}
 .shopping-picker-modal .modal-head{margin-bottom:8px}

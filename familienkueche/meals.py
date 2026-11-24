@@ -21,11 +21,14 @@ def recipe_id(value):
 def recipe_summary(raw):
     rid = recipe_id(raw['recipe_id'])
     from meal_ai import recipe_url
+    meta = metadata(raw)
+    minutes = meta['minutes']
+    time_label = f'{minutes:g}'.replace('.', ',') + ' Min.' if minutes is not None else str(raw.get('total_time') or '')
     return {'id': rid, 'sourceUrl': recipe_url(raw.get('original_url')), 'name': str(raw.get('name') or 'Ohne Titel'),
             'description': str(raw.get('description') or ''),
-            'time': str(raw.get('total_time') or raw.get('prep_time') or ''),
+            'time': time_label,
             'servings': raw.get('recipe_servings'),
-            'image': 'api/recipes/' + rid + '/image' if raw.get('image') else None, **metadata(raw)}
+            'image': 'api/recipes/' + rid + '/image' if raw.get('image') else None, **meta}
 
 
 def recipe_details(raw):

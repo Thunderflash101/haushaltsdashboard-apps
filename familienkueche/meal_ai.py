@@ -12,7 +12,7 @@ from urllib.parse import quote, unquote, urlsplit
 import yaml
 from aiohttp import ClientSession, ClientTimeout, web
 
-from server import TZ
+from server import TZ, UpstreamError
 
 SECRET = 'familienkueche_openai_api_key'
 SECRET_FILE = Path('/homeassistant/secrets.yaml')
@@ -47,12 +47,14 @@ NONFOOD = re.compile(r'hunde|katzen|tierfutter|spielzeug|dekoration|deko\b|kerze
 
 def ingredient_offers(raw):
     """Names only: observed upstream price/unit/date extraction is unreliable."""
-    if not isinstance(raw, dict) or raw.get('state') in ('unavailable', 'unknown'):
-        raise ValueError('Aldi-Angebote sind momentan nicht verfügbar.')
+    if not isinstance(raw, dict):
+        raise ValueError('Ungültige Sensorantwort.')
+    if raw.get('state') in ('unavailable', 'unknown'):
+        raise ValueError('Der Sensor meldet „' + raw['state'] + '“.')
     attrs = raw.get('attributes') or {}
-    rows = attrs.get('discounts')
+    rows = attrs.get('discounts') if isinstance(attrs, dict) else None
     if not isinstance(rows, list):
-        raise ValueError('Die Aldi-Integration liefert keine unterstützte Angebotsliste.')
+        raise ValueError('Das Attribut „discounts“ fehlt oder enthält keine Liste.')
     names, seen, incomplete = [], set(), 0
     for row in rows[:5000]:
         name = row.get('product') if isinstance(row, dict) else None
@@ -79,12 +81,36 @@ async def get_offers(request):
     if window not in ('current', 'next'):
         return web.json_response({'error': 'Bitte diese oder nächste Angebotswoche wählen.'}, status=400)
     entity = request.app['meal_ai_next_offers_entity' if window == 'next' else 'meal_ai_offers_entity']
-    try:
-        raw = await request.app['ha'].request('GET', 'states/' + entity)
-        result = ingredient_offers(raw)
-    except Exception:
-        return web.json_response({'error': 'Aldi-Angebote konnten nicht geladen werden. Bitte die Angebots-Sensoren der Integration prüfen. Es wurde keine KI-Anfrage gesendet.'}, status=502)
-    return web.json_response({**result, 'shop': request.app['meal_ai_offers_shop'], 'window': window})
+    shop = request.app['meal_ai_offers_shop']
+    candidates = [entity]
+    suffix = '_next' if window == 'next' else ''
+    if shop == 'Aldi Nord' and entity == 'sensor.shop_offers' + suffix:
+        candidates.append('sensor.aldi_nord_offers' + suffix)
+
+    for sensor in candidates:
+        try:
+            raw = await request.app['ha'].request('GET', 'states/' + sensor)
+        except UpstreamError as exc:
+            if exc.status == 404 and sensor != candidates[-1]:
+                continue
+            if exc.status == 404:
+                reason = 'Home Assistant findet den Sensor nicht (HTTP 404).'
+            elif exc.status in (401, 403):
+                reason = f'Home Assistant verweigert der App den Zugriff (HTTP {exc.status}).'
+            elif exc.status:
+                reason = f'Home Assistant antwortet mit HTTP {exc.status}.'
+            else:
+                reason = 'Die App konnte die Antwort von Home Assistant nicht abrufen oder lesen.'
+        except Exception:
+            reason = 'Unerwarteter Fehler beim Abruf aus Home Assistant.'
+        else:
+            try:
+                result = ingredient_offers(raw)
+            except ValueError as exc:
+                reason = str(exc)
+            else:
+                return web.json_response({**result, 'shop': shop, 'window': window, 'entity': sensor})
+        return web.json_response({'error': f'{sensor}: {reason} Es wurde keine KI-Anfrage gesendet.'}, status=502)
 
 
 def read_key(path=SECRET_FILE):

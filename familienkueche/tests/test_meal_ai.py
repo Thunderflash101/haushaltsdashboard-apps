@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 
 from aiohttp.test_utils import make_mocked_request
 from meal_ai import DEFAULT_PROFILE, get_offers, get_status, ingredient_offers, payload, read_key, recipe_url, result_from_response, taste_profile, trial, validate, varied_recipes
-from server import TZ, make_app
+from server import TZ, UpstreamError, make_app
 
 URL = 'https://www.chefkoch.de/rezepte/123456789/Brokkoli-Pasta.html'
 FAKE_KEY = 'sk-not-a-real-credential-test-only'
@@ -254,6 +254,39 @@ class MealAIApi(unittest.IsolatedAsyncioTestCase):
         self.app['ha'].request.assert_awaited_once_with('GET', 'states/sensor.shop_offers_next')
         self.app['meal_ai_call'].assert_not_called(); self.app['ha'].service.assert_not_called()
         self.assertEqual(json.loads((await get_status(self.request())).text)['reservedCents'], 0)
+
+    async def test_missing_placeholder_uses_standard_source_for_same_week(self):
+        for window, suffix in [('current', ''), ('next', '_next')]:
+            ha = self.app['ha'].request
+            ha.reset_mock()
+            ha.side_effect = [UpstreamError('private', status=404), {
+                'state': '1', 'attributes': {'discounts': [{'product': 'Tomaten'}]}}]
+            result = await get_offers(make_mocked_request('GET', '/api/meal-ai/offers?window='+window, app=self.app))
+            self.assertEqual(result.status, 200)
+            self.assertEqual(json.loads(result.text)['products'], ['Tomaten'])
+            self.assertEqual([call.args[1] for call in ha.await_args_list],
+                             ['states/sensor.shop_offers'+suffix, 'states/sensor.aldi_nord_offers'+suffix])
+        self.app['meal_ai_call'].assert_not_called()
+
+    async def test_offer_diagnostic_names_active_sensor_and_preserves_explicit_source(self):
+        for entity, reply, expected in [
+            ('sensor.explicit_offers', UpstreamError('private', status=404), '404'),
+            ('sensor.shop_offers', UpstreamError('private', status=403), '403'),
+            ('sensor.shop_offers', {'state': 'unavailable'}, 'unavailable'),
+            ('sensor.shop_offers', {'state': '10', 'attributes': {}}, 'discounts'),
+        ]:
+            self.app['meal_ai_offers_entity'] = entity
+            ha = self.app['ha'].request
+            ha.reset_mock()
+            ha.side_effect = [reply]
+            result = await get_offers(make_mocked_request('GET', '/api/meal-ai/offers', app=self.app))
+            self.assertEqual(result.status, 502)
+            message = json.loads(result.text)['error']
+            self.assertIn(expected, message)
+            self.assertIn(entity, message)
+            self.assertNotIn('private', message)
+            ha.assert_awaited_once_with('GET', 'states/'+entity)
+        self.app['meal_ai_call'].assert_not_called()
 
     async def test_offer_failure_and_invalid_window_do_not_charge(self):
         self.app['ha'].request.side_effect = RuntimeError('PRIVATE')

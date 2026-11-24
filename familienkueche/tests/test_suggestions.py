@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 from aiohttp.test_utils import make_mocked_request
 from server import make_app
 from recipe_meta import duration_minutes, metadata
+from meals import recipe_details
 from suggestions import rank_recipes, get_suggestions
 
 RID='a1234567-1234-4234-9234-123456789abc'
@@ -25,6 +26,18 @@ class MetadataTests(unittest.TestCase):
         self.assertFalse(m['vegetarian']);self.assertFalse(m['favorite']);self.assertEqual(m['minutes'],40)
         self.assertEqual(metadata({'prep_time':'10 min','perform_time':'15 min'})['minutes'],25)
 
+    def test_mealie_seconds_in_recipe_cards_and_details(self):
+        raw = {'name': 'Eintopf', 'recipe_id': RID, 'total_time': None,
+               'total_time_seconds': 3600, 'prep_time_seconds': 1200, 'perform_time_seconds': 2400}
+        r = recipe_details(raw)
+        self.assertEqual((r['minutes'], r['time'], r['prepMinutes'], r['cookMinutes']),
+                         (60, '60 Min.', 20, 40))
+        self.assertEqual(metadata({**raw, 'total_time_seconds': 5400})['minutes'], 90)
+        self.assertEqual(metadata({**raw, 'total_time_seconds': None})['minutes'], 60)
+        self.assertIsNone(metadata({'prep_time_seconds': 1200})['minutes'])
+        self.assertEqual(metadata({'total_time_seconds': 0, 'total_time': 'PT25M'})['minutes'], 25)
+
+
 class RankingTests(unittest.TestCase):
     def test_favorites_recency_and_existing_week_plan(self):
         rows=[recipe('favorite','Favorit',True),recipe('recent','Gerade gekocht',True,last='2026-11-06'),recipe('plain','Abwechslung'),recipe('planned','Schon geplant',True)]
@@ -42,7 +55,7 @@ class SuggestionApiTests(unittest.IsolatedAsyncioTestCase):
     async def test_history_failure_does_not_fabricate_success(self):
         ha=AsyncMock()
         async def service(domain,name,data,response=False):
-            if name=='get_recipes':return {'recipes':{'items':[{'recipe_id':RID,'name':'Pasta','tags':[{'name':'Familienfavorit'}],'total_time':'PT20M'}]}}
+            if name=='get_recipes':return {'recipes':{'items':[{'recipe_id':RID,'name':'Pasta','tags':[{'name':'Familienfavorit'}],'total_time':None,'total_time_seconds':1200}]}}
             raise TimeoutError()
         ha.service.side_effect=service
         app=make_app(ha,':memory:',options={'mealie_entry_id':'test'})

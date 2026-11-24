@@ -32,8 +32,8 @@ for(let i=0;i<10;i++){
     }
     click('[data-action="shopping-groups"]');
 }
-assert.equal(catalogue.size,160);
-assert.equal(new Set(catalogue.values()).size,160);
+assert.equal(catalogue.size,176);
+assert.equal(new Set(catalogue.values()).size,176);
 click('.shop-group[data-group="1"]');
 const carrot='.shop-choice[data-product="3"]',cucumber='[data-product="9"]',finish='[data-action="shopping-finish"]';
 const editingReads=reads;
@@ -77,5 +77,15 @@ for(const row of d.querySelectorAll('.shopping-main .shop-item')){
     const entry=items.find(x=>x.id===row.querySelector('input').dataset.shoppingId);
     const photo=row.querySelector('.shop-product-photo');assert(photo,entry.name);
     assert.equal(photo.className+'|'+photo.style.backgroundPosition,catalogue.get(entry.id==='canned'?'Dosentomaten':entry.name.slice(4)),entry.name);
+}
+const aliases={'Fruchtjoghurt Erdbeer':'Erdbeerjoghurt','Fruchtjoghurt Kirsche':'Kirschjoghurt',
+    'Mango-Joghurt':'Mangojoghurt','Joghurt mit Bananen':'Bananenjoghurt','Joghurt':'Naturjoghurt',
+    'Hamburgensoße':'Hamburgersoße','Burger Sauce':'Hamburgersoße','Q-Tips':'Wattestäbchen','Nussmix':'Nüsse'};
+items=Object.keys(aliases).map((name,i)=>({id:String(i),name,done:false,revision:'1'.repeat(64)}));
+click('[data-action="shopping-refresh"]');
+for(const item of items){
+    const photo=d.querySelector('[data-shopping-id="'+item.id+'"] + label .shop-product-photo');
+    assert(photo,item.name);
+    assert.equal(photo.className+'|'+photo.style.backgroundPosition,catalogue.get(aliases[item.name]),item.name);
 }
 w.close();console.log('PASS: live list, safe text, add/clear input, duplicate click guard, confirmed check/restore, rename, delete confirmation, conflict, draft preservation and stale errors.');
