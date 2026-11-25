@@ -1,3 +1,7 @@
+# 0.29.3
+
+- Bestätigtes Entfernen und Umbenennen von Einkaufsartikeln funktioniert wieder im Smartphone-Browser und in der Android-Webansicht.
+
 # 0.29.2
 
 - Rezeptkarten und der Zeitfilter berücksichtigen die von Mealie gelieferten Sekundenwerte. Die Rezeptansicht zeigt auch Vorbereitungs- und Kochzeit, wenn diese hinterlegt sind.

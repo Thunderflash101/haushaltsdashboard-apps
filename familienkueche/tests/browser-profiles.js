@@ -6,13 +6,23 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  try{
  const port=await new Promise((resolve,reject)=>{let output='';let timeout=setTimeout(()=>reject(Error('Fixture startup timeout '+log)),12000);server.stdout.on('data',x=>{output+=x;try{const result=JSON.parse(output.trim().split('\n')[0]);clearTimeout(timeout);resolve(result.port);}catch(e){}});server.on('error',reject);server.on('exit',code=>{clearTimeout(timeout);reject(Error('Fixture stopped '+code+' '+log));});});
  browser=await chromium.launch({executablePath:process.env.FAMILY_CHROMIUM||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage'],timeout:12000});
+ let shoppingItems=[{id:'test-cover',name:'Testabdeckung',revision:'a'.repeat(64),done:false},
+     {id:'test-lid',name:'Test-Schraubdeckel',revision:'b'.repeat(64),done:false}];
+ const shoppingWrites=[];
  const mockApi=async route=>{
   const url=new URL(route.request().url()),p=url.pathname;
   if(p.startsWith('/api/profiles')||p.startsWith('/api/family')||p.startsWith('/api/saver')||p.startsWith('/api/reminders'))return route.continue();
   let data;
   if(p==='/api/calendar'){const day='2026-11-10';const ev=(id,title,person,start,end)=>({id,title,date:day,person,source:person,sourceLabel:person,kind:person,start,end});data={fetchedAt:day+'T10:00:00+01:00',sources:[{key:'tina',ok:true,canCreate:false,events:[ev('tina','Person 1s Arzttermin','tina','11:00','12:00')]},{key:'joern',ok:true,canCreate:true,events:[ev('joern','Person 2s Fußball','joern','16:00','17:30')]},{key:'waste',ok:true,events:[{id:'waste',title:'Restmüll',date:day,person:'alle',kind:'waste',isWaste:true,allDay:true}]}]};}
   else if(p==='/api/weather')data={source:'Testwetter',condition:'partlycloudy',temperature:18,temperatureUnit:'°C',windSpeed:5,windUnit:'km/h',humidity:60,forecast:[],fetchedAt:new Date().toISOString()};
-  else if(p==='/api/shopping')data={items:[],label:'Test-Einkauf',canAdd:true,canUpdate:true,canRemove:true};
+  else if(p==='/api/shopping/actions'){
+   const action=route.request().postDataJSON();
+   shoppingWrites.push(action);
+   if(action.action==='remove')shoppingItems=shoppingItems.filter(item=>item.id!==action.id);
+   else if(action.action==='rename')shoppingItems=shoppingItems.map(item=>item.id===action.id?{...item,name:action.name}:item);
+   data={success:true};
+  }
+  else if(p==='/api/shopping')data={items:shoppingItems,label:'Test-Einkauf',canAdd:true,canUpdate:true,canRemove:true};
   else if(p==='/api/meals')data={entries:[],revisions:{}};
   else if(p==='/api/recipes')data={recipes:[]};
   else if(p==='/api/suggestions')data={recipes:[],matches:0,poolSize:0,warnings:[],today:new Date().toISOString().slice(0,10)};
@@ -82,6 +92,17 @@ const {chromium}=require(process.env.FAMILY_PLAYWRIGHT_MODULE||'playwright');
  for(const screen of ['meals','family','shopping']){
    await phone.locator('[data-screen="'+screen+'"]').click();await fits(screen);
  }
+ const remove=phone.locator('[data-action="shopping-remove"][data-id="test-cover"]');
+ await remove.tap();await phone.getByRole('button',{name:'Abbrechen',exact:true}).tap();
+ assert.equal(shoppingWrites.length,0);
+ await remove.tap();await phone.locator('#shopping-remove-form button[type=submit]').tap();
+ await remove.waitFor({state:'detached',timeout:5000});
+ await phone.locator('[data-action="shopping-rename"][data-id="test-lid"]').tap();
+ await phone.locator('#shopping-name').fill('Testdeckel');
+ await phone.locator('#shopping-rename-form button[type=submit]').tap();
+ await phone.locator('.shop-item').getByText('Testdeckel',{exact:true}).waitFor({timeout:5000});
+ assert.deepEqual(shoppingWrites,[{action:'remove',id:'test-cover',revision:'a'.repeat(64)},
+     {action:'rename',id:'test-lid',revision:'b'.repeat(64),name:'Testdeckel'}]);
  await phone.locator('[data-action="shopping-pictures"]:enabled').click();await phone.locator('.shop-group[data-group="0"]').click();await phone.locator('[data-product="16"]').click();
  await phone.setViewportSize({width:960,height:600});await phone.clock.runFor(350);
  assert.equal(await phone.locator('[data-product="16"]').getAttribute('aria-pressed'),'true');
