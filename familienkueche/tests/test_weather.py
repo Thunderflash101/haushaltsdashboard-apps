@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 from aiohttp.test_utils import make_mocked_request
 from server import make_app, SOURCES, normalize_event
 from datetime import date, datetime, timedelta, timezone
-from weather import current_weather, daily_forecast, hourly_forecast, weather
+from weather import TZ, current_weather, daily_forecast, hourly_forecast, weather
 
 class WeatherTests(unittest.TestCase):
     def test_missing_values_and_zero(self):
@@ -70,15 +70,17 @@ class WeatherApiTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_hourly_failure_keeps_daily_and_current(self):
         ha=AsyncMock();ha.request.return_value={'state':'cloudy','attributes':{'temperature':6,'supported_features':3}}
+        tomorrow=datetime.now(TZ).date()+timedelta(days=1)
+        forecast_time=datetime(tomorrow.year,tomorrow.month,tomorrow.day,12,tzinfo=TZ).isoformat()
         async def forecast(domain,name,payload,response=False):
             if payload['type']=='hourly':raise TimeoutError()
-            return {'weather.pirateweather':{'forecast':[{'datetime':datetime.now().date().isoformat()+'T12:00:00+01:00','temperature':10}]}}
+            return {'weather.pirateweather':{'forecast':[{'datetime':forecast_time,'temperature':10}]}}
         ha.service.side_effect=forecast
         app=make_app(ha,':memory:')
         try:
             data=json.loads((await weather(make_mocked_request('GET','/api/weather',app=app))).text)
             self.assertEqual(data['temperature'],6)
-            self.assertTrue(data['forecast'])
+            self.assertEqual(data['forecast'][0]['date'],tomorrow.isoformat())
             self.assertIsNone(data['forecastError'])
             self.assertTrue(data['hourlyForecastError'])
         finally:app['db'].close()
