@@ -1,5 +1,9 @@
 # Änderungen
 
+## 0.10.1
+
+- Neue Verträge lassen sich auch über eine lokale HTTP-Adresse speichern. Die Vertragskennung kann nun auch in Browsern ohne crypto.randomUUID erzeugt werden.
+
 ## 0.10.0
 
 - Darstellung wählen: Automatisch, Hell oder Dunkel, im Dashboard und auf der Bankseite.
