@@ -10,7 +10,8 @@ import subprocess
 import tempfile
 from unittest.mock import AsyncMock,patch
 
-from calendar_connection import BridgeGoogle,Connection,bridge_package,FILES
+from bridge_package import bridge_package, FILES
+from calendar_connection import BridgeGoogle, Connection
 from google_calendar import GoogleError
 
 

@@ -1,26 +1,34 @@
 """Fail publication checks if personal defaults or private files are present."""
 import json
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "familienkueche"))
+from bridge_package import bridge_package
+
 errors = []
-seed = json.loads((ROOT / "haushaltsdashboard/app/seed.json").read_text())
+seed = json.loads((ROOT / "haushaltsdashboard/app/seed.json").read_text(encoding="utf-8"))
 if seed != {"joern": None, "account": "", "fixed": [], "bookings": []}:
     errors.append("Die mitgelieferten Startdaten sind nicht leer.")
-dashboard = (ROOT / "haushaltsdashboard/app/public/dashboard.html").read_text()
+dashboard = (ROOT / "haushaltsdashboard/app/public/dashboard.html").read_text(encoding="utf-8")
 match = re.search(r'<script id="source-data" type="application/json">(.*?)</script>', dashboard, re.S)
 if not match or json.loads(match[1]) != seed:
     errors.append("Im Dashboard sind nicht-leere Startdaten eingebettet.")
 for path in ROOT.rglob("*"):
     if not path.is_file() or any(p in {".git", "__pycache__", "node_modules"} for p in path.relative_to(ROOT).parts):
         continue
-    relative = str(path.relative_to(ROOT))
+    relative = path.relative_to(ROOT).as_posix()
+    if relative == "familienkueche/familienkueche-calendar.zip":
+        if path.read_bytes() != bridge_package():
+            errors.append(relative + ": Archiv stimmt nicht mit dem öffentlichen Quellcode überein")
+        continue
     if path.suffix.lower() in {".pem", ".key", ".csv", ".p12", ".pfx", ".zip"} or path.name in {"private.json", "dashboard.json", ".env"}:
         errors.append(relative + ": private Datei im Repository")
         continue
     try:
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
     except (UnicodeDecodeError, OSError):
         continue
     if re.search(r"-----BEGIN (?:RSA )?PRIVATE KEY-----", text):

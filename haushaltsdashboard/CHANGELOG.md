@@ -1,5 +1,9 @@
 # Änderungen
 
+## 0.10.2
+
+- Auch über lokale HTTP-Adressen lassen sich geplante Kontoeingänge und Einmalzahlungen speichern, Erstattungen und Umbuchungen zuordnen und unklare CSV-Buchungen zur Prüfung vormerken.
+
 ## 0.10.1
 
 - Neue Verträge lassen sich auch über eine lokale HTTP-Adresse speichern. Die Vertragskennung kann nun auch in Browsern ohne crypto.randomUUID erzeugt werden.

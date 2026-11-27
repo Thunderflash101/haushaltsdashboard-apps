@@ -20,11 +20,12 @@ try{
     booking('20.10.2026',-50,'Depot','ETFs'),booking('25.10.2026',-200,'Eigener Übertrag','Haushaltsgeld',{account:'konto-a'}),booking('25.10.2026',200,'Eigener Eingang','Sonstige Einnahmen',{account:'konto-b'})
   ]};
   await request({revision:initial.revision,state});
-  browser=await chromium.launch({headless:true});
+  browser=await chromium.launch({headless:true,args:['--no-proxy-server','--host-resolver-rules=MAP haushalt.test 127.0.0.1']});
   const context=await browser.newContext({extraHTTPHeaders:headers,timezoneId:'Europe/Berlin'}),errors=[];page=await context.newPage();page.setDefaultTimeout(15000);
   page.on('pageerror',error=>errors.push(error.message));
   const saved=async()=>{await page.waitForFunction(()=>document.querySelector('#server-state')?.textContent==='Auf dem NUC gespeichert');};
-  await page.goto(origin+'/dashboard.html');
+  await page.goto(origin.replace('127.0.0.1','haushalt.test')+'/dashboard.html');
+  assert.equal(await page.evaluate(()=>isSecureContext),false);
   await page.locator('#kpi-income').filter({hasText:'1.310'}).waitFor();
   await page.locator('[data-view="bookings"]').click();
   let row=page.locator('#booking-rows tr').filter({hasText:'Online-Shop'}).filter({hasText:'-100,00'});
