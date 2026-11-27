@@ -143,6 +143,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script id="source-data" type="application/json">{"joern": null, "account": "", "fixed": [], "bookings": []}</script>
 <script type="module">
+import {newRecordId} from "./record-id.mjs";
 import * as Finance from "./finance.mjs";
 import {createContractsUI} from "./contracts-ui.mjs";
 import {purposePreview} from "./booking-text.mjs";
@@ -210,7 +211,7 @@ function selectNewBookings(existing, imported) {
     const candidates=bankRows.filter(x=>!used.has(x.index)&&x.b.date===b.date&&Math.round(x.b.amount*100)===Math.round(b.amount*100));
     const exact=candidates.find(x=>clean(x.b.payee)===clean(b.payee)&&purposeCore(x.b.purpose)===purposeCore(b.purpose)&&(clean(b.payee)||purposeCore(b.purpose)));
     if(exact){used.add(exact.index);duplicates++;continue;}
-    if(candidates.length){held.push({id:crypto.randomUUID(),booking:{...b,bankId,importSource:'csv-review'},candidates:candidates.slice(0,10).map(x=>({date:x.b.date,payee:x.b.payee,purpose:x.b.purpose,amount:x.b.amount}))});continue;}
+    if(candidates.length){held.push({id:newRecordId(),booking:{...b,bankId,importSource:'csv-review'},candidates:candidates.slice(0,10).map(x=>({date:x.b.date,payee:x.b.payee,purpose:x.b.purpose,amount:x.b.amount}))});continue;}
     fresh.push(b);
   }
   return {fresh,duplicates,held};
@@ -774,7 +775,7 @@ function compareToTypical(bookings,key,spendingOnly=false){
     $('insight-dialog').showModal();
   }
   let relationIndex=-1,relationParts=[];
-  const ensureFinanceId=b=>b.financeId||(b.financeId=crypto.randomUUID());
+  const ensureFinanceId=b=>b.financeId||(b.financeId=newRecordId());
   function clearOwnRelation(bookings,b){
     const peer=bookings.find(x=>b.transferPeerId&&x.financeId===b.transferPeerId);
     for(const item of [b,peer].filter(Boolean)){

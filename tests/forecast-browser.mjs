@@ -11,8 +11,9 @@ async function request(data){const r=await fetch(origin+'/api/dashboard',{method
 let browser,page;
 try{
   let db=await request();db.state.fixed=[{name:'Internet',category:'Internet',monthly:100,rhythm:'monatlich',status:'Ja',dueDay:15,matchKeyword:'Testanbieter'},{name:'Jahresbeitrag',category:'Versicherung',monthly:10,rhythm:'jährlich',status:'Ja'}];db.state.categories=['Internet','Lebensmittel','Werkstatt'];db.state.budgets={Lebensmittel:300};db.state.incomes={'2026-11':{joern:1800,bettina:0}};
-  await request(db);browser=await chromium.launch({headless:true});const context=await browser.newContext({extraHTTPHeaders:headers,timezoneId:'Europe/Berlin'});page=await context.newPage();page.setDefaultTimeout(15000);await page.clock.setFixedTime(new Date('2026-11-10T12:00:00Z'));const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(origin+'/dashboard.html');await page.locator('[data-view="forecast"]').click();assert.match(await page.locator('#forecast-balance-note').innerText(),/Kein geeigneter/);
+  await request(db);browser=await chromium.launch({headless:true,args:['--no-proxy-server','--host-resolver-rules=MAP haushalt.test 127.0.0.1']});const context=await browser.newContext({extraHTTPHeaders:headers,timezoneId:'Europe/Berlin'});page=await context.newPage();page.setDefaultTimeout(15000);await page.clock.setFixedTime(new Date('2026-11-10T12:00:00Z'));const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(origin.replace('127.0.0.1','haushalt.test')+'/dashboard.html');
+  assert.equal(await page.evaluate(()=>isSecureContext),false);await page.locator('[data-view="forecast"]').click();assert.match(await page.locator('#forecast-balance-note').innerText(),/Kein geeigneter/);
   assert.equal(await page.locator('.forecast-notice-details').evaluate(el=>el.open),false);
   assert.equal(await page.locator('#forecast-warnings > .notice').count(),0);
   await page.locator('#forecast-warnings').getByRole('button',{name:'Einkommen planen',exact:true}).click();assert.equal(await page.locator('#forecast-income-name').isVisible(),true);await page.getByText('Einkommensplan hinzufügen',{exact:true}).click();

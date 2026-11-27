@@ -2,16 +2,9 @@ import {validateContracts,contractTerm,contractHistories,contractSuggestions,cal
 import {purposePreview,isPayPal} from './booking-text.mjs';
 import {learnPatterns} from './learning.mjs';
 import {berlinToday,validateFinanceState,applyContributionRules} from './finance.mjs';
+import {newRecordId} from './record-id.mjs';
 const $=id=>document.getElementById(id),eur=n=>new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n||0),date=s=>s?s.split('-').reverse().join('.'):'Nicht hinterlegt';
 function el(tag,attrs={},children=[]){const e=document.createElement(tag);for(const [key,value] of Object.entries(attrs)){if(key==='text')e.textContent=value;else if(key==='class')e.className=value;else e.setAttribute(key,value);}e.append(...children);return e;}
-function contractId(){
-  if(typeof crypto.randomUUID==='function')return crypto.randomUUID();
-  const bytes=crypto.getRandomValues(new Uint8Array(16));
-  bytes[6]=(bytes[6]&15)|64;
-  bytes[8]=(bytes[8]&63)|128;
-  const hex=Array.from(bytes,n=>n.toString(16).padStart(2,'0')).join('');
-  return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join('-');
-}
 export function createContractsUI({getState,getAccount,save,renderAll,openView}){
   let editing=null,template=null,pendingBooking=null,bookingIndex=null;
   const scoped=()=>{const state=getState(),account=String(getAccount()||'').replace(/\s/g,'').toUpperCase();return {...state,bookings:state.bookings.filter(b=>!account||!b.account||String(b.account).replace(/\s/g,'').toUpperCase()===account)};};
@@ -59,7 +52,7 @@ export function createContractsUI({getState,getAccount,save,renderAll,openView})
   $('contract-match-mode').addEventListener('change',()=>{$('contract-match').required=$('contract-match-mode').value!=='manual';});
   $('contract-add').addEventListener('click',()=>open());for(const id of ['contract-close','contract-cancel'])$(id).addEventListener('click',()=>$('contract-dialog').close());
   for(const id of ['contract-search','contract-filter'])$(id).addEventListener(id==='contract-search'?'input':'change',render);
-  $('contract-form').addEventListener('submit',event=>{event.preventDefault();const c={id:editing||contractId(),patternId:template.patternId||'',name:$('contract-name').value.trim(),provider:$('contract-provider').value.trim(),category:$('contract-category').value,amount:Number($('contract-amount').value),cycleMonths:Number($('contract-cycle').value),dueDay:Number($('contract-day').value),anchorMonth:Number($('contract-anchor').value),matchKeyword:$('contract-match').value.trim(),matchMode:$('contract-match-mode').value,costOwner:$('contract-owner').value,showInFixed:$('contract-show-fixed').checked,number:$('contract-number').value.trim(),notes:$('contract-notes').value.trim(),priceMode:$('contract-price-mode').value,status:$('contract-status').value,startDate:$('contract-start').value,endDate:$('contract-end').value,deadline:$('contract-deadline').value,cancellationSent:$('contract-sent').value,renewalMonths:Number($('contract-renewal').value),noticeValue:$('contract-notice').value===''?null:Number($('contract-notice').value),noticeUnit:$('contract-notice-unit').value,linkedFixedIndex:$('contract-linked').value===''?null:Number($('contract-linked').value)};const contracts=[...(getState().contracts||[])],index=contracts.findIndex(x=>x.id===editing);if(index<0)contracts.push(c);else contracts[index]=c;if(commit(contracts,pendingBooking,pendingBooking===null?null:c.id))$('contract-dialog').close();});
+  $('contract-form').addEventListener('submit',event=>{event.preventDefault();const c={id:editing||newRecordId(),patternId:template.patternId||'',name:$('contract-name').value.trim(),provider:$('contract-provider').value.trim(),category:$('contract-category').value,amount:Number($('contract-amount').value),cycleMonths:Number($('contract-cycle').value),dueDay:Number($('contract-day').value),anchorMonth:Number($('contract-anchor').value),matchKeyword:$('contract-match').value.trim(),matchMode:$('contract-match-mode').value,costOwner:$('contract-owner').value,showInFixed:$('contract-show-fixed').checked,number:$('contract-number').value.trim(),notes:$('contract-notes').value.trim(),priceMode:$('contract-price-mode').value,status:$('contract-status').value,startDate:$('contract-start').value,endDate:$('contract-end').value,deadline:$('contract-deadline').value,cancellationSent:$('contract-sent').value,renewalMonths:Number($('contract-renewal').value),noticeValue:$('contract-notice').value===''?null:Number($('contract-notice').value),noticeUnit:$('contract-notice-unit').value,linkedFixedIndex:$('contract-linked').value===''?null:Number($('contract-linked').value)};const contracts=[...(getState().contracts||[])],index=contracts.findIndex(x=>x.id===editing);if(index<0)contracts.push(c);else contracts[index]=c;if(commit(contracts,pendingBooking,pendingBooking===null?null:c.id))$('contract-dialog').close();});
   function openBooking(index){
     bookingIndex=index;const state=getState(),b=state.bookings[index],canLink=b.amount<0&&!b.splits?.length&&!b.transferPeerId,select=$('booking-contract-select');
     const eligible=b.amount>0&&!b.refund&&!b.transferPeerId&&!b.splits?.length&&b.flowType!=='investment'&&b.flowType!=='refund';
